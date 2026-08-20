@@ -1,0 +1,671 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		BB576EE53034F5EB004D1ADE /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB576EDE3034F5EB004D1ADE /* Info.plist */; };
+		BB576EE63034F5EB004D1ADE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BB576EDA3034F5EB004D1ADE /* Assets.xcassets */; };
+		BB576EE73034F5EB004D1ADE /* behaviors.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB576ED43034F5EB004D1ADE /* behaviors.pb.swift */; };
+		BB576EE83034F5EB004D1ADE /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB576EDC3034F5EB004D1ADE /* ContentView.swift */; };
+		BB576EE93034F5EB004D1ADE /* keymap.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB576ED63034F5EB004D1ADE /* keymap.pb.swift */; };
+		BB576EEA3034F5EB004D1ADE /* core.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB576ED53034F5EB004D1ADE /* core.pb.swift */; };
+		BB576EEB3034F5EB004D1ADE /* BLETransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB576EDB3034F5EB004D1ADE /* BLETransport.swift */; };
+		BB576EEC3034F5EB004D1ADE /* OverlayPanelController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB576EE33034F5EB004D1ADE /* OverlayPanelController.swift */; };
+		BB576EED3034F5EB004D1ADE /* KeyboardOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB576EE13034F5EB004D1ADE /* KeyboardOverlayView.swift */; };
+		BB576EEE3034F5EB004D1ADE /* FrameCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB576EDD3034F5EB004D1ADE /* FrameCodec.swift */; };
+		BB576EEF3034F5EB004D1ADE /* studio.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB576ED83034F5EB004D1ADE /* studio.pb.swift */; };
+		BB576EF03034F5EB004D1ADE /* KeyboardOverlayApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB576EE03034F5EB004D1ADE /* KeyboardOverlayApp.swift */; };
+		BB576EF13034F5EB004D1ADE /* meta.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB576ED73034F5EB004D1ADE /* meta.pb.swift */; };
+		BB576EF23034F5EB004D1ADE /* OverlayModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB576EE23034F5EB004D1ADE /* OverlayModel.swift */; };
+		BB576EF43034F652004D1ADE /* SwiftProtobuf in Frameworks */ = {isa = PBXBuildFile; productRef = BB576EF33034F652004D1ADE /* SwiftProtobuf */; };
+		BB576EF63034F652004D1ADE /* SwiftProtobufPluginLibrary in Frameworks */ = {isa = PBXBuildFile; productRef = BB576EF53034F652004D1ADE /* SwiftProtobufPluginLibrary */; };
+		BB576EF83034F653004D1ADE /* protoc in Frameworks */ = {isa = PBXBuildFile; productRef = BB576EF73034F652004D1ADE /* protoc */; };
+		BB576EFA3034F653004D1ADE /* protoc-gen-swift in Frameworks */ = {isa = PBXBuildFile; productRef = BB576EF93034F653004D1ADE /* protoc-gen-swift */; };
+		BB576EFC3034FD1B004D1ADE /* HIDKeyLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB576EFB3034FD06004D1ADE /* HIDKeyLabel.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		BB576E963034E5A2004D1ADE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BB576E7F3034E5A1004D1ADE /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BB576E863034E5A1004D1ADE;
+			remoteInfo = KeyboardOverlay;
+		};
+		BB576EA03034E5A2004D1ADE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BB576E7F3034E5A1004D1ADE /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BB576E863034E5A1004D1ADE;
+			remoteInfo = KeyboardOverlay;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		BB576E873034E5A1004D1ADE /* KeyboardOverlay.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KeyboardOverlay.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		BB576E953034E5A2004D1ADE /* KeyboardOverlayTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KeyboardOverlayTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		BB576E9F3034E5A2004D1ADE /* KeyboardOverlayUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KeyboardOverlayUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		BB576ED43034F5EB004D1ADE /* behaviors.pb.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = behaviors.pb.swift; sourceTree = "<group>"; };
+		BB576ED53034F5EB004D1ADE /* core.pb.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = core.pb.swift; sourceTree = "<group>"; };
+		BB576ED63034F5EB004D1ADE /* keymap.pb.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = keymap.pb.swift; sourceTree = "<group>"; };
+		BB576ED73034F5EB004D1ADE /* meta.pb.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = meta.pb.swift; sourceTree = "<group>"; };
+		BB576ED83034F5EB004D1ADE /* studio.pb.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = studio.pb.swift; sourceTree = "<group>"; };
+		BB576EDA3034F5EB004D1ADE /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		BB576EDB3034F5EB004D1ADE /* BLETransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BLETransport.swift; sourceTree = "<group>"; };
+		BB576EDC3034F5EB004D1ADE /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		BB576EDD3034F5EB004D1ADE /* FrameCodec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameCodec.swift; sourceTree = "<group>"; };
+		BB576EDE3034F5EB004D1ADE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		BB576EDF3034F5EB004D1ADE /* KeyboardOverlay.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = KeyboardOverlay.entitlements; sourceTree = "<group>"; };
+		BB576EE03034F5EB004D1ADE /* KeyboardOverlayApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardOverlayApp.swift; sourceTree = "<group>"; };
+		BB576EE13034F5EB004D1ADE /* KeyboardOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardOverlayView.swift; sourceTree = "<group>"; };
+		BB576EE23034F5EB004D1ADE /* OverlayModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayModel.swift; sourceTree = "<group>"; };
+		BB576EE33034F5EB004D1ADE /* OverlayPanelController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayPanelController.swift; sourceTree = "<group>"; };
+		BB576EFB3034FD06004D1ADE /* HIDKeyLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HIDKeyLabel.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		BB576E983034E5A2004D1ADE /* KeyboardOverlayTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = KeyboardOverlayTests;
+			sourceTree = "<group>";
+		};
+		BB576EA23034E5A2004D1ADE /* KeyboardOverlayUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = KeyboardOverlayUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		BB576E843034E5A1004D1ADE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BB576EFA3034F653004D1ADE /* protoc-gen-swift in Frameworks */,
+				BB576EF63034F652004D1ADE /* SwiftProtobufPluginLibrary in Frameworks */,
+				BB576EF43034F652004D1ADE /* SwiftProtobuf in Frameworks */,
+				BB576EF83034F653004D1ADE /* protoc in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BB576E923034E5A2004D1ADE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BB576E9C3034E5A2004D1ADE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		BB576E7E3034E5A1004D1ADE = {
+			isa = PBXGroup;
+			children = (
+				BB576EE43034F5EB004D1ADE /* KeyboardOverlay */,
+				BB576E983034E5A2004D1ADE /* KeyboardOverlayTests */,
+				BB576EA23034E5A2004D1ADE /* KeyboardOverlayUITests */,
+				BB576E883034E5A1004D1ADE /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		BB576E883034E5A1004D1ADE /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				BB576E873034E5A1004D1ADE /* KeyboardOverlay.app */,
+				BB576E953034E5A2004D1ADE /* KeyboardOverlayTests.xctest */,
+				BB576E9F3034E5A2004D1ADE /* KeyboardOverlayUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		BB576ED93034F5EB004D1ADE /* Proto */ = {
+			isa = PBXGroup;
+			children = (
+				BB576ED43034F5EB004D1ADE /* behaviors.pb.swift */,
+				BB576ED53034F5EB004D1ADE /* core.pb.swift */,
+				BB576ED63034F5EB004D1ADE /* keymap.pb.swift */,
+				BB576ED73034F5EB004D1ADE /* meta.pb.swift */,
+				BB576ED83034F5EB004D1ADE /* studio.pb.swift */,
+			);
+			path = Proto;
+			sourceTree = "<group>";
+		};
+		BB576EE43034F5EB004D1ADE /* KeyboardOverlay */ = {
+			isa = PBXGroup;
+			children = (
+				BB576EFB3034FD06004D1ADE /* HIDKeyLabel.swift */,
+				BB576ED93034F5EB004D1ADE /* Proto */,
+				BB576EDA3034F5EB004D1ADE /* Assets.xcassets */,
+				BB576EDB3034F5EB004D1ADE /* BLETransport.swift */,
+				BB576EDC3034F5EB004D1ADE /* ContentView.swift */,
+				BB576EDD3034F5EB004D1ADE /* FrameCodec.swift */,
+				BB576EDE3034F5EB004D1ADE /* Info.plist */,
+				BB576EDF3034F5EB004D1ADE /* KeyboardOverlay.entitlements */,
+				BB576EE03034F5EB004D1ADE /* KeyboardOverlayApp.swift */,
+				BB576EE13034F5EB004D1ADE /* KeyboardOverlayView.swift */,
+				BB576EE23034F5EB004D1ADE /* OverlayModel.swift */,
+				BB576EE33034F5EB004D1ADE /* OverlayPanelController.swift */,
+			);
+			path = KeyboardOverlay;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		BB576E863034E5A1004D1ADE /* KeyboardOverlay */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BB576EA93034E5A2004D1ADE /* Build configuration list for PBXNativeTarget "KeyboardOverlay" */;
+			buildPhases = (
+				BB576E833034E5A1004D1ADE /* Sources */,
+				BB576E843034E5A1004D1ADE /* Frameworks */,
+				BB576E853034E5A1004D1ADE /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = KeyboardOverlay;
+			packageProductDependencies = (
+				BB576EF33034F652004D1ADE /* SwiftProtobuf */,
+				BB576EF53034F652004D1ADE /* SwiftProtobufPluginLibrary */,
+				BB576EF73034F652004D1ADE /* protoc */,
+				BB576EF93034F653004D1ADE /* protoc-gen-swift */,
+			);
+			productName = KeyboardOverlay;
+			productReference = BB576E873034E5A1004D1ADE /* KeyboardOverlay.app */;
+			productType = "com.apple.product-type.application";
+		};
+		BB576E943034E5A2004D1ADE /* KeyboardOverlayTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BB576EAC3034E5A2004D1ADE /* Build configuration list for PBXNativeTarget "KeyboardOverlayTests" */;
+			buildPhases = (
+				BB576E913034E5A2004D1ADE /* Sources */,
+				BB576E923034E5A2004D1ADE /* Frameworks */,
+				BB576E933034E5A2004D1ADE /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				BB576E973034E5A2004D1ADE /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				BB576E983034E5A2004D1ADE /* KeyboardOverlayTests */,
+			);
+			name = KeyboardOverlayTests;
+			packageProductDependencies = (
+			);
+			productName = KeyboardOverlayTests;
+			productReference = BB576E953034E5A2004D1ADE /* KeyboardOverlayTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		BB576E9E3034E5A2004D1ADE /* KeyboardOverlayUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BB576EAF3034E5A2004D1ADE /* Build configuration list for PBXNativeTarget "KeyboardOverlayUITests" */;
+			buildPhases = (
+				BB576E9B3034E5A2004D1ADE /* Sources */,
+				BB576E9C3034E5A2004D1ADE /* Frameworks */,
+				BB576E9D3034E5A2004D1ADE /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				BB576EA13034E5A2004D1ADE /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				BB576EA23034E5A2004D1ADE /* KeyboardOverlayUITests */,
+			);
+			name = KeyboardOverlayUITests;
+			packageProductDependencies = (
+			);
+			productName = KeyboardOverlayUITests;
+			productReference = BB576E9F3034E5A2004D1ADE /* KeyboardOverlayUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		BB576E7F3034E5A1004D1ADE /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1640;
+				LastUpgradeCheck = 1640;
+				TargetAttributes = {
+					BB576E863034E5A1004D1ADE = {
+						CreatedOnToolsVersion = 16.4;
+					};
+					BB576E943034E5A2004D1ADE = {
+						CreatedOnToolsVersion = 16.4;
+						TestTargetID = BB576E863034E5A1004D1ADE;
+					};
+					BB576E9E3034E5A2004D1ADE = {
+						CreatedOnToolsVersion = 16.4;
+						TestTargetID = BB576E863034E5A1004D1ADE;
+					};
+				};
+			};
+			buildConfigurationList = BB576E823034E5A1004D1ADE /* Build configuration list for PBXProject "KeyboardOverlay" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = BB576E7E3034E5A1004D1ADE;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				BB576EC73034F565004D1ADE /* XCRemoteSwiftPackageReference "swift-protobuf" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = BB576E883034E5A1004D1ADE /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				BB576E863034E5A1004D1ADE /* KeyboardOverlay */,
+				BB576E943034E5A2004D1ADE /* KeyboardOverlayTests */,
+				BB576E9E3034E5A2004D1ADE /* KeyboardOverlayUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		BB576E853034E5A1004D1ADE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BB576EE53034F5EB004D1ADE /* Info.plist in Resources */,
+				BB576EE63034F5EB004D1ADE /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BB576E933034E5A2004D1ADE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BB576E9D3034E5A2004D1ADE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		BB576E833034E5A1004D1ADE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BB576EE73034F5EB004D1ADE /* behaviors.pb.swift in Sources */,
+				BB576EE83034F5EB004D1ADE /* ContentView.swift in Sources */,
+				BB576EE93034F5EB004D1ADE /* keymap.pb.swift in Sources */,
+				BB576EEA3034F5EB004D1ADE /* core.pb.swift in Sources */,
+				BB576EEB3034F5EB004D1ADE /* BLETransport.swift in Sources */,
+				BB576EEC3034F5EB004D1ADE /* OverlayPanelController.swift in Sources */,
+				BB576EED3034F5EB004D1ADE /* KeyboardOverlayView.swift in Sources */,
+				BB576EEE3034F5EB004D1ADE /* FrameCodec.swift in Sources */,
+				BB576EEF3034F5EB004D1ADE /* studio.pb.swift in Sources */,
+				BB576EF03034F5EB004D1ADE /* KeyboardOverlayApp.swift in Sources */,
+				BB576EF13034F5EB004D1ADE /* meta.pb.swift in Sources */,
+				BB576EF23034F5EB004D1ADE /* OverlayModel.swift in Sources */,
+				BB576EFC3034FD1B004D1ADE /* HIDKeyLabel.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BB576E913034E5A2004D1ADE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BB576E9B3034E5A2004D1ADE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		BB576E973034E5A2004D1ADE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BB576E863034E5A1004D1ADE /* KeyboardOverlay */;
+			targetProxy = BB576E963034E5A2004D1ADE /* PBXContainerItemProxy */;
+		};
+		BB576EA13034E5A2004D1ADE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BB576E863034E5A1004D1ADE /* KeyboardOverlay */;
+			targetProxy = BB576EA03034E5A2004D1ADE /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		BB576EA73034E5A2004D1ADE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.5;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		BB576EA83034E5A2004D1ADE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.5;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		BB576EAA3034E5A2004D1ADE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = KeyboardOverlay/KeyboardOverlay.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = KeyboardOverlay/Info.plist;
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Connect to my zmk keyboard with bluetooth always on";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = feiyanfan.KeyboardOverlay;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		BB576EAB3034E5A2004D1ADE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = KeyboardOverlay/KeyboardOverlay.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = KeyboardOverlay/Info.plist;
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Connect to my zmk keyboard with bluetooth always on";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = feiyanfan.KeyboardOverlay;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		BB576EAD3034E5A2004D1ADE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = feiyanfan.KeyboardOverlayTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/KeyboardOverlay.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/KeyboardOverlay";
+			};
+			name = Debug;
+		};
+		BB576EAE3034E5A2004D1ADE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = feiyanfan.KeyboardOverlayTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/KeyboardOverlay.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/KeyboardOverlay";
+			};
+			name = Release;
+		};
+		BB576EB03034E5A2004D1ADE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = feiyanfan.KeyboardOverlayUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = KeyboardOverlay;
+			};
+			name = Debug;
+		};
+		BB576EB13034E5A2004D1ADE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = feiyanfan.KeyboardOverlayUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = KeyboardOverlay;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		BB576E823034E5A1004D1ADE /* Build configuration list for PBXProject "KeyboardOverlay" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BB576EA73034E5A2004D1ADE /* Debug */,
+				BB576EA83034E5A2004D1ADE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BB576EA93034E5A2004D1ADE /* Build configuration list for PBXNativeTarget "KeyboardOverlay" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BB576EAA3034E5A2004D1ADE /* Debug */,
+				BB576EAB3034E5A2004D1ADE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BB576EAC3034E5A2004D1ADE /* Build configuration list for PBXNativeTarget "KeyboardOverlayTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BB576EAD3034E5A2004D1ADE /* Debug */,
+				BB576EAE3034E5A2004D1ADE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BB576EAF3034E5A2004D1ADE /* Build configuration list for PBXNativeTarget "KeyboardOverlayUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BB576EB03034E5A2004D1ADE /* Debug */,
+				BB576EB13034E5A2004D1ADE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		BB576EC73034F565004D1ADE /* XCRemoteSwiftPackageReference "swift-protobuf" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-protobuf.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.38.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		BB576EF33034F652004D1ADE /* SwiftProtobuf */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BB576EC73034F565004D1ADE /* XCRemoteSwiftPackageReference "swift-protobuf" */;
+			productName = SwiftProtobuf;
+		};
+		BB576EF53034F652004D1ADE /* SwiftProtobufPluginLibrary */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BB576EC73034F565004D1ADE /* XCRemoteSwiftPackageReference "swift-protobuf" */;
+			productName = SwiftProtobufPluginLibrary;
+		};
+		BB576EF73034F652004D1ADE /* protoc */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BB576EC73034F565004D1ADE /* XCRemoteSwiftPackageReference "swift-protobuf" */;
+			productName = protoc;
+		};
+		BB576EF93034F653004D1ADE /* protoc-gen-swift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BB576EC73034F565004D1ADE /* XCRemoteSwiftPackageReference "swift-protobuf" */;
+			productName = "protoc-gen-swift";
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = BB576E7F3034E5A1004D1ADE /* Project object */;
+}
