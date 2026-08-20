@@ -22,6 +22,9 @@ final class BLETransport: NSObject, ObservableObject {
 
     @Published var status = "Initializing"
     @Published private(set) var connectedDeviceName = "ZMK Keyboard"
+    @Published private(set) var hasCachedOverlay = false
+    @Published private(set) var keymapCacheDirty = false
+    @Published private(set) var isRefreshingKeymap = false
     @Published private(set) var companionProtocolVersion: String?
     @Published private(set) var companionCapabilities: UInt16 = 0
     @Published private(set) var activeModifiers: UInt8 = 0
@@ -71,7 +74,18 @@ final class BLETransport: NSObject, ObservableObject {
     private var frameCodec = FrameCodec()
 
     private var pendingBehaviorIDs: [UInt32] = []
-    private var nextRequestID: UInt32 = 10
+
+    // Overlay-owned Studio RPC request IDs live in a high range so they are
+    // unlikely to collide with another Studio client. Responses not matching
+    // an ID in this set are ignored.
+    private var nextRequestID: UInt32 = 0x8000_0000
+    private var ownedRequestIDs: Set<UInt32> = []
+
+    // Manual refresh transaction state.
+    private var refreshHasKeymap = false
+    private var refreshHasPhysicalLayout = false
+    private var refreshBehaviorsComplete = false
+    private var refreshLabelsReady = false
 
     // Behavior metadata is requested one item at a time. Some custom
     // behaviors may be listed by Studio but fail to answer a details request,
@@ -81,7 +95,6 @@ final class BLETransport: NSObject, ObservableObject {
 
     // Connection lifecycle state.
     private var isConnecting = false
-    private var sessionDataRequested = false
     private var reconnectWorkItem: DispatchWorkItem?
 
     // Persist the last compatible keyboard so reconnect does not depend on
@@ -129,6 +142,293 @@ final class BLETransport: NSObject, ObservableObject {
         }
     }
 
+    // MARK: - Local overlay cache
+
+    private struct CachedPhysicalKey: Codable {
+        let id: Int
+        let x: Double
+        let y: Double
+        let width: Double
+        let height: Double
+        let rotation: Double
+    }
+
+    private struct OverlayCache: Codable {
+        let schemaVersion: Int
+        let peripheralID: String
+        let layerIDs: [Int]
+        let layerNames: [String]
+        let layerLabels: [[String]]
+        let layerHoldModifierMasks: [[UInt8]]
+        let layerHoldModifierLabels: [[String]]
+        let physicalKeys: [CachedPhysicalKey]
+    }
+
+    private let overlayCacheSchemaVersion = 1
+    private var loadedCachePeripheralID: UUID?
+
+    private func cacheURL(
+        for peripheralID: UUID
+    ) -> URL? {
+        guard let applicationSupport =
+            FileManager.default.urls(
+                for: .applicationSupportDirectory,
+                in: .userDomainMask
+            ).first
+        else {
+            return nil
+        }
+
+        let directory =
+            applicationSupport
+                .appendingPathComponent(
+                    "ZMK Overlay",
+                    isDirectory: true
+                )
+                .appendingPathComponent(
+                    "Keyboard Cache",
+                    isDirectory: true
+                )
+
+        do {
+            try FileManager.default.createDirectory(
+                at: directory,
+                withIntermediateDirectories: true
+            )
+        } catch {
+            print(
+                "Failed to create overlay cache directory:",
+                error
+            )
+            return nil
+        }
+
+        return directory.appendingPathComponent(
+            "\(peripheralID.uuidString).json"
+        )
+    }
+
+
+    private func loadOverlayCache(
+        for peripheralID: UUID
+    ) {
+        guard loadedCachePeripheralID != peripheralID else {
+            return
+        }
+
+        loadedCachePeripheralID = peripheralID
+
+        guard let url = cacheURL(for: peripheralID) else {
+            return
+        }
+
+        guard FileManager.default.fileExists(
+            atPath: url.path
+        ) else {
+            hasCachedOverlay = false
+            print(
+                "No cached overlay for:",
+                peripheralID
+            )
+            return
+        }
+
+        do {
+            let data = try Data(
+                contentsOf: url
+            )
+
+            let cache = try JSONDecoder().decode(
+                OverlayCache.self,
+                from: data
+            )
+
+            guard
+                cache.schemaVersion ==
+                    overlayCacheSchemaVersion,
+                cache.peripheralID ==
+                    peripheralID.uuidString
+            else {
+                print(
+                    "Ignoring incompatible overlay cache"
+                )
+                hasCachedOverlay = false
+                return
+            }
+
+            let keys = cache.physicalKeys.map {
+                KeyDisplay(
+                    id: $0.id,
+                    label: "",
+                    x: CGFloat($0.x),
+                    y: CGFloat($0.y),
+                    width: CGFloat($0.width),
+                    height: CGFloat($0.height),
+                    rotation: $0.rotation
+                )
+            }
+
+            layerIDs = cache.layerIDs
+            layerNames = cache.layerNames
+            layerLabels = cache.layerLabels
+            layerHoldModifierMasks =
+                cache.layerHoldModifierMasks
+            layerHoldModifierLabels =
+                cache.layerHoldModifierLabels
+            physicalKeys = keys
+
+            hasCachedOverlay = true
+
+            if let reportedID = lastReportedLayerID,
+               let index = layerIDs.firstIndex(
+                    of: reportedID
+               ) {
+                activeLayer = index
+            } else if activeLayer >= layerLabels.count {
+                activeLayer = 0
+            }
+
+            print(
+                "Loaded cached overlay:",
+                layerNames.count,
+                "layers,",
+                physicalKeys.count,
+                "keys"
+            )
+
+        } catch {
+            hasCachedOverlay = false
+
+            print(
+                "Failed to load overlay cache:",
+                error
+            )
+        }
+    }
+
+
+    private func saveOverlayCache() {
+        guard let peripheralID = knownPeripheralID else {
+            print(
+                "Cannot save overlay cache: keyboard ID unavailable"
+            )
+            return
+        }
+
+        guard
+            !layerNames.isEmpty,
+            !layerLabels.isEmpty,
+            !physicalKeys.isEmpty
+        else {
+            print(
+                "Cannot save overlay cache: metadata incomplete"
+            )
+            return
+        }
+
+        guard let url = cacheURL(for: peripheralID) else {
+            return
+        }
+
+        let cachedKeys = physicalKeys.map {
+            CachedPhysicalKey(
+                id: $0.id,
+                x: Double($0.x),
+                y: Double($0.y),
+                width: Double($0.width),
+                height: Double($0.height),
+                rotation: $0.rotation
+            )
+        }
+
+        let cache = OverlayCache(
+            schemaVersion: overlayCacheSchemaVersion,
+            peripheralID: peripheralID.uuidString,
+            layerIDs: layerIDs,
+            layerNames: layerNames,
+            layerLabels: layerLabels,
+            layerHoldModifierMasks:
+                layerHoldModifierMasks,
+            layerHoldModifierLabels:
+                layerHoldModifierLabels,
+            physicalKeys: cachedKeys
+        )
+
+        do {
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = [
+                .prettyPrinted,
+                .sortedKeys
+            ]
+
+            let data = try encoder.encode(cache)
+
+            try data.write(
+                to: url,
+                options: .atomic
+            )
+
+            hasCachedOverlay = true
+            loadedCachePeripheralID = peripheralID
+
+            print(
+                "Saved overlay cache:",
+                url.path
+            )
+
+        } catch {
+            print(
+                "Failed to save overlay cache:",
+                error
+            )
+        }
+    }
+
+
+    private func finishRefreshIfReady() {
+        guard
+            isRefreshingKeymap,
+            refreshHasKeymap,
+            refreshHasPhysicalLayout,
+            refreshBehaviorsComplete,
+            refreshLabelsReady
+        else {
+            return
+        }
+
+        saveOverlayCache()
+
+        isRefreshingKeymap = false
+        keymapCacheDirty = false
+
+        // Anything arriving after this point belongs to an expired refresh
+        // transaction and should not mutate the overlay.
+        ownedRequestIDs.removeAll()
+
+        status = "Keymap cache refreshed"
+
+        print("Manual keymap refresh complete")
+    }
+
+
+    private func allocateRequestID() -> UInt32 {
+        let requestID = nextRequestID
+
+        nextRequestID &+= 1
+
+        // Keep the overlay in the high half of the UInt32 request-ID space.
+        if nextRequestID < 0x8000_0000 {
+            nextRequestID = 0x8000_0000
+        }
+
+        ownedRequestIDs.insert(
+            requestID
+        )
+
+        return requestID
+    }
+
+
 
     override init() {
         super.init()
@@ -144,6 +444,14 @@ final class BLETransport: NSObject, ObservableObject {
             delegate: self,
             queue: nil
         )
+
+        // Rendering metadata comes from the last successful local cache.
+        // Studio RPC is not queried automatically.
+        if let identifier = knownPeripheralID {
+            loadOverlayCache(
+                for: identifier
+            )
+        }
     }
 
 
@@ -175,13 +483,19 @@ final class BLETransport: NSObject, ObservableObject {
         }
 
         pendingBehaviorIDs.removeAll()
-        nextRequestID = 10
+        nextRequestID = 0x8000_0000
+        ownedRequestIDs.removeAll()
+
+        refreshHasKeymap = false
+        refreshHasPhysicalLayout = false
+        refreshBehaviorsComplete = false
+        refreshLabelsReady = false
+        isRefreshingKeymap = false
 
         behaviorDetailsTimeoutWorkItem?.cancel()
         behaviorDetailsTimeoutWorkItem = nil
         behaviorDetailsInFlight = nil
 
-        sessionDataRequested = false
 
         resetFrameCodec()
     }
@@ -285,6 +599,10 @@ final class BLETransport: NSObject, ObservableObject {
             connectedDeviceName =
                 device.name ?? "ZMK Keyboard"
 
+            loadOverlayCache(
+                for: device.identifier
+            )
+
             isConnecting = false
             resetConnectionSession()
 
@@ -366,6 +684,20 @@ final class BLETransport: NSObject, ObservableObject {
             switch response.type {
 
             case .requestResponse(let requestResponse):
+                let requestID =
+                    requestResponse.requestID
+
+                guard ownedRequestIDs.remove(
+                    requestID
+                ) != nil else {
+                    print(
+                        "Ignoring Studio RPC response " +
+                        "not owned by overlay:",
+                        requestID
+                    )
+                    return
+                }
+
                 switch requestResponse.subsystem {
 
                 case .keymap(let keymapResponse):
@@ -403,8 +735,11 @@ final class BLETransport: NSObject, ObservableObject {
         switch notification.subsystem {
 
         case .keymap:
-            print("Keymap changed — refreshing")
-            sendGetKeymap()
+            keymapCacheDirty = true
+
+            print(
+                "Keymap changed — local cache marked stale"
+            )
 
         case .core:
             break
@@ -422,6 +757,10 @@ final class BLETransport: NSObject, ObservableObject {
 
         case .getKeymap(let keymap):
             currentKeymap = keymap
+
+            if isRefreshingKeymap {
+                refreshHasKeymap = true
+            }
 
             print("\nKEYMAP:")
 
@@ -603,7 +942,15 @@ final class BLETransport: NSObject, ObservableObject {
         }
 
         DispatchQueue.main.async { [weak self] in
-            self?.physicalKeys = keys
+            guard let self else { return }
+
+            self.physicalKeys = keys
+
+            if self.isRefreshingKeymap {
+                self.refreshHasPhysicalLayout = true
+                self.finishRefreshIfReady()
+            }
+
             print("Published \(keys.count) physical keys")
         }
     }
@@ -747,6 +1094,10 @@ final class BLETransport: NSObject, ObservableObject {
             self.layerHoldModifierMasks = allHoldModifierMasks
             self.layerHoldModifierLabels = allHoldModifierLabels
 
+            if self.isRefreshingKeymap {
+                self.refreshLabelsReady = true
+            }
+
             if let reportedID = self.lastReportedLayerID,
                let index = ids.firstIndex(of: reportedID) {
                 self.activeLayer = index
@@ -758,6 +1109,10 @@ final class BLETransport: NSObject, ObservableObject {
                 "Published \(allLabels.count) layers:",
                 names.joined(separator: ", ")
             )
+
+            if self.isRefreshingKeymap {
+                self.finishRefreshIfReady()
+            }
         }
     }
 
@@ -1030,6 +1385,57 @@ final class BLETransport: NSObject, ObservableObject {
         }
     }
 
+    // MARK: - Manual Studio metadata refresh
+
+    @discardableResult
+    func refreshKeymap() -> Bool {
+        guard
+            peripheral != nil,
+            studioCharacteristic != nil
+        else {
+            status = "Studio RPC unavailable"
+
+            print(
+                "Cannot refresh keymap: " +
+                "Studio BLE characteristic is not ready"
+            )
+            return false
+        }
+
+        guard !isRefreshingKeymap else {
+            print("Keymap refresh already in progress")
+            return false
+        }
+
+        isRefreshingKeymap = true
+        status = "Refreshing keymap cache"
+
+        refreshHasKeymap = false
+        refreshHasPhysicalLayout = false
+        refreshBehaviorsComplete = false
+        refreshLabelsReady = false
+
+        currentKeymap = nil
+        behaviorNames.removeAll()
+        pendingBehaviorIDs.removeAll()
+
+        behaviorDetailsTimeoutWorkItem?.cancel()
+        behaviorDetailsTimeoutWorkItem = nil
+        behaviorDetailsInFlight = nil
+
+        ownedRequestIDs.removeAll()
+        nextRequestID = 0x8000_0000
+
+        print("Starting manual keymap refresh")
+
+        sendGetKeymap()
+        sendListBehaviors()
+        sendGetPhysicalLayouts()
+
+        return true
+    }
+
+
     // MARK: - BLE write
 
     func send(_ data: Data) {
@@ -1057,7 +1463,7 @@ final class BLETransport: NSObject, ObservableObject {
             keymapRequest.requestType = .getKeymap(true)
 
             var request = Zmk_Studio_Request()
-            request.requestID = 1
+            request.requestID = allocateRequestID()
             request.subsystem = .keymap(keymapRequest)
 
             let protobuf = try request.serializedData()
@@ -1084,7 +1490,7 @@ final class BLETransport: NSObject, ObservableObject {
             behaviorRequest.requestType = .listAllBehaviors(true)
 
             var request = Zmk_Studio_Request()
-            request.requestID = 2
+            request.requestID = allocateRequestID()
             request.subsystem = .behaviors(behaviorRequest)
 
             let protobuf = try request.serializedData()
@@ -1105,7 +1511,7 @@ final class BLETransport: NSObject, ObservableObject {
             keymapRequest.requestType = .getPhysicalLayouts(true)
 
             var request = Zmk_Studio_Request()
-            request.requestID = 3
+            request.requestID = allocateRequestID()
             request.subsystem = .keymap(keymapRequest)
 
             let protobuf = try request.serializedData()
@@ -1142,13 +1548,17 @@ final class BLETransport: NSObject, ObservableObject {
                 "\nLoaded \(behaviorNames.count) behavior names."
             )
 
+            if isRefreshingKeymap {
+                refreshBehaviorsComplete = true
+            }
+
             rebuildLayerLabels()
+            finishRefreshIfReady()
             return
         }
 
         let behaviorID = pendingBehaviorIDs.removeFirst()
-        let requestID = nextRequestID
-        nextRequestID += 1
+        let requestID = allocateRequestID()
 
         behaviorDetailsInFlight = behaviorID
 
@@ -1310,6 +1720,10 @@ extension BLETransport: CBCentralManagerDelegate {
         self.knownPeripheralID = peripheral.identifier
         self.connectedDeviceName =
             peripheral.name ?? "ZMK Keyboard"
+
+        loadOverlayCache(
+            for: peripheral.identifier
+        )
 
         peripheral.delegate = self
 
@@ -1532,16 +1946,14 @@ extension BLETransport: CBPeripheralDelegate {
                 return
             }
 
-            status = "ZMK Studio Ready"
-            print("ZMK Studio characteristic ready")
+            status = hasCachedOverlay
+                ? "Overlay ready"
+                : "Ready — refresh keymap"
 
-            if !sessionDataRequested {
-                sessionDataRequested = true
-
-                sendGetKeymap()
-                sendListBehaviors()
-                sendGetPhysicalLayouts()
-            }
+            print(
+                "ZMK Studio characteristic ready " +
+                "(manual refresh only)"
+            )
 
             return
         }

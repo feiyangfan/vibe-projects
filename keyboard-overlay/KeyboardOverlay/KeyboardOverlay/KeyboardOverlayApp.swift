@@ -71,6 +71,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         appearanceItem.target = self
         menu.addItem(appearanceItem)
 
+        let refreshItem = NSMenuItem(
+            title: "Refresh Keymap",
+            action: #selector(refreshKeymap),
+            keyEquivalent: "r"
+        )
+        refreshItem.target = self
+        menu.addItem(refreshItem)
+
         let resetItem = NSMenuItem(
             title: "Reset Overlay Position",
             action: #selector(resetOverlayFrame),
@@ -146,6 +154,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
+    }
+
+    @objc
+    private func refreshKeymap() {
+        guard let ble else {
+            return
+        }
+
+        if !ble.refreshKeymap() {
+            NSSound.beep()
+        }
     }
 
     @objc
