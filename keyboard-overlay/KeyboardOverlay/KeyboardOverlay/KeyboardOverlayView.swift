@@ -186,6 +186,8 @@ final class OverlayUIState: ObservableObject {
 struct KeyboardOverlayView: View {
     @ObservedObject var ble: BLETransport
     @ObservedObject var uiState: OverlayUIState
+    @ObservedObject var practice: PracticeState
+    @ObservedObject var usage: UsageAnalyticsState
 
     private let referenceSize = CGSize(width: 900, height: 330)
 
@@ -212,10 +214,36 @@ struct KeyboardOverlayView: View {
                     let isModifierHold =
                         ble.isResolvedModifierHold(at: key.id)
 
-                    let displayLabel =
+                    let isPracticeTarget =
+                        practice.isActive &&
+                        practice.showTargetHint &&
+                        practice.targetPosition == key.id
+
+                    let heatLevel =
+                        usage.showHeatmap
+                        ? usage.heatLevel(
+                            for: ble.activeLayer,
+                            position: key.id,
+                            label: label
+                        )
+                        : 0
+
+                    let isHeatmapped =
+                        usage.showHeatmap &&
+                        heatLevel > 0
+
+                    let baseDisplayLabel =
                         isModifierHold
                         ? ble.holdModifierLabel(at: key.id)
                         : label
+
+                    let displayLabel =
+                        practice.isActive &&
+                        practice.hideOverlayLabels &&
+                        !isPressed &&
+                        !isModifierHold
+                        ? ""
+                        : baseDisplayLabel
 
                     let keyWidth = key.width * scale
                     let keyHeight = key.height * scale
@@ -231,8 +259,19 @@ struct KeyboardOverlayView: View {
                             : isPressed
                                 ? uiState.pressedFillColor
                                     .opacity(uiState.pressedFillOpacity)
-                                : Color.black
-                                    .opacity(uiState.normalFillOpacity)
+                                : isPracticeTarget
+                                    ? Color(nsColor: .systemGreen)
+                                        .opacity(0.40)
+                                    : isHeatmapped
+                                        ? heatmapColor(
+                                            level: heatLevel
+                                        )
+                                        .opacity(
+                                            0.18 +
+                                            0.62 * heatLevel
+                                        )
+                                        : Color.black
+                                            .opacity(uiState.normalFillOpacity)
                         )
 
                         RoundedRectangle(
@@ -243,8 +282,15 @@ struct KeyboardOverlayView: View {
                             ? uiState.modifierHoldBorderColor
                             : isPressed
                                 ? uiState.pressedBorderColor
-                                : Color.white
-                                    .opacity(uiState.normalBorderOpacity),
+                                : isPracticeTarget
+                                    ? Color(nsColor: .systemGreen)
+                                    : isHeatmapped
+                                        ? heatmapColor(
+                                            level: heatLevel
+                                        )
+                                        .opacity(0.90)
+                                        : Color.white
+                                            .opacity(uiState.normalBorderOpacity),
                             lineWidth: max(
                                 0.5,
                                 (
@@ -252,7 +298,11 @@ struct KeyboardOverlayView: View {
                                     ? uiState.modifierHoldBorderWidth
                                     : isPressed
                                         ? uiState.pressedBorderWidth
-                                        : 1.0
+                                        : isPracticeTarget
+                                            ? 2.5
+                                            : isHeatmapped
+                                                ? 1.5
+                                                : 1.0
                                 ) * scale
                             )
                         )
@@ -291,6 +341,88 @@ struct KeyboardOverlayView: View {
                     .opacity(uiState.overlayOpacity)
                 }
 
+                if usage.showHeatmap &&
+                   !practice.isActive &&
+                   !uiState.isEditing {
+                    Text(
+                        "HEATMAP • " +
+                        currentLayerName
+                    )
+                    .font(
+                        .system(
+                            size: 10,
+                            weight: .semibold
+                        )
+                    )
+                    .foregroundColor(.white)
+                    .padding(
+                        .horizontal,
+                        8
+                    )
+                    .padding(
+                        .vertical,
+                        4
+                    )
+                    .background(
+                        RoundedRectangle(
+                            cornerRadius: 5
+                        )
+                        .fill(
+                            Color.black
+                                .opacity(0.62)
+                        )
+                    )
+                    .padding(8)
+                    .allowsHitTesting(false)
+                }
+
+                if practice.isActive {
+                    VStack(spacing: 2) {
+                        Text(
+                            "PRACTICE • " +
+                            practice.selectedLayerName
+                        )
+                        .font(
+                            .system(
+                                size: 10,
+                                weight: .semibold
+                            )
+                        )
+
+                        Text(practice.targetLabel)
+                            .font(
+                                .system(
+                                    size: 15,
+                                    weight: .bold
+                                )
+                            )
+                    }
+                    .foregroundColor(.white)
+                    .padding(
+                        .horizontal,
+                        10
+                    )
+                    .padding(
+                        .vertical,
+                        5
+                    )
+                    .background(
+                        RoundedRectangle(
+                            cornerRadius: 6
+                        )
+                        .fill(
+                            Color.black
+                                .opacity(0.72)
+                        )
+                    )
+                    .frame(
+                        maxWidth: .infinity,
+                        alignment: .top
+                    )
+                    .padding(.top, 6)
+                    .allowsHitTesting(false)
+                }
+
                 if uiState.isEditing {
                     RoundedRectangle(cornerRadius: 8)
                         .stroke(
@@ -325,6 +457,39 @@ struct KeyboardOverlayView: View {
             )
         }
         .background(Color.clear)
+    }
+
+    private var currentLayerName: String {
+        guard
+            ble.activeLayer >= 0,
+            ble.activeLayer < ble.layerNames.count
+        else {
+            return "Layer"
+        }
+
+        return ble.layerNames[ble.activeLayer]
+    }
+
+    private func heatmapColor(
+        level: Double
+    ) -> Color {
+        let clamped =
+            min(
+                1.0,
+                max(0.0, level)
+            )
+
+        let blended =
+            NSColor.systemYellow.blended(
+                withFraction:
+                    CGFloat(clamped),
+                of: NSColor.systemRed
+            )
+            ?? NSColor.systemOrange
+
+        return Color(
+            nsColor: blended
+        )
     }
 
     private var currentLabelCount: Int {

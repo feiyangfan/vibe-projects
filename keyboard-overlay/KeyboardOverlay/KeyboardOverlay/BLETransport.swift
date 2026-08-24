@@ -27,11 +27,15 @@ final class BLETransport: NSObject, ObservableObject {
     @Published private(set) var isRefreshingKeymap = false
     @Published private(set) var companionProtocolVersion: String?
     @Published private(set) var companionCapabilities: UInt16 = 0
+    @Published private(set) var companionRuntimeReady = false
     @Published private(set) var activeModifiers: UInt8 = 0
     @Published private(set) var resolvedModifierHoldPositions: Set<Int> = []
 
     private var pressSequenceCounter = 0
     private var pressSequenceByPosition: [Int: Int] = [:]
+
+    private var layerNotificationsReady = false
+    private var keyNotificationsReady = false
 
     @Published private(set) var behaviorNames: [UInt32: String] = [:]
 
@@ -99,6 +103,17 @@ final class BLETransport: NSObject, ObservableObject {
 
     // Persist the last compatible keyboard so reconnect does not depend on
     // the keyboard advertising a particular service UUID.
+    var keyboardStorageIdentifier: String {
+        knownPeripheralID?.uuidString
+            ?? connectedDeviceName
+    }
+
+    // Backward-compatible name used by Practice Mode.
+    var practiceStorageIdentifier: String {
+        keyboardStorageIdentifier
+    }
+
+
     private var knownPeripheralID: UUID? {
         get {
             let defaults = UserDefaults.standard
@@ -153,6 +168,11 @@ final class BLETransport: NSObject, ObservableObject {
         let rotation: Double
     }
 
+    private struct CachedBehaviorName: Codable {
+        let id: UInt32
+        let name: String
+    }
+
     private struct OverlayCache: Codable {
         let schemaVersion: Int
         let peripheralID: String
@@ -162,6 +182,10 @@ final class BLETransport: NSObject, ObservableObject {
         let layerHoldModifierMasks: [[UInt8]]
         let layerHoldModifierLabels: [[String]]
         let physicalKeys: [CachedPhysicalKey]
+
+        // Optional for backward compatibility with caches written before
+        // behavior metadata was persisted.
+        let behaviorNames: [CachedBehaviorName]?
     }
 
     private let overlayCacheSchemaVersion = 1
@@ -277,6 +301,17 @@ final class BLETransport: NSObject, ObservableObject {
                 cache.layerHoldModifierLabels
             physicalKeys = keys
 
+            if let cachedBehaviors =
+                cache.behaviorNames {
+                behaviorNames =
+                    Dictionary(
+                        uniqueKeysWithValues:
+                            cachedBehaviors.map {
+                                ($0.id, $0.name)
+                            }
+                    )
+            }
+
             hasCachedOverlay = true
 
             if let reportedID = lastReportedLayerID,
@@ -341,6 +376,18 @@ final class BLETransport: NSObject, ObservableObject {
             )
         }
 
+        let cachedBehaviors =
+            behaviorNames
+                .map {
+                    CachedBehaviorName(
+                        id: $0.key,
+                        name: $0.value
+                    )
+                }
+                .sorted {
+                    $0.id < $1.id
+                }
+
         let cache = OverlayCache(
             schemaVersion: overlayCacheSchemaVersion,
             peripheralID: peripheralID.uuidString,
@@ -351,7 +398,8 @@ final class BLETransport: NSObject, ObservableObject {
                 layerHoldModifierMasks,
             layerHoldModifierLabels:
                 layerHoldModifierLabels,
-            physicalKeys: cachedKeys
+            physicalKeys: cachedKeys,
+            behaviorNames: cachedBehaviors
         )
 
         do {
@@ -395,7 +443,7 @@ final class BLETransport: NSObject, ObservableObject {
         else {
             return
         }
-
+        dumpCurrentKeymapForFirmware()
         saveOverlayCache()
 
         isRefreshingKeymap = false
@@ -473,6 +521,9 @@ final class BLETransport: NSObject, ObservableObject {
         protocolInfoCharacteristic = nil
         modifierStateCharacteristic = nil
 
+        layerNotificationsReady = false
+        keyNotificationsReady = false
+
         DispatchQueue.main.async { [weak self] in
             self?.pressedKeys.removeAll()
             self?.resolvedModifierHoldPositions.removeAll()
@@ -480,6 +531,7 @@ final class BLETransport: NSObject, ObservableObject {
             self?.pressSequenceByPosition.removeAll()
             self?.companionProtocolVersion = nil
             self?.companionCapabilities = 0
+            self?.companionRuntimeReady = false
         }
 
         pendingBehaviorIDs.removeAll()
@@ -498,6 +550,17 @@ final class BLETransport: NSObject, ObservableObject {
 
 
         resetFrameCodec()
+    }
+
+
+    private func updateCompanionRuntimeReady() {
+        let ready =
+            layerNotificationsReady &&
+            keyNotificationsReady
+
+        if companionRuntimeReady != ready {
+            companionRuntimeReady = ready
+        }
     }
 
 
@@ -1412,11 +1475,21 @@ final class BLETransport: NSObject, ObservableObject {
 
         refreshHasKeymap = false
         refreshHasPhysicalLayout = false
-        refreshBehaviorsComplete = false
+
+        /*
+         * Behavior definitions are firmware metadata, not Studio keymap
+         * content. Preserve known behavior names across a manual keymap
+         * refresh so the new bindings can be rendered immediately.
+         *
+         * On first run, or when migrating an older cache that did not store
+         * behavior metadata, fall back to the full behavior-details loader.
+         */
+        refreshBehaviorsComplete =
+            !behaviorNames.isEmpty
+
         refreshLabelsReady = false
 
         currentKeymap = nil
-        behaviorNames.removeAll()
         pendingBehaviorIDs.removeAll()
 
         behaviorDetailsTimeoutWorkItem?.cancel()
@@ -1429,7 +1502,21 @@ final class BLETransport: NSObject, ObservableObject {
         print("Starting manual keymap refresh")
 
         sendGetKeymap()
-        sendListBehaviors()
+
+        if !refreshBehaviorsComplete {
+            print(
+                "Behavior cache unavailable — " +
+                "refreshing behavior metadata"
+            )
+            sendListBehaviors()
+        } else {
+            print(
+                "Reusing cached behavior metadata:",
+                behaviorNames.count,
+                "behaviors"
+            )
+        }
+
         sendGetPhysicalLayouts()
 
         return true
@@ -1790,6 +1877,76 @@ extension BLETransport: CBCentralManagerDelegate {
          */
         scheduleReconnect()
     }
+    
+    private func dumpCurrentKeymapForFirmware() {
+        guard let keymap = currentKeymap else {
+            print("KEYMAP_DUMP_ERROR: currentKeymap is nil")
+            return
+        }
+
+        print("\n========== KEYMAP_DUMP_BEGIN ==========")
+
+        print("\n--- BEHAVIORS ---")
+        for id in behaviorNames.keys.sorted() {
+            print(
+                "BEHAVIOR id=\(id) name=\"\(behaviorNames[id] ?? "Unknown")\""
+            )
+        }
+
+        print("\n--- LAYERS ---")
+
+        for (layerIndex, layer) in keymap.layers.enumerated() {
+            print(
+                "\nLAYER index=\(layerIndex) " +
+                "id=\(layer.id) " +
+                "name=\"\(layer.name)\" " +
+                "bindings=\(layer.bindings.count)"
+            )
+
+            for (keyIndex, binding) in layer.bindings.enumerated() {
+                let behaviorID =
+                    UInt32(bitPattern: binding.behaviorID)
+
+                let behaviorName =
+                    behaviorNames[behaviorID] ?? "Unknown"
+
+                let p1Hex = String(
+                    format: "0x%08X",
+                    binding.param1
+                )
+
+                let p2Hex = String(
+                    format: "0x%08X",
+                    binding.param2
+                )
+
+                let rendered: String
+
+                if layerIndex < layerLabels.count,
+                   keyIndex < layerLabels[layerIndex].count {
+                    rendered = layerLabels[layerIndex][keyIndex]
+                } else {
+                    rendered = ""
+                }
+
+                let keyNumber = String(
+                    format: "%02d",
+                    keyIndex
+                )
+
+                print(
+                    "K\(keyNumber) " +
+                    "behaviorID=\(behaviorID) " +
+                    "behavior=\"\(behaviorName)\" " +
+                    "p1=\(binding.param1) [\(p1Hex)] " +
+                    "p2=\(binding.param2) [\(p2Hex)] " +
+                    "rendered=\"\(rendered)\""
+                )
+            }
+        }
+
+        print("\n========== KEYMAP_DUMP_END ==========\n")
+    }
 
 }
 
@@ -1959,6 +2116,11 @@ extension BLETransport: CBPeripheralDelegate {
         }
 
         if characteristic.uuid == layerCharacteristicUUID {
+            layerNotificationsReady =
+                characteristic.isNotifying
+
+            updateCompanionRuntimeReady()
+
             guard characteristic.isNotifying else {
                 print("Layer-state notifications not enabled")
                 return
@@ -1969,6 +2131,11 @@ extension BLETransport: CBPeripheralDelegate {
 
 
         if characteristic.uuid == keyEventCharacteristicUUID {
+            keyNotificationsReady =
+                characteristic.isNotifying
+
+            updateCompanionRuntimeReady()
+
             guard characteristic.isNotifying else {
                 print("Key-event notifications not enabled")
                 return

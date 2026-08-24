@@ -22,10 +22,16 @@ final class OverlayPanelController {
 
     private(set) var isEditing = false
 
-    init(ble: BLETransport) {
+    init(
+        ble: BLETransport,
+        practice: PracticeState,
+        usage: UsageAnalyticsState
+    ) {
         let view = KeyboardOverlayView(
             ble: ble,
-            uiState: uiState
+            uiState: uiState,
+            practice: practice,
+            usage: usage
         )
 
         panel = NSPanel(
