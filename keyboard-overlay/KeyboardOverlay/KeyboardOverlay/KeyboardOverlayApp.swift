@@ -1,6 +1,7 @@
 import SwiftUI
 import AppKit
 import Combine
+import ServiceManagement
 
 @main
 struct ZMKOverlayApp: App {
@@ -13,16 +14,18 @@ struct ZMKOverlayApp: App {
     }
 }
 
-final class AppDelegate: NSObject, NSApplicationDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     var overlay: OverlayPanelController?
     var ble: BLETransport?
     var practice: PracticeState?
     var usage: UsageAnalyticsState?
+    var wpmTracker: WPMTracker?
 
     private var statusItem: NSStatusItem?
     private var editMenuItem: NSMenuItem?
     private var heatmapMenuItem: NSMenuItem?
     private var refreshMenuItem: NSMenuItem?
+    private var launchAtLoginMenuItem: NSMenuItem?
     private var appearanceWindow: NSWindow?
     private var practiceWindow: NSWindow?
     private var usageWindow: NSWindow?
@@ -53,6 +56,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             usageState
         )
 
+        let wpmState = WPMTracker(
+            ble: bleTransport,
+            practice: practiceState
+        )
+        wpmTracker = wpmState
+
         let overlayController =
             OverlayPanelController(
                 ble: bleTransport,
@@ -64,6 +73,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         overlayController.show()
 
         setupStatusMenu()
+        observeWPM(wpmState)
         observeRefreshState(
             bleTransport
         )
@@ -77,14 +87,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem = item
 
         if let button = item.button {
-            button.image = NSImage(
-                systemSymbolName: "keyboard",
-                accessibilityDescription: "ZMK Overlay"
+            button.image = makeKeyboardStatusImage()
+            button.imagePosition = .imageLeading
+            button.imageScaling = .scaleProportionallyDown
+            button.title = "0"
+            button.font = NSFont.monospacedDigitSystemFont(
+                ofSize: 12,
+                weight: .medium
             )
-            button.toolTip = "ZMK Overlay"
+            button.toolTip = "0 WPM • ZMK Overlay"
         }
 
         let menu = NSMenu()
+        menu.delegate = self
 
         let editItem = NSMenuItem(
             title: "Edit Overlay",
@@ -151,6 +166,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         menu.addItem(.separator())
 
+        let loginItem = NSMenuItem(
+            title: "Launch at Login",
+            action: #selector(toggleLaunchAtLogin),
+            keyEquivalent: ""
+        )
+        loginItem.target = self
+        launchAtLoginMenuItem = loginItem
+        menu.addItem(loginItem)
+
+        refreshLaunchAtLoginState()
+
+        menu.addItem(.separator())
+
         let quitItem = NSMenuItem(
             title: "Quit ZMK Overlay",
             action: #selector(quitApp),
@@ -160,6 +188,161 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(quitItem)
 
         item.menu = menu
+    }
+
+
+    func menuWillOpen(
+        _ menu: NSMenu
+    ) {
+        refreshLaunchAtLoginState()
+    }
+
+    private func refreshLaunchAtLoginState() {
+        let service = SMAppService.mainApp
+
+        switch service.status {
+        case .enabled:
+            launchAtLoginMenuItem?.title =
+                "Launch at Login"
+            launchAtLoginMenuItem?.state = .on
+
+        case .requiresApproval:
+            launchAtLoginMenuItem?.title =
+                "Launch at Login (Allow in Settings…)"
+            launchAtLoginMenuItem?.state = .mixed
+
+        case .notRegistered,
+             .notFound:
+            launchAtLoginMenuItem?.title =
+                "Launch at Login"
+            launchAtLoginMenuItem?.state = .off
+
+        @unknown default:
+            launchAtLoginMenuItem?.title =
+                "Launch at Login"
+            launchAtLoginMenuItem?.state = .off
+        }
+    }
+
+    @objc
+    private func toggleLaunchAtLogin() {
+        let service = SMAppService.mainApp
+
+        do {
+            switch service.status {
+            case .enabled:
+                try service.unregister()
+
+            case .requiresApproval:
+                SMAppService.openSystemSettingsLoginItems()
+
+            case .notRegistered,
+                 .notFound:
+                try service.register()
+
+            @unknown default:
+                try service.register()
+            }
+
+            refreshLaunchAtLoginState()
+
+        } catch {
+            refreshLaunchAtLoginState()
+
+            let alert = NSAlert()
+            alert.alertStyle = .warning
+            alert.messageText =
+                "Couldn’t Change Launch at Login"
+            alert.informativeText =
+                error.localizedDescription
+            alert.addButton(
+                withTitle: "OK"
+            )
+            alert.addButton(
+                withTitle: "Open Login Items Settings"
+            )
+
+            if alert.runModal() ==
+                .alertSecondButtonReturn {
+                SMAppService
+                    .openSystemSettingsLoginItems()
+            }
+        }
+    }
+
+    private func observeWPM(
+        _ tracker: WPMTracker
+    ) {
+        tracker.$wpm
+            .removeDuplicates()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] wpm in
+                guard let button = self?.statusItem?.button else {
+                    return
+                }
+
+                button.title = "\(wpm)"
+                button.toolTip = "\(wpm) WPM • ZMK Overlay"
+            }
+            .store(in: &appCancellables)
+    }
+
+    private func makeKeyboardStatusImage() -> NSImage {
+        let image = NSImage(
+            size: NSSize(width: 18, height: 18),
+            flipped: false
+        ) { _ in
+            NSColor.black.setStroke()
+            NSColor.black.setFill()
+
+            let body = NSBezierPath(
+                roundedRect: NSRect(
+                    x: 1.25,
+                    y: 3.25,
+                    width: 15.5,
+                    height: 11.5
+                ),
+                xRadius: 2.0,
+                yRadius: 2.0
+            )
+            body.lineWidth = 1.4
+            body.stroke()
+
+            let xPositions: [CGFloat] = [
+                3.0, 5.25, 7.5, 9.75, 12.0, 14.25
+            ]
+
+            for y: CGFloat in [10.35, 7.65] {
+                for x in xPositions {
+                    NSBezierPath(
+                        roundedRect: NSRect(
+                            x: x,
+                            y: y,
+                            width: 1.5,
+                            height: 1.5
+                        ),
+                        xRadius: 0.3,
+                        yRadius: 0.3
+                    ).fill()
+                }
+            }
+
+            NSBezierPath(
+                roundedRect: NSRect(
+                    x: 5.0,
+                    y: 4.9,
+                    width: 8.0,
+                    height: 1.5
+                ),
+                xRadius: 0.45,
+                yRadius: 0.45
+            ).fill()
+
+            return true
+        }
+
+        image.isTemplate = true
+        return image
     }
 
     private func observeRefreshState(
@@ -390,6 +573,275 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func quitApp() {
         usage?.flushCurrentDwell()
         NSApp.terminate(nil)
+    }
+}
+
+// MARK: - Live WPM
+
+final class WPMTracker: ObservableObject {
+    @Published private(set) var wpm = 0
+
+    private struct PendingPress {
+        let holdLayerName: String?
+        var resolvedAsHold = false
+    }
+
+    private weak var ble: BLETransport?
+    private var previousPressedKeys: Set<Int>
+    private var pendingPresses: [Int: PendingPress] = [:]
+    private var keystrokeTimes: [Date] = []
+    private var runtimeReady: Bool
+    private var practiceActive: Bool
+    private var cancellables = Set<AnyCancellable>()
+
+    private let windowSeconds: TimeInterval = 30
+    private let minimumSampleSeconds: TimeInterval = 5
+
+    init(
+        ble: BLETransport,
+        practice: PracticeState
+    ) {
+        self.ble = ble
+        previousPressedKeys = ble.pressedKeys
+        runtimeReady = ble.companionRuntimeReady
+        practiceActive = practice.isActive
+
+        ble.$pressedKeys
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] keys in
+                self?.handlePressedKeys(keys)
+            }
+            .store(in: &cancellables)
+
+        ble.$resolvedModifierHoldPositions
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] positions in
+                self?.handleResolvedModifiers(positions)
+            }
+            .store(in: &cancellables)
+
+        ble.$activeLayer
+            .removeDuplicates()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] layerIndex in
+                self?.handleLayerChange(layerIndex)
+            }
+            .store(in: &cancellables)
+
+        ble.$companionRuntimeReady
+            .removeDuplicates()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] ready in
+                guard let self else { return }
+                runtimeReady = ready
+                if !ready {
+                    pendingPresses.removeAll()
+                }
+            }
+            .store(in: &cancellables)
+
+        practice.$isActive
+            .removeDuplicates()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] active in
+                guard let self else { return }
+                practiceActive = active
+                if active {
+                    pendingPresses.removeAll()
+                }
+            }
+            .store(in: &cancellables)
+
+        Timer.publish(
+            every: 1,
+            on: .main,
+            in: .common
+        )
+        .autoconnect()
+        .sink { [weak self] now in
+            self?.recalculate(now: now)
+        }
+        .store(in: &cancellables)
+    }
+
+    private func handlePressedKeys(
+        _ pressedKeys: Set<Int>
+    ) {
+        guard let ble else {
+            previousPressedKeys = pressedKeys
+            return
+        }
+
+        let newlyPressed =
+            pressedKeys.subtracting(previousPressedKeys)
+        let released =
+            previousPressedKeys.subtracting(pressedKeys)
+
+        defer {
+            previousPressedKeys = pressedKeys
+        }
+
+        let now = Date()
+
+        if runtimeReady && !practiceActive {
+            // Count on release so F24 has time to resolve HRM modifier holds.
+            for position in released {
+                guard
+                    let pending = pendingPresses.removeValue(forKey: position),
+                    !pending.resolvedAsHold
+                else {
+                    continue
+                }
+                keystrokeTimes.append(now)
+            }
+        } else {
+            for position in released {
+                pendingPresses.removeValue(forKey: position)
+            }
+        }
+
+        guard runtimeReady, !practiceActive else {
+            recalculate(now: now)
+            return
+        }
+
+        for position in newlyPressed {
+            guard let descriptor = typingDescriptor(
+                at: position,
+                ble: ble
+            ) else {
+                continue
+            }
+
+            pendingPresses[position] = PendingPress(
+                holdLayerName: descriptor.holdLayerName
+            )
+        }
+
+        recalculate(now: now)
+    }
+
+    private func handleResolvedModifiers(
+        _ positions: Set<Int>
+    ) {
+        for position in positions {
+            guard var press = pendingPresses[position] else {
+                continue
+            }
+            press.resolvedAsHold = true
+            pendingPresses[position] = press
+        }
+    }
+
+    private func handleLayerChange(
+        _ layerIndex: Int
+    ) {
+        guard
+            let ble,
+            layerIndex >= 0,
+            layerIndex < ble.layerNames.count
+        else {
+            return
+        }
+
+        let layerName = ble.layerNames[layerIndex]
+
+        for position in Array(pendingPresses.keys) {
+            guard
+                var press = pendingPresses[position],
+                press.holdLayerName == layerName
+            else {
+                continue
+            }
+            press.resolvedAsHold = true
+            pendingPresses[position] = press
+        }
+    }
+
+    private func typingDescriptor(
+        at position: Int,
+        ble: BLETransport
+    ) -> (text: String, holdLayerName: String?)? {
+        let layerIndex = ble.activeLayer
+
+        guard
+            layerIndex >= 0,
+            layerIndex < ble.layerLabels.count,
+            position >= 0,
+            position < ble.layerLabels[layerIndex].count
+        else {
+            return nil
+        }
+
+        let raw = ble.layerLabels[layerIndex][position]
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !raw.isEmpty else {
+            return nil
+        }
+
+        var text = raw
+        var holdLayerName: String?
+
+        // BLETransport renders hold-taps as "hold/tap", e.g. ⌃/A or NUM/Space.
+        if raw.count > 1,
+           let slash = raw.firstIndex(of: "/") {
+            let left = String(raw[..<slash])
+            let right = String(raw[raw.index(after: slash)...])
+
+            if !right.isEmpty {
+                text = right
+            }
+            if ble.layerNames.contains(left) {
+                holdLayerName = left
+            }
+        }
+
+        guard isTextProducingLabel(text) else {
+            return nil
+        }
+
+        return (text, holdLayerName)
+    }
+
+    private func isTextProducingLabel(
+        _ label: String
+    ) -> Bool {
+        if label == "Space" {
+            return true
+        }
+
+        guard label.count == 1 else {
+            return false
+        }
+
+        let nonTyping: Set<String> = [
+            "⌃", "⇧", "⌥", "⌘", "⇪",
+            "←", "→", "↑", "↓", "↩", "⌫"
+        ]
+
+        return !nonTyping.contains(label)
+    }
+
+    private func recalculate(now: Date) {
+        let cutoff = now.addingTimeInterval(-windowSeconds)
+        keystrokeTimes.removeAll { $0 < cutoff }
+
+        guard let first = keystrokeTimes.first else {
+            wpm = 0
+            return
+        }
+
+        let elapsed = min(
+            windowSeconds,
+            max(
+                minimumSampleSeconds,
+                now.timeIntervalSince(first)
+            )
+        )
+
+        let words = Double(keystrokeTimes.count) / 5.0
+        wpm = Int((words / (elapsed / 60.0)).rounded())
     }
 }
 

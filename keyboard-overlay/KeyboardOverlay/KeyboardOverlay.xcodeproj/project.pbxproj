@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		BB576EE53034F5EB004D1ADE /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB576EDE3034F5EB004D1ADE /* Info.plist */; };
 		BB576EE63034F5EB004D1ADE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BB576EDA3034F5EB004D1ADE /* Assets.xcassets */; };
 		BB576EE73034F5EB004D1ADE /* behaviors.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB576ED43034F5EB004D1ADE /* behaviors.pb.swift */; };
 		BB576EE83034F5EB004D1ADE /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB576EDC3034F5EB004D1ADE /* ContentView.swift */; };
@@ -284,7 +283,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BB576EE53034F5EB004D1ADE /* Info.plist in Resources */,
 				BB576EE63034F5EB004D1ADE /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -488,6 +486,7 @@
 				INFOPLIST_FILE = KeyboardOverlay/Info.plist;
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Connect to my zmk keyboard with bluetooth always on";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_LSUIElement = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -515,6 +514,7 @@
 				INFOPLIST_FILE = KeyboardOverlay/Info.plist;
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Connect to my zmk keyboard with bluetooth always on";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_LSUIElement = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",

@@ -2,6 +2,25 @@ import SwiftUI
 import AppKit
 
 final class OverlayUIState: ObservableObject {
+    enum AppearancePreset: String, CaseIterable, Identifiable {
+        case balanced
+        case minimal
+        case highContrast
+
+        var id: String { rawValue }
+
+        var title: String {
+            switch self {
+            case .balanced:
+                return "Balanced"
+            case .minimal:
+                return "Minimal"
+            case .highContrast:
+                return "High Contrast"
+            }
+        }
+    }
+
     @Published var isEditing = false
 
     @Published var overlayOpacity: Double {
@@ -18,6 +37,19 @@ final class OverlayUIState: ObservableObject {
 
     @Published var normalTextColor: Color {
         didSet { saveColor(normalTextColor, key: Keys.normalTextColor) }
+    }
+
+    @Published var textShadowOpacity: Double {
+        didSet { defaults.set(textShadowOpacity, forKey: Keys.textShadowOpacity) }
+    }
+
+    @Published var practiceTargetFillOpacity: Double {
+        didSet {
+            defaults.set(
+                practiceTargetFillOpacity,
+                forKey: Keys.practiceTargetFillOpacity
+            )
+        }
     }
 
     @Published var pressedFillColor: Color {
@@ -67,6 +99,8 @@ final class OverlayUIState: ObservableObject {
         static let normalFillOpacity = "OverlayAppearance.normalFillOpacity"
         static let normalBorderOpacity = "OverlayAppearance.normalBorderOpacity"
         static let normalTextColor = "OverlayAppearance.normalTextColor"
+        static let textShadowOpacity = "OverlayAppearance.textShadowOpacity"
+        static let practiceTargetFillOpacity = "OverlayAppearance.practiceTargetFillOpacity"
         static let pressedFillColor = "OverlayAppearance.pressedFillColor"
         static let pressedFillOpacity = "OverlayAppearance.pressedFillOpacity"
         static let pressedBorderColor = "OverlayAppearance.pressedBorderColor"
@@ -91,6 +125,12 @@ final class OverlayUIState: ObservableObject {
 
         normalTextColor =
             Self.loadColor(defaults: defaults, key: Keys.normalTextColor) ?? .white
+
+        textShadowOpacity =
+            defaults.object(forKey: Keys.textShadowOpacity) as? Double ?? 0.0
+
+        practiceTargetFillOpacity =
+            defaults.object(forKey: Keys.practiceTargetFillOpacity) as? Double ?? 0.40
 
         pressedFillColor =
             Self.loadColor(defaults: defaults, key: Keys.pressedFillColor)
@@ -131,6 +171,8 @@ final class OverlayUIState: ObservableObject {
         normalFillOpacity = 0.15
         normalBorderOpacity = 0.40
         normalTextColor = .white
+        textShadowOpacity = 0.0
+        practiceTargetFillOpacity = 0.40
 
         pressedFillColor = Color(nsColor: .systemBlue)
         pressedFillOpacity = 0.78
@@ -143,6 +185,71 @@ final class OverlayUIState: ObservableObject {
         modifierHoldBorderColor = .white
         modifierHoldBorderWidth = 2.5
         modifierHoldTextColor = .white
+    }
+
+    func applyPreset(_ preset: AppearancePreset) {
+        // Keep overall opacity at 100% so labels remain crisp. The presets
+        // reduce per-key visual mass instead of fading the entire overlay.
+        overlayOpacity = 1.0
+
+        switch preset {
+        case .balanced:
+            normalFillOpacity = 0.28
+            normalBorderOpacity = 0.18
+            normalTextColor = .white.opacity(0.92)
+            textShadowOpacity = 0.55
+            practiceTargetFillOpacity = 0.45
+
+            pressedFillColor = .white
+            pressedFillOpacity = 0.22
+            pressedBorderColor = .white.opacity(0.30)
+            pressedBorderWidth = 1.5
+            pressedTextColor = .white.opacity(0.98)
+
+            modifierHoldFillColor = Color(nsColor: .systemOrange)
+            modifierHoldFillOpacity = 0.45
+            modifierHoldBorderColor = .white.opacity(0.34)
+            modifierHoldBorderWidth = 1.75
+            modifierHoldTextColor = .white
+
+        case .minimal:
+            normalFillOpacity = 0.16
+            normalBorderOpacity = 0.10
+            normalTextColor = .white.opacity(0.88)
+            textShadowOpacity = 0.48
+            practiceTargetFillOpacity = 0.32
+
+            pressedFillColor = .white
+            pressedFillOpacity = 0.18
+            pressedBorderColor = .white.opacity(0.22)
+            pressedBorderWidth = 1.25
+            pressedTextColor = .white.opacity(0.94)
+
+            modifierHoldFillColor = Color(nsColor: .systemOrange)
+            modifierHoldFillOpacity = 0.32
+            modifierHoldBorderColor = .white.opacity(0.26)
+            modifierHoldBorderWidth = 1.5
+            modifierHoldTextColor = .white.opacity(0.95)
+
+        case .highContrast:
+            normalFillOpacity = 0.38
+            normalBorderOpacity = 0.24
+            normalTextColor = .white
+            textShadowOpacity = 0.65
+            practiceTargetFillOpacity = 0.55
+
+            pressedFillColor = .white
+            pressedFillOpacity = 0.30
+            pressedBorderColor = .white.opacity(0.45)
+            pressedBorderWidth = 2.0
+            pressedTextColor = .white
+
+            modifierHoldFillColor = Color(nsColor: .systemOrange)
+            modifierHoldFillOpacity = 0.55
+            modifierHoldBorderColor = .white.opacity(0.50)
+            modifierHoldBorderWidth = 2.25
+            modifierHoldTextColor = .white
+        }
     }
 
     private func saveColor(_ color: Color, key: String) {
@@ -261,7 +368,7 @@ struct KeyboardOverlayView: View {
                                     .opacity(uiState.pressedFillOpacity)
                                 : isPracticeTarget
                                     ? Color(nsColor: .systemGreen)
-                                        .opacity(0.40)
+                                        .opacity(uiState.practiceTargetFillOpacity)
                                     : isHeatmapped
                                         ? heatmapColor(
                                             level: heatLevel
@@ -322,6 +429,14 @@ struct KeyboardOverlayView: View {
                                 : isPressed
                                     ? uiState.pressedTextColor
                                     : uiState.normalTextColor
+                            )
+                            .shadow(
+                                color: Color.black.opacity(
+                                    uiState.textShadowOpacity
+                                ),
+                                radius: max(0.5, 1.2 * scale),
+                                x: 0,
+                                y: max(0.5, 0.8 * scale)
                             )
                             .multilineTextAlignment(.center)
                             .lineLimit(2)
@@ -505,6 +620,25 @@ struct OverlayAppearanceView: View {
 
     var body: some View {
         Form {
+            Section("Presets") {
+                HStack(spacing: 8) {
+                    ForEach(
+                        OverlayUIState.AppearancePreset.allCases
+                    ) { preset in
+                        Button(preset.title) {
+                            uiState.applyPreset(preset)
+                        }
+                        .buttonStyle(.bordered)
+                    }
+                }
+
+                Text(
+                    "Balanced is the recommended starting point. Minimal keeps the background most visible; High Contrast favors label readability."
+                )
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            }
+
             Section("Overlay") {
                 sliderRow(
                     title: "Overall opacity",
@@ -530,6 +664,12 @@ struct OverlayAppearanceView: View {
                     "Text color",
                     selection: $uiState.normalTextColor,
                     supportsOpacity: true
+                )
+
+                sliderRow(
+                    title: "Text shadow",
+                    value: $uiState.textShadowOpacity,
+                    range: 0.0...1.0
                 )
             }
 
@@ -594,6 +734,14 @@ struct OverlayAppearanceView: View {
                     "Text color",
                     selection: $uiState.modifierHoldTextColor,
                     supportsOpacity: true
+                )
+            }
+
+            Section("Highlights") {
+                sliderRow(
+                    title: "Practice target fill",
+                    value: $uiState.practiceTargetFillOpacity,
+                    range: 0.0...1.0
                 )
             }
 
