@@ -161,7 +161,7 @@ enum HIDKeyLabel {
         switch usage {
         case 0x28: return "↩"
         case 0x29: return "Esc"
-        case 0x2A: return "⌫"
+        case /Users/feiyangfan/Developer/keyboard/zmk-config-totem/config/boards/shields/totem/totem.keymap0x2A: return "⌫"
         case 0x2B: return "Tab"
         case 0x2C: return "Space"
 
