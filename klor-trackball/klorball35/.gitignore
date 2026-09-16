@@ -1,0 +1,17 @@
+# KiCad temporary and backup files
+*.bak
+*.kicad_pcb-bak
+*.kicad_sch-bak
+*-backups/
+*.rpt
+_autosave-*
+*.lck
+
+# Component search and netlists (usually not needed in git)
+*.net
+*.xml
+
+*.kicad_prl
+
+# View state files (local to your computer)
+fp-info-cache

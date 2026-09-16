@@ -1,0 +1,522 @@
+meta:
+  author: danbowles
+  version: 1
+  engine: 4.2.1
+units:
+  # U: 19.05 # 19.05mm MX spacing
+  # u: 19 # 19mm MX spacing
+  # cx: 18 # 18mm Choc X spacing
+  # cy: 17 # 17mm Choc Y spacing
+  $default_width: cx
+  $default_height: cy
+  kx: cx
+  ky: cy
+  m2: 2.2
+  chocv1: 15
+  px: (kx + 4) / 2
+  py: (ky + 4) / 2
+  trrs_x: 1.97kx
+points:
+  mirror: &mirror
+    ref: thumb_outer_single
+    distance: 2kx
+  key:
+    spread: kx + 0.4
+    padding: ky + 0.4
+  zones:
+    matrix:
+      anchor:
+        shift: [150, -150]
+      rotate: 9.45
+      columns:
+        pinky:
+          key.stagger: -9
+        ring:
+          key:
+            spread: kx + 2
+            splay: -4
+            stagger: 12
+        middle:
+          key:
+            stagger: 6
+            splay: -3
+            spread: kx + 1.5
+        index:
+          key:
+            splay: -2.5
+            stagger: -7.5
+            spread: kx + 1.5
+        inner:
+          key.stagger: -2
+      rows:
+        bottom:
+        home:
+        top:
+    thumb:
+      anchor:
+        ref: matrix_inner_top
+        shift: [-22, -56]
+      columns:
+        inner:
+          key:
+            splay: 0
+            asym: source
+        neutral:
+          key:
+            splay: -15
+            shift: [4.5, -2]
+        outer:
+          key:
+            splay: -15
+            shift: [9, -2.89]
+      rows:
+        single:
+outlines:
+  switches_left:
+    - what: rectangle
+      where: /(^matrix_.*)|(^thumb_.*)/
+      size: [chocv1, chocv1]
+  switches_right:
+    - what: rectangle
+      where: /^mirror_.*/
+      size: [chocv1, chocv1]
+  keycaps_left:
+    # these help snap the footprint in place
+    - what: circle
+      radius: 1
+      where: /(^matrix_.*)|(^thumb_.*)/
+    - what: rectangle
+      where: /(^matrix_.*)|(^thumb_.*)/
+      size: [kx, ky]
+      operation: stack
+  keycaps_right:
+    # these help snap the footprint in place
+    - what: circle
+      radius: 1
+      where: /(^mirror_matrix_.*)|(^mirror_thumb_.*)/
+    - what: rectangle
+      where: /(^mirror_matrix_.*)|(^mirror_thumb_.*)/
+      size: [kx, ky]
+      operation: stack
+  helios_left:
+    - what: rectangle
+      adjust.rotate: 0
+      size: [18, 33]
+      where:
+        ref: matrix_inner_top
+        shift: [22, -4]
+  helios_right:
+    - what: rectangle
+      adjust.rotate: 0
+      size: [18, 33]
+      where:
+        ref: mirror_matrix_inner_top
+        shift: [22, -4]
+  trrs_left:
+    - what: rectangle
+      size: [6, 12]
+      adjust.rotate: 90
+      where:
+        ref: matrix_inner_bottom
+        shift: [trrs_x, 6]
+  trrs_right:
+    - what: rectangle
+      size: [6, 12]
+      adjust.rotate: 90
+      where:
+        ref: mirror_matrix_inner_bottom
+        shift: [trrs_x, 6]
+  # trackball_breakout_right:
+  #   - what: rectangle
+  #     size: [2, 22]
+  #     where:
+  #       ref: mirror_matrix_ring_bottom
+  #       shift: [1, -1.7ky]
+  trackball_breakout_right:
+    - what: rectangle
+      size: [2, 22]
+      where:
+        ref: mirror_matrix_middle_bottom
+        shift: [-16, -37]
+  holes_left:
+    - what: circle
+      radius: m2
+      where: matrix_pinky_top
+      adjust.shift: [0, ky-1.5m2]
+    - what: circle
+      radius: m2
+      where: matrix_index_top
+      adjust.shift: [0, ky-1.5m2]
+    - what: circle
+      radius: m2
+      where: matrix_inner_top
+      adjust.shift: [1.9kx+m2, 0.45ky]
+    - what: circle
+      radius: m2
+      where: matrix_inner_bottom
+      adjust.shift: [1.5kx, -0.5ky]
+    - what: circle
+      radius: m2
+      where: matrix_middle_bottom
+      adjust.shift: [0, -ky+1.5m2]
+  board_left:
+    - what: polygon
+      fillet: 2
+      points:
+        - ref: matrix_pinky_top
+          shift: [-0.75kx, ky+m2]
+        - ref: matrix_pinky_top
+          shift: [0.5kx, ky+m2]
+
+        - ref: matrix_ring_top
+          shift: [-0.73kx, 0.75ky]
+        - ref: matrix_ring_top
+          shift: [0.49kx, 0.76ky]
+
+        - ref: matrix_middle_top
+          shift: [-0.72kx, 0.71ky]
+        - ref: matrix_middle_top
+          shift: [0.7kx, 0.71ky]
+
+        - ref: matrix_index_top
+          shift: [-0.5kx, ky+m2]
+        - ref: matrix_index_top
+          shift: [0.7kx, ky+m2]
+
+        - ref: matrix_inner_top
+          shift: [-0.32kx, 0.735ky]
+        - ref: matrix_inner_top
+          shift: [2.3kx, 0.735ky]
+
+        - ref: matrix_inner_bottom
+          shift: [2.3kx, -0.735ky]
+
+        - ref: thumb_outer_single
+          shift: [0.75kx, 0.75ky]
+        - ref: thumb_outer_single
+          shift: [0.75kx, -0.75ky]
+        - ref: thumb_outer_single
+          shift: [-0.5kx, -0.75ky]
+
+        - ref: thumb_neutral_single
+          shift: [-0.5kx, -0.75ky]
+
+        - ref: thumb_inner_single
+          shift: [-0.75kx, -0.75ky]
+        - ref: thumb_inner_single
+          shift: [-0.75kx, -0.2ky]
+
+        - ref: matrix_pinky_bottom
+          shift: [0.8kx, -0.8ky]
+        - ref: matrix_pinky_bottom
+          shift: [-0.8kx, -0.8ky]
+  plate_left:
+    - what: polygon
+      fillet: 2
+      points:
+        - ref: matrix_pinky_top
+          shift: [-0.75kx, ky+m2]
+        - ref: matrix_pinky_top
+          shift: [0.5kx, ky+m2]
+
+        - ref: matrix_ring_top
+          shift: [-0.73kx, 0.75ky]
+        - ref: matrix_ring_top
+          shift: [0.49kx, 0.76ky]
+
+        - ref: matrix_middle_top
+          shift: [-0.72kx, 0.71ky]
+        - ref: matrix_middle_top
+          shift: [0.7kx, 0.71ky]
+
+        - ref: matrix_index_top
+          shift: [-0.5kx, ky+m2]
+        - ref: matrix_index_top
+          shift: [0.7kx, ky+m2]
+
+        - ref: matrix_inner_top
+          shift: [-0.32kx, 0.735ky]
+        - ref: matrix_inner_top
+          shift: [2.3kx, 0.735ky]
+
+        - ref: matrix_inner_bottom
+          shift: [2.3kx, -0.735ky]
+
+        - ref: thumb_outer_single
+          shift: [0.75kx, 0.75ky]
+        - ref: thumb_outer_single
+          shift: [0.75kx, -0.75ky]
+        - ref: thumb_outer_single
+          shift: [-0.5kx, -0.75ky]
+
+        - ref: thumb_neutral_single
+          shift: [-0.5kx, -0.75ky]
+
+        - ref: thumb_inner_single
+          shift: [-0.75kx, -0.75ky]
+        - ref: thumb_inner_single
+          shift: [-0.75kx, -0.2ky]
+
+        - ref: matrix_pinky_bottom
+          shift: [0.8kx, -0.8ky]
+        - ref: matrix_pinky_bottom
+          shift: [-0.8kx, -0.8ky]
+
+  holes_right:
+    - what: circle
+      radius: m2
+      where: mirror_matrix_pinky_top
+      adjust.shift: [0, ky-1.5m2]
+    - what: circle
+      radius: m2
+      where: mirror_matrix_index_top
+      adjust.shift: [0, ky-1.5m2]
+    - what: circle
+      radius: m2
+      where: mirror_matrix_inner_top
+      adjust.shift: [1.9kx+m2, 0.45ky]
+    - what: circle
+      radius: m2
+      where: mirror_matrix_inner_bottom
+      adjust.shift: [1.5kx, -0.5ky]
+    - what: circle
+      radius: m2
+      where: mirror_matrix_pinky_bottom
+      adjust.shift: [.5kx, -ky]
+    - what: circle
+      radius: m2
+      where: mirror_matrix_middle_bottom
+      adjust.shift: [0, -ky+1.5m2]
+  board_right:
+    - what: polygon
+      fillet: 2
+      points:
+        - ref: mirror_matrix_pinky_top
+          shift: [-0.75kx, ky+m2]
+        - ref: mirror_matrix_pinky_top
+          shift: [0.5kx, ky+m2]
+
+        - ref: mirror_matrix_ring_top
+          shift: [-0.73kx, 0.75ky]
+        - ref: mirror_matrix_ring_top
+          shift: [0.49kx, 0.76ky]
+
+        - ref: mirror_matrix_middle_top
+          shift: [-0.72kx, 0.71ky]
+        - ref: mirror_matrix_middle_top
+          shift: [0.7kx, 0.71ky]
+
+        - ref: mirror_matrix_index_top
+          shift: [-0.5kx, ky+m2]
+        - ref: mirror_matrix_index_top
+          shift: [0.7kx, ky+m2]
+
+        - ref: mirror_matrix_inner_top
+          shift: [-0.32kx, 0.735ky]
+        - ref: mirror_matrix_inner_top
+          shift: [2.3kx, 0.735ky]
+
+        - ref: mirror_matrix_inner_bottom
+          shift: [2.3kx, -0.735ky]
+
+        - ref: mirror_thumb_outer_single
+          shift: [0.75kx, 0.75ky]
+        - ref: mirror_thumb_outer_single
+          shift: [0.75kx, -0.75ky]
+        - ref: mirror_thumb_outer_single
+          shift: [-0.5kx, -0.75ky]
+
+        - ref: mirror_thumb_neutral_single
+          shift: [-0.7kx, -0.75ky]
+        - ref: mirror_thumb_neutral_single
+          shift: [-0.7kx, 0.5ky]
+
+        - ref: mirror_matrix_index_bottom
+          shift: [0, -12]
+        - ref: mirror_matrix_middle_bottom
+          shift: [0, -18]
+
+        # - ref: mirror_matrix_ring_bottom
+        #   shift: [0, -12]
+        - ref: mirror_matrix_middle_bottom
+          shift: [-17, -17.2]
+        - ref: mirror_matrix_middle_bottom
+          shift: [-17, -51]
+        # - ref: mirror_matrix_ring_bottom
+        #   shift: [0, -43]
+
+        - ref: mirror_matrix_pinky_bottom
+          shift: [0.4kx, -1.8ky]
+        - ref: mirror_matrix_pinky_bottom
+          shift: [0, -.8ky]
+        - ref: mirror_matrix_pinky_bottom
+          shift: [-0.8kx, -.8ky]
+  plate_right:
+    - what: polygon
+      fillet: 2
+      points:
+        - ref: mirror_matrix_pinky_top
+          shift: [-0.75kx, ky+m2]
+        - ref: mirror_matrix_pinky_top
+          shift: [0.5kx, ky+m2]
+
+        - ref: mirror_matrix_ring_top
+          shift: [-0.73kx, 0.75ky]
+        - ref: mirror_matrix_ring_top
+          shift: [0.49kx, 0.76ky]
+
+        - ref: mirror_matrix_middle_top
+          shift: [-0.72kx, 0.71ky]
+        - ref: mirror_matrix_middle_top
+          shift: [0.7kx, 0.71ky]
+
+        - ref: mirror_matrix_index_top
+          shift: [-0.5kx, ky+m2]
+        - ref: mirror_matrix_index_top
+          shift: [0.7kx, ky+m2]
+
+        - ref: mirror_matrix_inner_top
+          shift: [-0.32kx, 0.735ky]
+        - ref: mirror_matrix_inner_top
+          shift: [2.3kx, 0.735ky]
+
+        - ref: mirror_matrix_inner_bottom
+          shift: [2.3kx, -0.735ky]
+
+        - ref: mirror_thumb_outer_single
+          shift: [0.75kx, 0.75ky]
+        - ref: mirror_thumb_outer_single
+          shift: [0.75kx, -0.75ky]
+        - ref: mirror_thumb_outer_single
+          shift: [-0.5kx, -0.75ky]
+
+        - ref: mirror_thumb_neutral_single
+          shift: [-0.7kx, -0.75ky]
+
+        - ref: mirror_matrix_middle_bottom
+          shift: [0, -49]
+
+        - ref: mirror_matrix_middle_bottom
+          shift: [-17, -51]
+
+        - ref: mirror_matrix_pinky_bottom
+          shift: [.4kx, -1.8ky]
+        - ref: mirror_matrix_pinky_bottom
+          shift: [0, -.8ky]
+        - ref: mirror_matrix_pinky_bottom
+          shift: [-.8kx, -.8ky]
+  plate_holes_right:
+    - what: circle
+      radius: m2
+      where:
+        ref: mirror_matrix_middle_bottom
+        shift: [-3, -29]
+    - what: circle
+      radius: m2
+      where:
+        ref: mirror_matrix_middle_bottom
+        shift: [-3, -45]
+
+  combo_left:
+    - name: board_left
+    - name: switches_left
+      operation: stack
+    - name: holes_left
+      operation: stack
+    - name: helios_left
+      operation: stack
+    - name: trrs_left
+      operation: stack
+    - name: keycaps_left
+      operation: stack
+  combo_right:
+    - name: board_right
+    - name: switches_right
+      operation: stack
+    - name: holes_right
+      operation: stack
+    - name: plate_right
+      operation: stack
+    - name: plate_holes_right
+      operation: stack
+    - name: trackball_breakout_right
+      operation: stack
+    - name: helios_right
+      operation: stack
+    - name: trrs_right
+      operation: stack
+    - name: keycaps_right
+      operation: stack
+  combo_left_right:
+    - name: combo_left
+    - name: combo_right
+      operation: stack
+      adjust.shift: [20, 0]
+pcbs:
+  Klorball35_left:
+    outlines:
+      main:
+        outline: board_left
+        layer: Edge.Cuts
+      switches:
+        outline: switches_left # The outline containing your key squares
+        layer: Cmts.User # This puts them in KiCad as reference lines only
+      keys:
+        outline: keycaps_left
+        layer: Cmts.User
+      holes:
+        outline: holes_left
+        layer: Cmts.User
+      helios:
+        outline: helios_left
+        layer: Cmts.User
+      trrs:
+        outline: trrs_left
+        layer: Cmts.User
+    # footprints:
+    #   - where: /(^matrix_.*)|(^thumb_.*)/
+    #     what: choc
+    #     params:
+    #       hotswap: true
+    #       reverse: false
+    #       from: "{{colrow}}" # Automatically name the net based on the column/row
+    #       to: "{{column_net}}"
+    #   - where: matrix_inner_top
+    #     what: promicro
+    #     params:
+    #       designator: "Helios"
+    #     adjust:
+    #       rotate: -90
+    #       shift: [22, -5.3]
+  Klorball35_right:
+    outlines:
+      - outline: board_right
+        layer: Edge.Cuts
+      - outline: switches_right
+        layer: Cmts.User
+      - outline: keycaps_right
+        layer: Cmts.User
+      - outline: holes_right
+        layer: Cmts.User
+      - outline: trackball_breakout_right
+        layer: Cmts.User
+      - outline: helios_right
+        layer: Cmts.User
+      - outline: trrs_right
+        layer: Cmts.User
+  Klorball35_plate_left:
+    outlines:
+      main:
+        outline: board_left
+        layer: Edge.Cuts
+      holes:
+        outline: holes_left
+        layer: Cmts.User
+  Klorball35_plate_right:
+    outlines:
+      - outline: plate_right
+        layer: Edge.Cuts
+      - outline: holes_right
+        layer: Cmts.User
+      - outline: plate_holes_right
+        layer: Cmts.User

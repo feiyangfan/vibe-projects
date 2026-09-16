@@ -1,0 +1,203 @@
+
+//                               █         █    █            ▄▄▄▀▀▀▀▀▀▄▄▄        █▀▀▀▀▀▀▀▀▀▀█
+//                               █        █     █          ▄▀            ▀▄      █          █
+//                               █       █      █        ▄▀                ▀▄    █          █
+//                               █      █       █        █                  █    █          █
+//                               █     █        █       █                    █   █          █
+//                               █    █         █       █                    █   █▄▄▄▄▄▄▄▄▄▄█
+//                               █   █ █        █       █                    █   █      █
+//                               █  █   █       █        █                  █    █       █
+//                               █ █     █      █        ▀▄                ▄▀    █        █
+//                               ██       █     █          ▀▄            ▄▀      █         █
+//                               █         █    █▄▄▄▄▄▄▄▄    ▀▀▀▄▄▄▄▄▄▀▀▀        █          █
+//
+// ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+       
+#include <behaviors.dtsi>
+#include <dt-bindings/zmk/keys.h>
+#include <dt-bindings/zmk/bt.h>
+#include <dt-bindings/zmk/outputs.h>
+#include <dt-bindings/zmk/ext_power.h>
+#include <dt-bindings/zmk/rgb.h>
+
+
+#define BASE   0
+#define RAISE  1
+#define LOWER  2
+#define ADJUST 3
+
+&led_strip {
+    chain-length = <21>;
+};
+
+&sensors {
+    left_encoder {
+        triggers-per-rotation = <15>;
+    };
+
+    right_encoder {
+        triggers-per-rotation = <15>;
+    };
+};
+
+/ {
+    behaviors {
+        hm: homerow_mods {
+            compatible = "zmk,behavior-hold-tap";
+            label = "HOMEROW_MODS";
+            #binding-cells = <2>;
+            tapping-term-ms = <250>;
+            quick_tap_ms = <0>;
+            flavor = "tap-preferred";
+            bindings = <&kp>, <&kp>;
+        };
+
+    };
+
+     combos {
+            compatible = "zmk,combos";
+            combo_esc {
+                timeout-ms = <50>;
+                key-positions = <0 1>;
+                bindings = <&kp ESC>;
+            };
+            combo_closetab {
+                timeout-ms = <50>;
+                key-positions = <1 2>;
+                bindings = <&macro_closetab>;
+            };
+            combo_lasttab {
+                timeout-ms = <50>;
+                key-positions = <2 3>;
+                bindings = <&macro_lasttab>;
+            };
+     };
+
+     macros {
+            macro_closetab: macro_closetab {
+                compatible = "zmk,behavior-macro";
+                #binding-cells = <0>;
+                bindings
+                    = <&macro_press &kp LCTRL>
+                    , <&macro_tap &kp F4>
+                    , <&macro_release &kp LCTRL>
+                    ;
+            };
+            macro_lasttab: macro_lasttab {
+                compatible = "zmk,behavior-macro";
+                #binding-cells = <0>;
+                bindings
+                    = <&macro_press &kp LCTRL>
+                    , <&macro_tap &kp LS(T)>
+                    , <&macro_release &kp LCTRL>
+                    ;
+            };
+     };
+
+     keymap {
+            compatible = "zmk,keymap";
+// ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+
+
+                base_layer {
+// ┌───────────────────────────────────────────────────────────┐
+label= "BASE"                                                  ;
+// └───────────────────────────────────────────────────────────┘
+/*           ┌─────────┬─────────┬─────────┬─────────┬─────────┐                    ┌─────────┬─────────┬─────────┬─────────┬─────────┐
+             │    Q    │    W    │    E    │    R    │    T    │                    │    Y    │    U    │    I    │    O    │    P    │   
+   ┌─────────┼─────────┼─────────┼─────────┼─────────┼─────────┤                    ├─────────┼─────────┼─────────┼─────────┼─────────┼─────────┐
+   │   TAB   │    A    │    S    │    D    │    F    │    G    │                    │    H    │    J    │    K    │    L    │    ;    │    '    │
+   ├─────────┼─────────┼─────────┼─────────┼─────────┼─────────┤╭────────╮╭────────╮├─────────┼─────────┼─────────┼─────────┼─────────┼─────────┤
+   │   CTRL  │    Z    │    X    │    C    │    V    │    B    ││  MUTE  ││PLY/PSE ││    N    │    M    │    ,    │    .    │    /    │    \    │
+   └─────────┴─────────┴─────────┼─────────┼─────────┼─────────┼╰────────╯╰────────╯┼─────────┼─────────┼─────────┼─────────┴─────────┴─────────┘
+                                 │  LALT   │  LOWER  │  RALT   │  SPACE  ││  BSPCE  │  ENTER  │  RAISE  │    DEL  │  
+                                 └─────────┴─────────┴─────────┴─────────┘└─────────┴─────────┴─────────┴─────────┘ */ 
+ bindings = <
+ //╷         ╷         ╷         ╷         ╷         ╷         ╷         ╷╷         ╷         ╷         ╷         ╷         ╷         ╷         ╷
+              &kp Q     &kp W     &kp E     &kp R     &kp T                          &kp Y     &kp U     &kp I     &kp O     &kp P
+    &hm LSHFT TAB   &kp A     &kp S     &kp D   &hm LSHFT F &kp G                          &kp H   &hm RSHFT J &kp K     &kp L     &kp SEMI     &kp SQT
+    &kp LCTRL   &kp Z     &kp X     &kp C     &kp V     &kp B     &kp C_MUTE     &kp K_PP    &kp N     &kp M     &kp COMMA &kp DOT   &kp FSLH  &kp BSLH
+                                  &kp LALT &mo LOWER &kp RALT &kp SPACE   &kp BSPC  &kp RET   &mo RAISE &kp DEL    
+                        >;
+            sensor-bindings = <&inc_dec_kp C_VOL_UP C_VOL_DN &inc_dec_kp C_AC_FORWARD C_AC_BACK>;
+                };
+
+// ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+
+
+                raise_layer {
+// ┌───────────────────────────────────────────────────────────┐
+label= "RAISE"                                                 ;
+// └───────────────────────────────────────────────────────────┘
+/*           ┌─────────┬─────────┬─────────┬─────────┬─────────┐                    ┌─────────┬─────────┬─────────┬─────────┬─────────┐
+             │ RGB_SPI │ RGB_HUI │         │         │    {    │                    │    }    │   LEFT  │   UP    │  RIGHT  │   HOME  │
+   ┌─────────┼─────────┼─────────┼─────────┼─────────┼─────────┤                    ├─────────┼─────────┼─────────┼─────────┼─────────┼─────────┐
+   │ RGB_BRI │ RGB_EFF │         │         │         │    [    │                    │    ]    │         │  DOWN   │         │  PSCRN  │  P UP   │
+   ├─────────┼─────────┼─────────┼─────────┼─────────┼─────────┤╭────────╮╭────────╮├─────────┼─────────┼─────────┼─────────┼─────────┼─────────┤
+   │ RGB_BRD │ RGB_SPD │ RGB_HUD │         │         │    (    ││  MUTE  ││PLY/PASE││    )    │         │         │         │   END   │ P DOWN  │
+   └─────────┴─────────┴─────────┼─────────┼─────────┼─────────┼╰────────╯╰────────╯┼─────────┼─────────┼─────────┼─────────┴─────────┴─────────┘
+                                 │         │         │         │  LSHIFT ││  RSHIFT │         │         │  ADJUST │  
+                                 └─────────┴─────────┴─────────┴─────────┘└─────────┴─────────┴─────────┴─────────┘ */ 
+ bindings = <
+ //╷         ╷         ╷         ╷         ╷         ╷         ╷         ╷╷         ╷         ╷         ╷         ╷         ╷         ╷         ╷
+                    &rgb_ug RGB_SPI &rgb_ug RGB_HUI &trans    &trans &kp LBRC                       &kp RBRC &kp LEFT &kp UP   &kp RIGHT &kp HOME
+    &rgb_ug RGB_BRI &rgb_ug RGB_EFF &trans          &trans    &trans &kp LBKT                       &kp RBKT &trans   &kp DOWN &trans    &kp PSCRN &kp PG_UP
+    &rgb_ug RGB_BRD &rgb_ug RGB_SPD &rgb_ug RGB_HUD &trans    &trans &kp LPAR &kp C_MUTE  &kp K_PP  &kp RPAR &trans   &trans   &trans    &kp END   &kp PG_DN
+                                                    &trans    &trans &trans   &mo LSHFT   &mo RSHFT &trans   &trans   &mo ADJUST  
+                        >;
+            sensor-bindings = <&inc_dec_kp C_VOL_UP C_VOL_DN &inc_dec_kp C_NEXT C_PREV>;
+                };
+
+// ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+
+
+                lower_layer {
+// ┌───────────────────────────────────────────────────────────┐
+label= "LOWER"                                                 ;
+// └───────────────────────────────────────────────────────────┘
+/*           ┌─────────┬─────────┬─────────┬─────────┬─────────┐                    ┌─────────┬─────────┬─────────┬─────────┬─────────┐
+             │   F1    │   F2    │   F3    │   F4    │   F5    │                    │   F6    │   F7    │   F8    │   F9    │   F10   │
+   ┌─────────┼─────────┼─────────┼─────────┼─────────┼─────────┤                    ├─────────┼─────────┼─────────┼─────────┼─────────┼─────────┐
+   │    -    │    !    │    @    │    #    │    $    │    %    │                    │    ^    │    &    │    `    │    ~    │    =    │    +    │
+   ├─────────┼─────────┼─────────┼─────────┼─────────┼─────────┤╭────────╮╭────────╮├─────────┼─────────┼─────────┼─────────┼─────────┼─────────┤
+   │    _    │    1    │    2    │    3    │    4    │    5    ││  MUTE  ││PLY/PASE││    6    │    7    │    8    │    9    │    0    │    *    │
+   └─────────┴─────────┴─────────┼─────────┼─────────┼─────────┼╰────────╯╰────────╯┼─────────┼─────────┼─────────┼─────────┴─────────┴─────────┘
+                                 │         │         │         │  LSHIFT ││  RSHIFT │         │         │         │  
+                                 └─────────┴─────────┴─────────┴─────────┘└─────────┴─────────┴─────────┴─────────┘ */ 
+ bindings = <
+ //╷         ╷         ╷         ╷         ╷         ╷         ╷         ╷╷         ╷         ╷         ╷         ╷         ╷         ╷         ╷
+              &kp F1    &kp F2   &kp F3      &kp F4   &kp F5                           &kp F6    &kp F7    &kp F8    &kp F9    &kp F10     
+    &kp MINUS &kp EXCL  &kp AT   &kp POUND   &kp DLLR &kp PRCNT                        &kp CARET &kp AMPS  &kp GRAVE &kp TILDE &kp EQUAL &kp KP_PLUS  
+    &kp UNDER &kp N1    &kp N2   &kp N3      &kp N4   &kp N5   &kp C_MUTE    &kp K_PP  &kp N6   &kp N7     &kp N8    &kp N9    &kp N0    &kp KP_MULTIPLY
+                                 &trans      &trans   &trans   &mo LSHFT     &mo RSHFT &trans   &trans     &trans  
+                        >;
+                sensor-bindings = <&inc_dec_kp C_VOL_UP C_VOL_DN &inc_dec_kp C_NEXT C_PREV>;
+                };
+
+// ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+
+
+                adjust_layer {
+// ┌───────────────────────────────────────────────────────────┐
+label= "ADJUST"                                                ;
+// └───────────────────────────────────────────────────────────┘
+/*           ┌─────────┬─────────┬─────────┬─────────┬─────────┐                    ┌─────────┬─────────┬─────────┬─────────┬─────────┐
+             │ BT_CLR  │         │         │         │         │                    │         │         │         │         │ BT_CLR  │
+   ┌─────────┼─────────┼─────────┼─────────┼─────────┼─────────┤                    ├─────────┼─────────┼─────────┼─────────┼─────────┼─────────┐
+   │         │ BT_NXT  │         │         │         │         │                    │         │         │         │         │ BT_NXT  │         │
+   ├─────────┼─────────┼─────────┼─────────┼─────────┼─────────┤╭────────╮╭────────╮├─────────┼─────────┼─────────┼─────────┼─────────┼─────────┤
+   │         │ BT_PRV  │         │         │         │         ││  MUTE  ││PLY/PASE││         │         │         │         │ BT_PRV  │         │
+   └─────────┴─────────┴─────────┼─────────┼─────────┼─────────┼╰────────╯╰────────╯┼─────────┼─────────┼─────────┼─────────┴─────────┴─────────┘
+                                 │         │         │         │         ││         │         │         │         │  
+                                 └─────────┴─────────┴─────────┴─────────┘└─────────┴─────────┴─────────┴─────────┘ */ 
+ bindings = <
+ //╷         ╷         ╷         ╷         ╷         ╷         ╷         ╷╷         ╷         ╷         ╷         ╷         ╷         ╷         ╷
+             &bt BT_CLR &trans    &trans    &trans    &trans                         &trans    &trans    &trans    &trans    &bt BT_CLR   
+    &trans   &bt BT_NXT &trans    &trans    &trans    &trans                         &trans    &trans    &trans    &trans    &bt BT_NXT   &trans 
+    &trans   &bt BT_PRV &trans    &trans    &trans    &trans    &kp C_MUTE  &kp K_PP &trans    &trans    &trans    &trans    &bt BT_PRV   &trans    
+                                  &trans    &trans    &trans    &trans      &trans   &trans    &trans    &trans    
+                        >;
+            sensor-bindings = <&inc_dec_kp C_VOL_UP C_VOL_DN &inc_dec_kp C_NEXT C_PREV>;
+                };
+        };
+};

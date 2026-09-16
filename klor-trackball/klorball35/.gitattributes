@@ -1,0 +1,8 @@
+# Handle line endings automatically for text files
+* text=auto
+
+# Ensure KiCad files and footprints stay consistent
+*.kicad_pcb text
+*.kicad_sch text
+*.kicad_mod text
+*.pretty/** text
