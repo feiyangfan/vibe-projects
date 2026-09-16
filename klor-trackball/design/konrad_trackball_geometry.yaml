@@ -1,0 +1,141 @@
+project: klor-trackball
+variant: klor-1.4-mx-konrad-pmw3360-25mm
+status: working-baseline-not-fabrication-locked
+units: mm
+
+keyboard:
+  base_pcb: klor1.4/PCB/klor1_4/klor1_4.kicad_pcb
+  layout: Konrad
+  left_half: stock
+  right_half: modified
+  key_count:
+    left: 20
+    right: 19
+    total: 39
+  right_thumb_keys:
+    retain: [R32, R33]
+    delete:
+      reference: R34
+      switch_reference: SW22
+      matrix: [7, 1]
+  encoder_right: retain
+
+trackball:
+  ball_diameter: 25.0
+  sensor: PMW3360DM-T2QU
+  breakout: Kivipallur PMW3360
+  housing:
+    name: Keyball 25mm Trackball Case Type C
+    author: kepeo
+    source: Thingiverse 6719828
+    license: Creative Commons Attribution
+    source_archive_sha256: ad2ee79388c01fcb775ee08e35761d14b27fbd53ecffabfbdc45add77830e206
+    step_sha256: 79c3fdc445d6b4ecf63afdcc60d87a7ab3635902f155187c6687e3561d1ed57c
+    left_stl_sha256: 5bcd5f2ec9cf4f151f15423a27f68a44c96efbc45ad7ce103242b5b66511ab58
+    right_stl_sha256: 9ff67b5fe3acee937a14b84994b586b2993a2e0222d826da7d0275e4c68c4565
+
+housing_step_geometry:
+  ball_center_local: [0.0, 0.0, 0.0]
+  bounding_box_local:
+    x: [-9.631504603, 27.963306547]
+    y: [-14.998377044, 15.0]
+    z: [-18.0000001, 13.2000001]
+  envelope_size: [37.594811150, 29.998377044, 31.2000002]
+  mounting_plane_z: -18.0
+  actual_ball_radius: 12.5
+  actual_ball_top_above_mounting_plane: 30.5
+  spherical_surface_radii: [15.0, 13.25]
+  mounting_pilot_radius: 0.8
+  mounting_pilot_axes_local:
+    - [6.2, 7.98]
+    - [6.224640612, -7.98]
+  mounting_pair_spacing_measured: 15.96
+  mounting_pair_spacing_nominal: 16.0
+  mounting_pair_midpoint_from_ball_sensor_direction_approx: 6.212
+
+klorball35_reference:
+  source: klorball35/config.yml
+  housing_screw_spacing: 16.0
+  breakout_slot_size: [2.0, 22.0]
+  breakout_center_offset_from_screw_midpoint_sensor_direction: 13.0
+  housing_screws_belong_to: switchplate
+  breakout_clearance_belongs_to: main_pcb_and_switchplate_edge
+
+candidate_placement_klor_coordinates:
+  coordinate_system: native KLOR KiCad/Gerber coordinates
+  sensor_direction_global: negative_x
+  screw_pair_axis_global: y
+  ball_center: [162.323, -134.748]
+  housing_screw_midpoint: [156.111, -134.748]
+  housing_screws:
+    - [156.111, -126.768]
+    - [156.111, -142.728]
+  breakout_slot_center: [143.111, -134.748]
+  transform_from_typec_local:
+    x_global: "ball_x - x_local"
+    y_global: "ball_y + y_local"
+    z_global: "mounting-plane dependent; preserve Type-C native Z stack"
+  housing_aabb_xy_global:
+    x: [134.359693453, 171.954504603]
+    y: [-149.746377044, -119.748]
+
+klor_references:
+  deleted_r34_sw22_center_from_npth: [143.025, -128.770]
+  adjacent_r33_center_from_npth_approx: [121.915, -131.640]
+  simple_r33_clearance_check:
+    assumed_keycap_square: 18.0
+    aabb_x_edge_clearance: 3.444693453
+    note: conservative_2d_rectangular_sanity_check_not_final_3d_collision
+
+pcb_electrical:
+  pmw3360:
+    motion: NC
+    sck: GP2
+    mosi: GP3
+    miso: GP4
+    cs: GP9
+    power: 3V3
+    ground: GND
+  split_serial:
+    pin: GP1
+    mode: half-duplex
+  rgb:
+    pin: GP0
+    left_count: 20
+    right_count: 19
+    total_count: 39
+    deleted_sw22_led: bypass_in_copper
+  matrix_rows: [GP5, GP6, GP7, GP8]
+  matrix_columns: [GP20, GP21, GP22, GP23, GP26, GP27]
+  encoder: [GP28, GP29]
+  required_edit:
+    - isolate_GP4_from_optional_full_duplex_TRRS_TX
+  right_optional_features_initial_population:
+    oled: false
+    haptic: false
+    audio: false
+    stock_paw3204: false
+
+mechanical_architecture:
+  typec_mounting_screws_on_main_pcb: false
+  typec_mounting_screws_on_switchplate: true
+  remove_r34_sw22: true
+  retain_r32_r33: true
+  retain_encoder: true
+  breakout_slot_reference_size: [2.0, 22.0]
+  switchplate_local_relief_preliminary_max: "~6-7 mm"
+  case: Konrad right case local modification only
+
+fabrication_gate:
+  locked: false
+  remaining:
+    - exact KiCad component/copper audit around R34 including D22 and nearby passives
+    - exact main PCB outline and breakout clearance edit
+    - final Konrad right switchplate CAD modification
+    - final Konrad right case CAD modification
+    - assembled 3D interference check
+    - KiCad DRC
+    - fabrication output review
+    - QMK implementation and hardware bring-up
+
+canonical_handoff: docs/KONRAD_TRACKBALL_HANDOFF.md
