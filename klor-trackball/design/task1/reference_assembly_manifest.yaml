@@ -25,12 +25,15 @@ trackball:
     name: Keyball 25mm Trackball Case Type C
     source: Thingiverse 6719828
     author: kepeo
-    license: CC-BY-4.0
+    license: Creative Commons Attribution
+    source_directory: ../../Keyball 25mm Trackball Case Type C - 6719828
+    step_path: ../../Keyball 25mm Trackball Case Type C - 6719828/files/keyball_trackball_case_25mm_type_c.stp
+    left_stl_path: ../../Keyball 25mm Trackball Case Type C - 6719828/files/keyball_trackball_case_25mm_type_c_left.stl
+    right_stl_path: ../../Keyball 25mm Trackball Case Type C - 6719828/files/keyball_trackball_case_25mm_type_c_right.stl
+    expected_step_sha256: 79c3fdc445d6b4ecf63afdcc60d87a7ab3635902f155187c6687e3561d1ed57c
     archive_path: ../../Keyball 25mm Trackball Case Type C - 6719828.zip
     expected_archive_sha256: ad2ee79388c01fcb775ee08e35761d14b27fbd53ecffabfbdc45add77830e206
-    step_member: files/keyball_trackball_case_25mm_type_c.stp
-    expected_step_sha256: 79c3fdc445d6b4ecf63afdcc60d87a7ab3635902f155187c6687e3561d1ed57c
-    repo_status: archive-present-preflight-must-verify
+    repo_status: direct-source-present-preflight-must-verify
     local_mounting_plane_z: -18.0
     transform_xy:
       x_global: ball_x_minus_local_x
@@ -63,7 +66,7 @@ required_keepouts:
   - trrs_region
 
 completion_gate:
-  housing_archive_present: true
+  housing_direct_source_present: true
   housing_source_hash_verified: false
   pcb_switchplate_case_frames_aligned: false
   breakout_orientation_and_service_path_verified: false
@@ -78,6 +81,7 @@ completion_gate:
 rules:
   - Do not change the placement merely to make an approximate envelope pass.
   - Do not mark placement_locked true while any completion-gate item is false.
-  - The repository housing archive and embedded STEP must match both recorded SHA-256 values before use.
+  - The checked-in STEP must match the recorded SHA-256 before use in the reference assembly.
+  - The ZIP is provenance/reference only; Task 1 should consume the unarchived STEP directly.
   - If XY placement changes, update this manifest, ../konrad_trackball_geometry.yaml, and ../../docs/KONRAD_TRACKBALL_HANDOFF.md in the same commit.
   - Task 1 must not edit the production PCB, firmware, switchplate, or case geometry.
