@@ -22,15 +22,21 @@ The assembly must eventually contain:
 
 The current placement remains the baseline. It should move only if the complete assembly exposes a concrete collision or assembly/service constraint.
 
-## Current blockers found from `main`
+## Current source state
 
-### 1. Type-C STEP is referenced but not stored in the repository
+### 1. Type-C housing archive is now stored in the repository
 
-The handoff records the exact Type-C STEP hash:
+The archive is available at:
 
-`79c3fdc445d6b4ecf63afdcc60d87a7ab3635902f155187c6687e3561d1ed57c`
+`../../Keyball 25mm Trackball Case Type C - 6719828.zip`
 
-The source file itself is absent from `klor-trackball/`. Task 1 cannot claim a source-geometry collision pass until that exact file is available and its hash is verified.
+The handoff records these expected hashes:
+
+- archive SHA-256: `ad2ee79388c01fcb775ee08e35761d14b27fbd53ecffabfbdc45add77830e206`
+- embedded STEP SHA-256: `79c3fdc445d6b4ecf63afdcc60d87a7ab3635902f155187c6687e3561d1ed57c`
+- embedded STEP member: `files/keyball_trackball_case_25mm_type_c.stp`
+
+`preflight_reference_assembly.py` now checks the repository archive automatically, verifies both hashes, and verifies that the expected STEP member is present before Task 1 uses the housing geometry.
 
 Do not substitute a similarly named STL or redraw the housing from the recorded bounding box.
 
@@ -53,7 +59,8 @@ Task 1 must establish and record those transforms from geometry. They must not b
 `reference_assembly_manifest.yaml` records:
 
 - current placement datums
-- expected Type-C source hash
+- repository housing archive path
+- expected archive and embedded STEP hashes
 - stock source files
 - unresolved transforms
 - the Task 1 completion gate
@@ -62,20 +69,32 @@ A completion-gate field must remain `false` until it has been checked against th
 
 ## Reference assembly workflow
 
-1. Export the stock KLOR PCB to STEP from the existing KiCad board without editing it.
-2. Align the stock Konrad switchplate to the PCB using common physical features (switch centers and/or mounting features), then record the rigid transform.
-3. Align the stock right-case STL to the switchplate/PCB assembly using matching seating and mounting geometry, then record the rigid transform.
-4. Obtain the exact Type-C STEP identified by the recorded SHA-256 and verify the hash before use.
-5. Place the Type-C housing using the recorded ball-centred transform and align its mounting plane to the switchplate interface.
+1. Run the preflight. It verifies stock sources, the repository housing archive, and the embedded Type-C STEP.
+2. Export the stock KLOR PCB to STEP from the existing KiCad board without editing it.
+3. Align the stock Konrad switchplate to the PCB using common physical features (switch centers and/or mounting features), then record the rigid transform.
+4. Align the stock right-case STL to the switchplate/PCB assembly using matching seating and mounting geometry, then record the rigid transform.
+5. Extract/use the verified Type-C STEP and place it using the recorded ball-centred transform; align its mounting plane to the switchplate interface.
 6. Add the real Kivipallur breakout geometry and verify its orientation and insertion/service path.
 7. Add R32/R33, encoder, MCU and TRRS collision envelopes from source geometry or verified component dimensions.
 8. Run the complete collision/access audit and write the results into the manifest.
+
+Run preflight from the project root:
+
+```bash
+python3 design/task1/preflight_reference_assembly.py
+```
+
+To also export the unmodified stock PCB as a board-only STEP when `kicad-cli` is installed:
+
+```bash
+python3 design/task1/preflight_reference_assembly.py --export-pcb-step
+```
 
 ## Required outputs before Task 1 can close
 
 - a reproducible reference assembly file or script
 - recorded PCB → switchplate and PCB → case transforms
-- verified Type-C source hash
+- verified repository archive and embedded Type-C STEP hashes
 - collision results for all retained components/keepouts
 - verified ball exposure and housing mounting-plane relationship
 - verified breakout insertion/service path
