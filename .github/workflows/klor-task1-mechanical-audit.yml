@@ -29,6 +29,9 @@ jobs:
       - name: Inspect mounting pattern
         working-directory: klor-trackball
         run: python design/task1/mount_pattern_diagnostics.py | tee design/task1/generated/mount-pattern-diagnostics.json
+      - name: Check structural fastener envelopes
+        working-directory: klor-trackball
+        run: python design/task1/structural_mount_collision_diagnostic.py | tee design/task1/generated/structural-mount-collision.json
       - name: Run final native-frame mechanical audit
         working-directory: klor-trackball
         shell: bash
