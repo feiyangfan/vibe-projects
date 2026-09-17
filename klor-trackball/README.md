@@ -80,18 +80,22 @@ Current state:
 
 - **2A complete** — removed-key circuit audited and disposition locked
 - **2B complete** — GPIO ownership and split/TRRS routing audited and disposition locked
-- **2C next** — Kivipallur connector footprint/pin order/orientation
-- 2D–2F not started
+- **2C complete** — Kivipallur connector footprint, pin order, mating handedness, and service orientation locked
+- **2D next** — PCB connector/net contract
+- 2E–2F not started
 
 Canonical Task 2 files:
 
 - [`design/task2/TASK2A_RESULT.md`](design/task2/TASK2A_RESULT.md)
 - [`design/task2/TASK2B_RESULT.md`](design/task2/TASK2B_RESULT.md)
+- [`design/task2/TASK2C_RESULT.md`](design/task2/TASK2C_RESULT.md)
 - [`design/task2/task2_manifest.yaml`](design/task2/task2_manifest.yaml)
 - `design/task2/audit_task2a_removed_key.py`
 - `design/task2/audit_task2b_gpio_trrs.py`
+- `design/task2/audit_task2c_kivipallur_connector.py`
 - `.github/workflows/klor-task2a-electrical-audit.yml`
 - `.github/workflows/klor-task2b-gpio-trrs-audit.yml`
+- `.github/workflows/klor-task2c-kivipallur-connector-audit.yml`
 
 The overall keyboard is **not fabrication-locked**. PCB, switchplate, case, firmware, and final integrated validation remain.
 
@@ -225,35 +229,65 @@ For GP2/GP3, the legacy OLED/reversible peripheral solder jumpers are the defaul
 
 **Gate: passed.** See [`design/task2/TASK2B_RESULT.md`](design/task2/TASK2B_RESULT.md).
 
-#### Task 2C — Lock the Kivipallur physical/electrical connector — NEXT
+#### Task 2C — Lock the Kivipallur physical/electrical connector — COMPLETE
 
-Audit the real Kivipallur source rather than assuming connector order.
+The Kivipallur breakout uses a **1 × 7, 2.54 mm through-hole vertical header** (`J1`) on `B.Cu`. Its exact source pin order is:
 
-Resolve:
+```text
+1 GND
+2 3V3
+3 MOTION
+4 SCK
+5 MOSI
+6 MISO
+7 CS
+```
 
-- connector footprint and pitch
-- physical side/orientation on the right PCB
-- pin numbering as viewed from the KLOR PCB
-- breakout mating orientation and service direction
-- exact signal order: GND, 3V3, MOTION, SCK, MOSI, MISO, CS
+The working Klorball35 right PCB uses the same footprint as keyboard-side `J2` on `F.Cu`, but deliberately reverses the physical order:
 
-**Gate:** connector footprint, orientation, pin numbering, and breakout mating direction are unambiguous.
+```text
+1 CS
+2 MISO
+3 MOSI
+4 SCK
+5 NC
+6 3V3
+7 GND
+```
 
-#### Task 2D — Freeze the PCB net contract
+The connectors mate opposite-facing as `breakout pin N <-> keyboard pin (8-N)`, so the signals line up directly. Breakout MOTION pin 3 therefore lands on keyboard pin 5, which is intentionally NC for revision 1.
 
-Convert 2A–2C into an authoritative connector/net table.
+The Klorball35 `2 × 22 mm` breakout rectangle is a `Cmts.User` mechanical guide, **not a fabricated Edge.Cuts slot**. Its keyboard header is parallel to the 22 mm axis and offset from the guide center by **4.613622 mm**. Task 3 must create the actual KLOR pass-through/edge clearance at the Task 1-locked breakout datum.
 
-Current proposal to verify:
+KLOR target orientation is now locked against the canonical Gerber frame:
 
-| Breakout signal | Proposed KLOR right connection |
-| --- | --- |
-| GND | GND |
-| 3.3 V | 3V3 |
-| MOTION | NC for revision 1 |
-| SCK | GP2 |
-| MOSI | GP3 |
-| MISO | GP4 |
-| CS | GP9 |
+- keyboard connector side: `F.Cu`
+- row axis: global Y, parallel to the 22 mm guide
+- header side of guide: positive X / non-sensor side
+- breakout service direction: negative X
+- pin 1: negative-Y end
+- pin 7: positive-Y end
+- physical row from negative Y to positive Y: `CS, MISO, MOSI, SCK, NC, 3V3, GND`
+
+Task 3 may resolve final production XY against the locked assembly, but it may not flip connector side, row handedness, numbering, or the `N <-> 8-N` mating rule without reopening Task 2C.
+
+**Gate: passed.** See [`design/task2/TASK2C_RESULT.md`](design/task2/TASK2C_RESULT.md).
+
+#### Task 2D — Freeze the PCB net contract — NEXT
+
+Attach the Task 2A/2B electrical ownership to the Task 2C-fixed physical connector order.
+
+Current contract to verify and freeze:
+
+| KLOR connector pin | Breakout signal | Proposed KLOR connection |
+| ---: | --- | --- |
+| 1 | CS | GP9 |
+| 2 | MISO | GP4 |
+| 3 | MOSI | GP3 |
+| 4 | SCK | GP2 |
+| 5 | MOTION | NC for revision 1 |
+| 6 | 3V3 | 3V3 |
+| 7 | GND | GND |
 
 **Gate:** every connector pin maps to one PCB net and MCU signal with no unresolved electrical ambiguity.
 
