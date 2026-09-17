@@ -1,116 +1,92 @@
 # Task 1 — Mechanical reference assembly
 
-Status: **in progress; not placement-locked**.
+Status: **complete — placement locked**.
 
-This directory is intentionally limited to Task 1. It must not contain production PCB routing, firmware changes, or final switchplate/case edits.
+Task 1 establishes the mechanical reference frame and proves the current Type-C trackball placement against the checked-in KLOR/Konrad geometry. It intentionally does **not** modify the production PCB, firmware, switchplate, or case.
 
-## Objective
+The detailed result is in [`TASK1_RESULT.md`](TASK1_RESULT.md). The machine-readable source of truth is [`reference_assembly_manifest.yaml`](reference_assembly_manifest.yaml).
 
-Build one reproducible right-side reference assembly and use it to decide whether the current trackball placement can be locked.
+## Locked result
 
-The assembly must eventually contain:
+The original fabrication-frame placement remains unchanged:
 
-- stock KLOR 1.4 right PCB geometry
-- stock Konrad switchplate
-- stock Konrad right case
-- Keyball 25 mm Trackball Case Type C
-- 25 mm ball
-- Kivipallur PMW3360 breakout
-- R32/R33 switch and keycap envelopes
-- right encoder envelope
-- MCU/TRRS keepouts
+| Datum | X | Y |
+| --- | ---: | ---: |
+| Ball center | 162.323 | -134.748 |
+| Housing screw midpoint | 156.111 | -134.748 |
+| Housing screw 1 | 156.111 | -126.768 |
+| Housing screw 2 | 156.111 | -142.728 |
+| Breakout-slot center | 143.111 | -134.748 |
 
-The current placement remains the baseline. It should move only if the complete assembly exposes a concrete collision or assembly/service constraint.
+These values are explicitly **Gerber/Excellon fabrication coordinates**. The audit solved the fabrication↔KiCad transform from all 21 MX drill-center pairs and confirmed it is effectively an X-preserving, Y-reflecting transform.
 
-## Current source state
+## What was verified
 
-### Type-C housing files are checked in directly
+The automated geometry audit verifies:
 
-The unarchived Thingiverse source package is now stored at:
+- checked-in Type-C STEP/right-STL/left-STL hashes and ZIP provenance;
+- KiCad PCB ↔ Gerber/Excellon frame;
+- KiCad PCB ↔ native Konrad switchplate frame;
+- native Konrad switchplate ↔ native right-case frame from eight structural M2 axes;
+- stock case support plane + documented 7 mm standoff + 1.5 mm switchplate stack-up;
+- Type-C mounting plane and ball exposure;
+- nearest retained switch/keycap clearances;
+- right encoder, MCU, and TRRS clearances;
+- all eight structural fastener axes using the actual housing mesh and conservative M2 fastener envelopes;
+- Kivipallur breakout orientation and insertion/service corridor.
+
+The authoritative completion gate passes with `placement_locked: true`.
+
+## Important downstream finding
+
+The unmodified stock right-case shell intersects the placed Type-C housing. This is **not** a reason to move the trackball:
+
+- all eight structural case/switchplate mounting axes remain clear;
+- retained switches, encoder, MCU, and TRRS remain clear;
+- the interference is local shell material in the intended trackball modification region.
+
+Task 5 must therefore provide local case-shell relief around the locked housing placement while preserving all eight structural mounting axes. Task 4 will likewise add the required local switchplate relief and Type-C mounting features.
+
+## Source geometry
+
+Type-C source package:
 
 `../../Keyball 25mm Trackball Case Type C - 6719828/`
 
-Task 1 uses these files directly:
+Primary files:
 
-- `files/keyball_trackball_case_25mm_type_c.stp` — primary CAD source
-- `files/keyball_trackball_case_25mm_type_c_left.stl` — source-package reference
-- `files/keyball_trackball_case_25mm_type_c_right.stl` — source-package reference
+- `files/keyball_trackball_case_25mm_type_c.stp`
+- `files/keyball_trackball_case_25mm_type_c_left.stl`
+- `files/keyball_trackball_case_25mm_type_c_right.stl`
 
-The recorded SHA-256 values are:
+Stock/reference geometry:
 
-- STEP: `79c3fdc445d6b4ecf63afdcc60d87a7ab3635902f155187c6687e3561d1ed57c`
-- left STL: `5bcd5f2ec9cf4f151f15423a27f68a44c96efbc45ad7ce103242b5b66511ab58`
-- right STL: `9ff67b5fe3acee937a14b84994b586b2993a2e0222d826da7d0275e4c68c4565`
+- PCB: `../../klor1.4/PCB/klor1_4/klor1_4.kicad_pcb`
+- NPTH drill/frame reference: `../../klor1.4/PCB/klor1_4/gerbers/klor1_4-NPTH.drl`
+- switchplate: `../../klor1.4/case/3DP/konrad/switchplate/KLOR_konrad_3DP_switchplate.step`
+- right case: `../../klor1.4/case/3DP/konrad/regular/KLOR_konrad_case_R.stl`
+- breakout: `../../klorball35/kicad/Kivipallur_PMW3360_breakout/Kivipallur_PMW3360_breakout.kicad_pcb`
 
-The original ZIP remains at the project root as provenance/reference, but Task 1 no longer depends on archive extraction.
+## Reproducing the audit
 
-`preflight_reference_assembly.py` verifies the checked-in STEP and STL files directly. The ZIP check is supplementary and can be skipped with `--skip-archive-check`.
-
-Do not substitute a redraw or approximate envelope for the checked-in STEP.
-
-### The stock right case is mesh-only
-
-The regular Konrad right case is available as:
-
-`klor1.4/case/3DP/konrad/regular/KLOR_konrad_case_R.stl`
-
-That is sufficient for collision/reference work in Task 1, but not a clean editable source for Task 5.
-
-### Cross-model coordinate alignment is still unresolved
-
-The trackball datums are expressed in the native KLOR PCB/Gerber XY frame. The Konrad switchplate STEP and right-case STL do not yet have a documented transform back to that PCB frame.
-
-Task 1 must establish and record those transforms from geometry. They must not be guessed from screenshots or bounding boxes.
-
-## Source-of-truth manifest
-
-`reference_assembly_manifest.yaml` records:
-
-- current placement datums
-- direct housing STEP/STL paths and expected hashes
-- stock source files
-- unresolved transforms
-- the Task 1 completion gate
-
-A completion-gate field must remain `false` until it has been checked against the assembled source geometry.
-
-## Reference assembly workflow
-
-1. Run the preflight. It verifies the stock sources and the checked-in Type-C STEP/STLs directly.
-2. Export the stock KLOR PCB to STEP from the existing KiCad board without editing it.
-3. Align the stock Konrad switchplate to the PCB using common physical features (switch centers and/or mounting features), then record the rigid transform.
-4. Align the stock right-case STL to the switchplate/PCB assembly using matching seating and mounting geometry, then record the rigid transform.
-5. Place the verified Type-C STEP using the recorded ball-centred transform and align its mounting plane to the switchplate interface.
-6. Add the real Kivipallur breakout geometry and verify its orientation and insertion/service path.
-7. Add R32/R33, encoder, MCU and TRRS collision envelopes from source geometry or verified component dimensions.
-8. Run the complete collision/access audit and write the results into the manifest.
-
-Run preflight from `klor-trackball/`:
+From `klor-trackball/`:
 
 ```bash
 python3 design/task1/preflight_reference_assembly.py
 ```
 
-To omit the supplementary ZIP cross-check:
+The full audit runs in GitHub Actions through:
 
-```bash
-python3 design/task1/preflight_reference_assembly.py --skip-archive-check
-```
+`.github/workflows/klor-task1-mechanical-audit.yml`
 
-To also export the unmodified stock PCB as a board-only STEP when `kicad-cli` is installed:
+It generates machine-readable evidence for the frame solves, stack-up, collision checks, structural-fastener checks, and final completion gate.
 
-```bash
-python3 design/task1/preflight_reference_assembly.py --export-pcb-step
-```
+## Gate for later tasks
 
-## Required outputs before Task 1 can close
+Tasks 2–8 must use the locked fabrication datums in the manifest. Do not move the trackball merely to avoid the documented stock-case shell relief.
 
-- a reproducible reference assembly file or script
-- recorded PCB → switchplate and PCB → case transforms
-- verified direct Type-C STEP/STL hashes
-- collision results for all retained components/keepouts
-- verified ball exposure and housing mounting-plane relationship
-- verified breakout insertion/service path
-- `placement_locked: true` only after every completion-gate item passes
+If the placement is ever changed, rerun Task 1 and update together:
 
-If the placement changes, update `reference_assembly_manifest.yaml`, `../konrad_trackball_geometry.yaml`, and `../../docs/KONRAD_TRACKBALL_HANDOFF.md` together.
+- `reference_assembly_manifest.yaml`
+- `../konrad_trackball_geometry.yaml`
+- `../../docs/KONRAD_TRACKBALL_HANDOFF.md`
