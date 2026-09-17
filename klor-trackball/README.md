@@ -79,15 +79,19 @@ Task 2 is decomposed as:
 Current state:
 
 - **2A complete** — removed-key circuit audited and disposition locked
-- **2B next** — GPIO ownership + split/TRRS routing audit
-- 2C–2F not started
+- **2B complete** — GPIO ownership and split/TRRS routing audited and disposition locked
+- **2C next** — Kivipallur connector footprint/pin order/orientation
+- 2D–2F not started
 
 Canonical Task 2 files:
 
 - [`design/task2/TASK2A_RESULT.md`](design/task2/TASK2A_RESULT.md)
+- [`design/task2/TASK2B_RESULT.md`](design/task2/TASK2B_RESULT.md)
 - [`design/task2/task2_manifest.yaml`](design/task2/task2_manifest.yaml)
 - `design/task2/audit_task2a_removed_key.py`
+- `design/task2/audit_task2b_gpio_trrs.py`
 - `.github/workflows/klor-task2a-electrical-audit.yml`
+- `.github/workflows/klor-task2b-gpio-trrs-audit.yml`
 
 The overall keyboard is **not fabrication-locked**. PCB, switchplate, case, firmware, and final integrated validation remain.
 
@@ -161,14 +165,7 @@ Dependency chain:
 
 #### Task 2A — Audit the removed-key circuit — COMPLETE
 
-Source audit result for logical R34 / PCB `SW22`:
-
-- `SW22` is one combined `KLOR:SK6812MINI_and_cherry_1` footprint
-- schematic unit 1 = MX switch
-- schematic unit 2 = SK6812 RGB
-- PCB pads 1–4 = RGB
-- PCB pads 5–6 = switch
-- there is **no separate LED reference** for this key
+Logical R34 is PCB `SW22`, a combined MX + SK6812 footprint.
 
 Matrix topology:
 
@@ -190,41 +187,45 @@ RGB topology:
 SW13 DOUT -> SW22 DIN -> SW22 DOUT -> SW14 DIN
 ```
 
-Locked RGB disposition:
+Locked RGB bypass:
 
 ```text
 SW13 DOUT -> SW14 DIN
 ```
 
-Exact stock data nets:
-
-- SW22 DIN: `Net-(SW13B-DOUT)`
-- SW22 DOUT: `Net-(SW14B-DIN)`
-
-SW22 RGB power remains ordinary shared `VCC`/`GND`; there is no logical power-chain bypass. Task 3 must remove only SW22-local power branches while preserving shared rail continuity.
-
-Nearby stock circuitry identified for Task 2B includes `J3`, `JP16`–`JP21`, and `BZ1`; proximity alone does not authorize deleting them.
+SW22 RGB power is ordinary shared `VCC`/`GND`; remove only SW22-local branches and preserve shared rail continuity.
 
 **Gate: passed.** See [`design/task2/TASK2A_RESULT.md`](design/task2/TASK2A_RESULT.md).
 
-#### Task 2B — Audit GPIO ownership and split/TRRS routing — NEXT
+#### Task 2B — Audit GPIO ownership and split/TRRS routing — COMPLETE
 
-Trace GP2, GP3, GP4, and GP9 through the actual schematic and PCB copper.
+The stock source resolves the proposed PMW GPIOs as follows:
 
-Resolve:
+| GPIO | Stock PCB net / stock use | Revision-1 owner | Locked disposition |
+| --- | --- | --- | --- |
+| GP1 | `TX` → `J1.4`, active half-duplex split | split serial | preserve |
+| GP2 | `SDA`, I2C + PAW3204 SDIO | PMW3360 SCK | disable stock I2C/PAW3204; legacy I2C jumpers stay open |
+| GP3 | `SCL`, I2C + PAW3204 SCLK | PMW3360 MOSI | disable stock I2C/PAW3204; `J2` haptic DNP; jumpers stay open |
+| GP4 | `RX` → `J1.3`, optional full-duplex split path | PMW3360 MISO | make `J1.3` NC and remove exact verified branch |
+| GP9 | `AUDIO` → `BZ1.1` | PMW3360 CS | disable audio; `BZ1` DNP/no active audio load |
 
-- every stock function attached to GP2/GP3/GP4/GP9
-- exact I2C/PAW3204/optional-feature dependencies on GP2/GP3
-- exact audio dependency on GP9
-- GP4's optional full-duplex TX/TRRS path
-- exact copper segment/pad/via that must be isolated for GP4 to become PMW3360 MISO
-- confirmation that GP1 remains the active half-duplex split serial path
-- confirmation that retained matrix/RGB/encoder ownership is unaffected
-- disposition of nearby `J3`, `JP16`–`JP21`, `BZ1`, and other directly related optional-feature circuitry
+Exact GP4/TRRS isolation locked by the PCB source:
 
-**Gate:** each proposed PMW GPIO has one owner and every conflicting stock path has an explicit physical/electrical disposition.
+```text
+net: RX (28)
+layer: F.Cu
+width: 0.254 mm
+from: (92.700, 127.025)
+to:   (90.880, 127.025)
+```
 
-#### Task 2C — Lock the Kivipallur physical/electrical connector
+Task 3 must remove that `J1.3`-adjacent branch while preserving GP1 `TX -> J1.4` for half-duplex split transport. Firmware-only disabling of full duplex is not sufficient because stock GP4 copper reaches the TRRS contact.
+
+For GP2/GP3, the legacy OLED/reversible peripheral solder jumpers are the default-open footprint. `J2.3` is directly connected to SCL, so the haptic module must not be populated on the right trackball build. Right OLED/haptic and the stock PAW3204 path are disabled for revision 1.
+
+**Gate: passed.** See [`design/task2/TASK2B_RESULT.md`](design/task2/TASK2B_RESULT.md).
+
+#### Task 2C — Lock the Kivipallur physical/electrical connector — NEXT
 
 Audit the real Kivipallur source rather than assuming connector order.
 
@@ -268,7 +269,7 @@ Revision 1 should retain:
 - GP20/21/22/23/26/27 = matrix columns
 - GP28/29 = encoder
 
-Revision 1 is expected to disable on the right trackball build:
+Revision 1 disables:
 
 - OLED / stock I2C use on GP2/GP3
 - haptic
@@ -299,7 +300,8 @@ Implement only changes authorized by Task 2, including:
 - bypass RGB as `SW13 DOUT -> SW14 DIN`
 - add the locked Kivipallur interface
 - route GP2/GP3/GP4/GP9
-- isolate GP4 from the optional full-duplex TRRS TX route
+- isolate `J1.3` from GP4 using the Task 2B-locked copper change
+- retire conflicting I2C/PAW3204/audio loads according to Task 2
 - add breakout pass-through / edge clearance
 - preserve R32/R33 and right encoder
 
