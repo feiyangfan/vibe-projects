@@ -169,9 +169,16 @@ def net_index(footprints: list[dict]) -> dict[str, list[dict]]:
 
 def resolve_controller_pad(controller: dict, pad_number: str) -> dict:
     matches = [p for p in electrical_pads(controller) if p["number"] == pad_number]
-    if len(matches) != 1:
-        raise SystemExit(f"controller pad {pad_number} has {len(matches)} electrical matches")
-    return matches[0]
+    connected = [p for p in matches if p.get("net")]
+    if len(connected) == 1:
+        return connected[0]
+    if len(matches) == 1:
+        return matches[0]
+    detail = json.dumps(matches, sort_keys=True)
+    raise SystemExit(
+        f"controller pad {pad_number} has {len(matches)} electrical matches "
+        f"({len(connected)} connected): {detail}"
+    )
 
 
 def parse_copper(text: str, net_ids: set[int]) -> dict:
