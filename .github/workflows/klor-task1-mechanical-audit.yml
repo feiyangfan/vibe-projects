@@ -5,7 +5,7 @@ on:
     paths:
       - 'klor-trackball/design/task1/**'
       - 'klor-trackball/Keyball 25mm Trackball Case Type C - 6719828/**'
-      - 'klor-trackball/klor1.4/PCB/klor1_4/klor1_4.kicad_pcb'
+      - 'klor-trackball/klor1.4/PCB/klor1_4/**'
       - 'klor-trackball/klor1.4/case/3DP/konrad/**'
       - 'klor-trackball/klorball35/kicad/Kivipallur_PMW3360_breakout/**'
       - '.github/workflows/klor-task1-mechanical-audit.yml'
@@ -19,16 +19,16 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install geometry dependencies
-        run: python -m pip install --disable-pip-version-check numpy scipy trimesh rtree networkx shapely
+        run: python -m pip install --disable-pip-version-check numpy scipy trimesh rtree networkx shapely python-fcl
       - name: Run preflight
         working-directory: klor-trackball
         run: python design/task1/preflight_reference_assembly.py --json-output design/task1/generated/preflight.json
-      - name: Run mechanical audit
+      - name: Run final mechanical audit
         working-directory: klor-trackball
         shell: bash
         run: |
           set -o pipefail
-          python design/task1/mechanical_reference_audit.py | tee design/task1/generated/mechanical-audit.json
+          python design/task1/mechanical_reference_audit_v2.py | tee design/task1/generated/mechanical-audit-final.json
       - name: Upload Task 1 evidence
         if: always()
         uses: actions/upload-artifact@v4
