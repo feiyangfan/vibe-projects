@@ -1,0 +1,31 @@
+name: KLOR Task 2B GPIO/TRRS audit
+
+on:
+  pull_request:
+    paths:
+      - 'klor-trackball/README.md'
+      - 'klor-trackball/design/task2/**'
+      - 'klor-trackball/klor1.4/PCB/klor1_4/klor1_4.kicad_pcb'
+      - 'klor-trackball/klor1.4/FIRMWARE/qmk_rp2040/electronlab/klor/config.h'
+      - 'klor-trackball/klor1.4/FIRMWARE/qmk_rp2040/electronlab/klor/keyboard.json'
+      - '.github/workflows/klor-task2b-gpio-trrs-audit.yml'
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Audit GPIO ownership and TRRS routing
+        working-directory: klor-trackball
+        run: |
+          python3 design/task2/audit_task2b_gpio_trrs.py \
+            --json-output design/task2/generated/task2b-gpio-trrs-audit.json
+      - name: Upload Task 2B evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: klor-task2b-gpio-trrs-audit
+          path: klor-trackball/design/task2/generated/task2b-gpio-trrs-audit.json
