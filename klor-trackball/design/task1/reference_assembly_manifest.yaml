@@ -4,6 +4,30 @@ status: complete
 units: mm
 placement_locked: true
 
+subtasks:
+  1A:
+    name: lock-source-geometry
+    status: complete
+  1B:
+    name: establish-common-coordinate-frame
+    status: complete
+    result_document: TASK1B_RESULT.md
+  1C:
+    name: place-trackball-housing
+    status: complete
+  1D:
+    name: place-breakout-and-service-path
+    status: complete
+  1E:
+    name: add-retained-component-keepouts
+    status: complete
+  1F:
+    name: collision-and-clearance-audit
+    status: complete
+  1G:
+    name: freeze-or-revise-placement
+    status: complete
+
 coordinate_frame:
   name: klor-gerber-excellon
   canonical: true
@@ -45,6 +69,21 @@ verified_transforms:
     translation_xy: [80.582795, 55.951799]
     matched_features: 8
     rms_mm: 0.006063240
+  kicad_to_case_native:
+    method: composed_from_verified_transforms
+    composition: switchplate_native_to_case_native * kicad_to_switchplate_native
+    matrix:
+      - [0.999999994, 0.000097915]
+      - [0.000097915, -0.999999994]
+    translation_xy: [-0.067561933, 209.949782]
+    direct_fit: false
+    source_feature_counts:
+      kicad_to_switchplate_native: 18
+      switchplate_native_to_case_native: 8
+    conservative_propagated_rms_bound_mm: 0.026082080
+    note: >-
+      The residual bound is the conservative sum of the two constituent RMS
+      residuals. It is not a separately measured direct-fit RMS value.
 
 stackup:
   case_support_plane_z: -0.8
@@ -148,6 +187,7 @@ completion_gate:
   gerber_kicad_frame_verified: true
   pcb_switchplate_frame_verified: true
   switchplate_case_frame_verified: true
+  pcb_case_composed_frame_recorded: true
   case_standoff_plate_stack_verified: true
   nearest_retained_switches_collision_free: true
   encoder_collision_free: true
@@ -167,5 +207,5 @@ rules:
   - The locked fabrication datums above are the baseline for Tasks 2-8.
   - Do not move the trackball merely to avoid the stock-case shell relief documented here.
   - Preserve all eight verified structural case/switchplate mounting axes.
-  - If the locked XY placement changes, update this manifest, ../konrad_trackball_geometry.yaml, and ../../docs/KONRAD_TRACKBALL_HANDOFF.md in the same commit and rerun the Task 1 audit.
+  - If the locked XY placement changes, update this manifest, ../konrad_trackball_geometry.yaml, and ../../docs/KONRAD_TRACKBALL_HANDOFF.md in the same commit and rerun Task 1A-1G.
   - Task 1 does not edit production PCB, firmware, switchplate, or case geometry.
