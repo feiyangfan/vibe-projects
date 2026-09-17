@@ -26,6 +26,9 @@ jobs:
       - name: Inspect native case and switchplate frames
         working-directory: klor-trackball
         run: python design/task1/case_alignment_diagnostics.py | tee design/task1/generated/case-alignment-diagnostics.json
+      - name: Inspect mounting pattern
+        working-directory: klor-trackball
+        run: python design/task1/mount_pattern_diagnostics.py | tee design/task1/generated/mount-pattern-diagnostics.json
       - name: Run final mechanical audit
         working-directory: klor-trackball
         shell: bash
