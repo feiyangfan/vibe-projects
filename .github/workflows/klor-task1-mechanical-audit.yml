@@ -23,6 +23,9 @@ jobs:
       - name: Run preflight
         working-directory: klor-trackball
         run: python design/task1/preflight_reference_assembly.py --json-output design/task1/generated/preflight.json
+      - name: Inspect native case and switchplate frames
+        working-directory: klor-trackball
+        run: python design/task1/case_alignment_diagnostics.py | tee design/task1/generated/case-alignment-diagnostics.json
       - name: Run final mechanical audit
         working-directory: klor-trackball
         shell: bash
