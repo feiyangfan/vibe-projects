@@ -14,7 +14,9 @@ subtasks:
     audit_script: audit_task2b_gpio_trrs.py
   2c:
     name: kivipallur-connector-lock
-    status: not-started
+    status: complete
+    result_document: TASK2C_RESULT.md
+    audit_script: audit_task2c_kivipallur_connector.py
   2d:
     name: pcb-net-contract
     status: not-started
@@ -30,6 +32,11 @@ sources:
   pcb: ../../klor1.4/PCB/klor1_4/klor1_4.kicad_pcb
   qmk_config: ../../klor1.4/FIRMWARE/qmk_rp2040/electronlab/klor/config.h
   qmk_keyboard_json: ../../klor1.4/FIRMWARE/qmk_rp2040/electronlab/klor/keyboard.json
+  kivipallur_breakout_pcb: ../../klorball35/kicad/Kivipallur_PMW3360_breakout/Kivipallur_PMW3360_breakout.kicad_pcb
+  klorball35_right_pcb: ../../klorball35/kicad/klorball35_right/klorball35_right.kicad_pcb
+  klorball35_right_schematic: ../../klorball35/kicad/klorball35_right/klorball35_right.kicad_sch
+  klorball35_ergogen: ../../klorball35/config.yml
+  task1_manifest: ../task1/reference_assembly_manifest.yaml
 
 task2a:
   logical_key:
@@ -217,11 +224,110 @@ task2b:
     gp9_audio_disposition_locked: true
     revision1_gpio_owners_unique: true
 
+task2c:
+  connector_family:
+    footprint: Connector_PinHeader_2.54mm:PinHeader_1x07_P2.54mm_Vertical
+    topology: 1x7-through-hole
+    pitch_mm: 2.54
+
+  breakout:
+    ref: J1
+    footprint_side: B.Cu
+    sensor_ref: U2
+    sensor_side: B.Cu
+    outline_mm: [22.0, 25.0]
+    pinout:
+      1: GND
+      2: 3V3
+      3: MOTION
+      4: SCK
+      5: MOSI
+      6: MISO
+      7: CS
+
+  working_keyboard_reference:
+    project: klorball35_right
+    ref: J2
+    footprint_side: F.Cu
+    pinout:
+      1: CS
+      2: MISO
+      3: MOSI
+      4: SCK
+      5: NC
+      6: 3V3
+      7: GND
+    motion_pin_intentionally_nc: true
+    reference_guide:
+      size_mm: [2.0, 22.0]
+      layer: Cmts.User
+      fabricated_edge_cut: false
+      header_parallel_to_long_axis: true
+      header_midpoint_offset_from_guide_mm: 4.613622
+
+  mating:
+    opposite_facing: true
+    rule: breakout-pin-N-to-keyboard-pin-8-minus-N
+    breakout_to_keyboard_pin_pairs:
+      - [1, 7]
+      - [2, 6]
+      - [3, 5]
+      - [4, 4]
+      - [5, 3]
+      - [6, 2]
+      - [7, 1]
+    motion_revision1: NC
+
+  klor_target_orientation:
+    canonical_frame: klor-gerber-excellon
+    task1_slot_center_xy: [143.111, -134.748]
+    slot_long_axis: global-y
+    sensor_service_direction: negative-x
+    keyboard_connector_side: F.Cu
+    connector_row_axis: global-y
+    connector_side_of_guide: positive-x-non-sensor-side
+    pin1_end: negative-y
+    pin7_end: positive-y
+    physical_order_negative_y_to_positive_y:
+      - {pin: 1, signal: CS}
+      - {pin: 2, signal: MISO}
+      - {pin: 3, signal: MOSI}
+      - {pin: 4, signal: SCK}
+      - {pin: 5, signal: NC}
+      - {pin: 6, signal: 3V3}
+      - {pin: 7, signal: GND}
+    reference_header_to_guide_offset_mm: 4.613622
+    task3_position_rule: >-
+      Start from the working-reference header/guide relationship and verify the
+      final production XY against the locked Task 1 assembly. Do not flip side,
+      row handedness, pin numbering, or the N-to-8-minus-N mating rule.
+
+  task3_pass_through_rule: >-
+    The Klorball35 2x22 rectangle is a Cmts.User mechanical guide, not a
+    fabricated Edge.Cuts slot. Task 3 must create the actual KLOR PCB
+    pass-through or edge clearance at the Task 1-locked breakout datum.
+
+  completion_gate:
+    breakout_footprint_and_pitch_resolved: true
+    breakout_pin_order_resolved: true
+    keyboard_side_pin_order_resolved: true
+    board_sides_resolved: true
+    opposite_facing_mating_verified: true
+    motion_nc_verified: true
+    breakout_outline_verified: true
+    reference_guide_geometry_verified: true
+    reference_guide_layer_distinguished_from_edge_cuts: true
+    klor_target_axis_and_handedness_locked: true
+    mating_direction_unambiguous: true
+
 rules:
-  - Task 2A and Task 2B do not edit production PCB geometry.
+  - Task 2A through Task 2C do not edit production PCB geometry.
   - Task 3 must implement the Task 2A matrix/RGB disposition exactly.
   - Preserve GP1 TX to J1.4 for half-duplex split serial.
   - On the right trackball derivative, J1.3 must be NC and its verified RX branch must be removed before GP4 is used as PMW3360 MISO.
   - GP2 and GP3 may be used by the PMW3360 only when stock I2C/PAW3204 ownership is disabled and legacy I2C jumpers remain open/unpopulated.
   - GP9 may be used as PMW3360 CS only with audio disabled and no active BZ1 load.
-  - Task 3 remains blocked until Task 2C through Task 2F are complete.
+  - The KLOR-side PMW connector must use Task 2C keyboard-side order 1=CS, 2=MISO, 3=MOSI, 4=SCK, 5=NC, 6=3V3, 7=GND; do not copy the breakout numbering directly.
+  - Preserve Task 2C F.Cu side, row handedness, and opposite-facing N-to-8-minus-N mate unless Task 2C is explicitly reopened.
+  - Task 3 must turn the Task 1 breakout datum into real PCB pass-through/edge clearance; the Klorball35 Cmts.User guide is not a fabrication cut by itself.
+  - Task 3 remains blocked until Task 2D through Task 2F are complete.
