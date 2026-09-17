@@ -25,6 +25,7 @@ jobs:
           python3 design/task2/audit_task2b_gpio_trrs.py \
             --json-output design/task2/generated/task2b-gpio-trrs-audit.json
       - name: Upload Task 2B evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: klor-task2b-gpio-trrs-audit
