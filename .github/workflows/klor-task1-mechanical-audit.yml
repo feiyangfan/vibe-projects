@@ -29,12 +29,12 @@ jobs:
       - name: Inspect mounting pattern
         working-directory: klor-trackball
         run: python design/task1/mount_pattern_diagnostics.py | tee design/task1/generated/mount-pattern-diagnostics.json
-      - name: Run final mechanical audit
+      - name: Run final native-frame mechanical audit
         working-directory: klor-trackball
         shell: bash
         run: |
           set -o pipefail
-          python design/task1/run_final_audit.py | tee design/task1/generated/mechanical-audit-final.json
+          python design/task1/mechanical_reference_audit_v3.py | tee design/task1/generated/mechanical-audit-final.json
       - name: Upload Task 1 evidence
         if: always()
         uses: actions/upload-artifact@v4
