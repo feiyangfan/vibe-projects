@@ -28,9 +28,11 @@ trackball:
     license: Creative Commons Attribution
     source_directory: ../../Keyball 25mm Trackball Case Type C - 6719828
     step_path: ../../Keyball 25mm Trackball Case Type C - 6719828/files/keyball_trackball_case_25mm_type_c.stp
-    left_stl_path: ../../Keyball 25mm Trackball Case Type C - 6719828/files/keyball_trackball_case_25mm_type_c_left.stl
-    right_stl_path: ../../Keyball 25mm Trackball Case Type C - 6719828/files/keyball_trackball_case_25mm_type_c_right.stl
     expected_step_sha256: 79c3fdc445d6b4ecf63afdcc60d87a7ab3635902f155187c6687e3561d1ed57c
+    left_stl_path: ../../Keyball 25mm Trackball Case Type C - 6719828/files/keyball_trackball_case_25mm_type_c_left.stl
+    expected_left_stl_sha256: 5bcd5f2ec9cf4f151f15423a27f68a44c96efbc45ad7ce103242b5b66511ab58
+    right_stl_path: ../../Keyball 25mm Trackball Case Type C - 6719828/files/keyball_trackball_case_25mm_type_c_right.stl
+    expected_right_stl_sha256: 9ff67b5fe3acee937a14b84994b586b2993a2e0222d826da7d0275e4c68c4565
     archive_path: ../../Keyball 25mm Trackball Case Type C - 6719828.zip
     expected_archive_sha256: ad2ee79388c01fcb775ee08e35761d14b27fbd53ecffabfbdc45add77830e206
     repo_status: direct-source-present-preflight-must-verify
@@ -81,7 +83,7 @@ completion_gate:
 rules:
   - Do not change the placement merely to make an approximate envelope pass.
   - Do not mark placement_locked true while any completion-gate item is false.
-  - The checked-in STEP must match the recorded SHA-256 before use in the reference assembly.
-  - The ZIP is provenance/reference only; Task 1 should consume the unarchived STEP directly.
+  - The checked-in STEP and STL files must match the recorded SHA-256 values before use in the reference assembly.
+  - The ZIP is provenance/reference only; Task 1 should consume the unarchived files directly.
   - If XY placement changes, update this manifest, ../konrad_trackball_geometry.yaml, and ../../docs/KONRAD_TRACKBALL_HANDOFF.md in the same commit.
   - Task 1 must not edit the production PCB, firmware, switchplate, or case geometry.
