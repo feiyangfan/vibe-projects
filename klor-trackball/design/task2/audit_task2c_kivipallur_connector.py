@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Task 2C: audit the Kivipallur connector and Klorball35 mating reference.
+"""Task 2C: audit the Kivipallur connector and its Klorball35 mating reference.
 
-Read-only source audit. It compares the PMW3360 breakout connector to the
-Klorball35 right-hand connector and records the mechanical pass-through slot.
+The important detail is that the two 1x7 headers intentionally use opposite
+pin-number orders when they face each other. This audit records both orders,
+proves the signal-for-signal reversed mate, and resolves the pass-through slot.
 """
 
 from __future__ import annotations
@@ -11,6 +12,7 @@ import argparse
 import json
 import math
 import re
+from collections import defaultdict, deque
 from pathlib import Path
 from typing import Iterable
 
@@ -20,25 +22,17 @@ RIGHT_PCB = ROOT / "klorball35/kicad/klorball35_right/klorball35_right.kicad_pcb
 RIGHT_SCH = ROOT / "klorball35/kicad/klorball35_right/klorball35_right.kicad_sch"
 ERGOGEN = ROOT / "klorball35/config.yml"
 
-EXPECTED_ORDER = {
-    "1": "GND",
-    "2": "+3V3",
-    "3": "/MOTION",
-    "4": "/SCK",
-    "5": "/MOSI",
-    "6": "/MISO",
-    "7": "/CS",
+HEADER_FP = "Connector_PinHeader_2.54mm:PinHeader_1x07_P2.54mm_Vertical"
+BREAKOUT_ORDER = {
+    "1": "GND", "2": "+3V3", "3": "/MOTION", "4": "/SCK",
+    "5": "/MOSI", "6": "/MISO", "7": "/CS",
 }
-EXPECTED_RIGHT_ORDER = {
-    "1": "GND",
-    "2": "+3V3",
-    "3": None,
-    "4": "SCK",
-    "5": "MOSI",
-    "6": "MISO",
-    "7": "CS",
+REFERENCE_RIGHT_ORDER = {
+    "1": "/CS", "2": "/MISO", "3": "/MOSI", "4": "/SCK",
+    "5": "unconnected-(J2-Pin_5-Pad5)", "6": "+3V3", "7": "GND",
 }
-EXPECTED_FOOTPRINT = "Connector_PinHeader_2.54mm:PinHeader_1x07_P2.54mm_Vertical"
+MATE_PAIRS = [("1", "7"), ("2", "6"), ("3", "5"), ("4", "4"),
+              ("5", "3"), ("6", "2"), ("7", "1")]
 
 
 def balanced(text: str, start: int) -> str:
@@ -70,12 +64,12 @@ def blocks(text: str, token: str) -> Iterable[str]:
     pat = re.compile(r"\(" + re.escape(token) + r"(?=\s|\()")
     pos = 0
     while True:
-        match = pat.search(text, pos)
-        if not match:
+        m = pat.search(text, pos)
+        if not m:
             return
-        block = balanced(text, match.start())
+        block = balanced(text, m.start())
         yield block
-        pos = match.start() + len(block)
+        pos = m.start() + len(block)
 
 
 def qprop(block: str, name: str) -> str | None:
@@ -85,9 +79,7 @@ def qprop(block: str, name: str) -> str | None:
 
 def atom(block: str, name: str) -> str | None:
     m = re.search(r"\(" + re.escape(name) + r'\s+(?:"([^"]*)"|([^\s()]+))', block)
-    if not m:
-        return None
-    return m.group(1) if m.group(1) is not None else m.group(2)
+    return (m.group(1) if m and m.group(1) is not None else m.group(2)) if m else None
 
 
 def first_at(block: str) -> list[float] | None:
@@ -109,9 +101,7 @@ def parse_pads(fp: str) -> list[dict]:
         net = re.search(r'\(net\s+(\d+)\s+"([^"]*)"\)', pb)
         pinfunction = re.search(r'\(pinfunction\s+"([^"]*)"\)', pb)
         out.append({
-            "number": h.group(1),
-            "type": h.group(2),
-            "shape": h.group(3),
+            "number": h.group(1), "type": h.group(2), "shape": h.group(3),
             "at": first_at(pb),
             "net_id": int(net.group(1)) if net else None,
             "net": net.group(2) if net else None,
@@ -128,80 +118,133 @@ def footprints(text: str) -> list[dict]:
             continue
         head = re.match(r'\(footprint\s+"([^"]*)"', fb)
         out.append({
-            "ref": ref,
-            "value": qprop(fb, "Value"),
+            "ref": ref, "value": qprop(fb, "Value"),
             "footprint": head.group(1) if head else None,
-            "layer": atom(fb, "layer"),
-            "at": first_at(fb),
+            "layer": atom(fb, "layer"), "at": first_at(fb),
             "pads": parse_pads(fb),
         })
     return out
 
 
 def fp_by_ref(text: str, ref: str) -> dict:
-    matches = [fp for fp in footprints(text) if fp["ref"] == ref]
-    if len(matches) != 1:
-        raise ValueError(f"expected one {ref}, found {len(matches)}")
-    return matches[0]
+    found = [fp for fp in footprints(text) if fp["ref"] == ref]
+    if len(found) != 1:
+        raise ValueError(f"expected one {ref}, found {len(found)}")
+    return found[0]
 
 
 def pad_map(fp: dict) -> dict[str, str | None]:
-    result: dict[str, str | None] = {}
-    for p in fp["pads"]:
-        if p["number"] and p["number"] not in result:
-            result[p["number"]] = p["net"]
-    return result
+    return {p["number"]: p["net"] for p in fp["pads"] if p["number"]}
 
 
-def board_edge_report(text: str) -> dict:
-    lines = []
+def pad_by_number(fp: dict, number: str) -> dict:
+    matches = [p for p in fp["pads"] if p["number"] == number]
+    if len(matches) != 1:
+        raise ValueError(f"{fp['ref']} pad {number}: expected 1, found {len(matches)}")
+    return matches[0]
+
+
+def global_pad_xy(fp: dict, pad: dict) -> list[float]:
+    fx, fy = fp["at"][:2]
+    theta = math.radians(fp["at"][2] if len(fp["at"]) > 2 else 0.0)
+    px, py = pad["at"][:2]
+    # KiCad back-side footprints mirror local Y before parent rotation.
+    if fp["layer"] == "B.Cu":
+        py = -py
+    return [
+        fx + px * math.cos(theta) - py * math.sin(theta),
+        fy + px * math.sin(theta) + py * math.cos(theta),
+    ]
+
+
+def edge_lines(text: str) -> list[dict]:
+    out = []
     for gb in blocks(text, "gr_line"):
         if atom(gb, "layer") != "Edge.Cuts":
             continue
         a, b = xy(gb, "start"), xy(gb, "end")
         if a and b:
-            lines.append({"start": a, "end": b})
-    coords = [p for line in lines for p in (line["start"], line["end"])]
-    bbox = None
-    if coords:
-        xs = [p[0] for p in coords]
-        ys = [p[1] for p in coords]
-        bbox = [min(xs), min(ys), max(xs), max(ys)]
-    return {"line_count": len(lines), "bbox": bbox, "lines": lines}
+            out.append({"start": a, "end": b})
+    return out
+
+
+def line_components(lines: list[dict]) -> list[dict]:
+    def key(p: list[float]) -> tuple[float, float]:
+        return (round(p[0], 4), round(p[1], 4))
+
+    adjacency: dict[tuple[float, float], list[int]] = defaultdict(list)
+    for i, line in enumerate(lines):
+        adjacency[key(line["start"])].append(i)
+        adjacency[key(line["end"])].append(i)
+
+    unseen = set(range(len(lines)))
+    components = []
+    while unseen:
+        seed = unseen.pop()
+        queue = deque([seed])
+        ids = [seed]
+        while queue:
+            i = queue.popleft()
+            for p in (lines[i]["start"], lines[i]["end"]):
+                for j in adjacency[key(p)]:
+                    if j in unseen:
+                        unseen.remove(j)
+                        queue.append(j)
+                        ids.append(j)
+        pts = [p for i in ids for p in (lines[i]["start"], lines[i]["end"])]
+        xs, ys = [p[0] for p in pts], [p[1] for p in pts]
+        lengths = sorted(math.dist(lines[i]["start"], lines[i]["end"]) for i in ids)
+        components.append({
+            "line_ids": ids,
+            "line_count": len(ids),
+            "bbox": [min(xs), min(ys), max(xs), max(ys)],
+            "center": [(min(xs) + max(xs)) / 2, (min(ys) + max(ys)) / 2],
+            "lengths": lengths,
+        })
+    return components
+
+
+def breakout_edge_report(text: str) -> dict:
+    lines = edge_lines(text)
+    pts = [p for line in lines for p in (line["start"], line["end"])]
+    xs, ys = [p[0] for p in pts], [p[1] for p in pts]
+    return {"line_count": len(lines), "bbox": [min(xs), min(ys), max(xs), max(ys)], "lines": lines}
+
+
+def slot_candidates(text: str) -> list[dict]:
+    result = []
+    for comp in line_components(edge_lines(text)):
+        if comp["line_count"] != 4:
+            continue
+        lengths = comp["lengths"]
+        if len(lengths) == 4 and abs(lengths[0] - 2.0) < 0.05 and abs(lengths[1] - 2.0) < 0.05 and abs(lengths[2] - 22.0) < 0.05 and abs(lengths[3] - 22.0) < 0.05:
+            result.append(comp)
+    return result
 
 
 def schematic_connector(text: str, ref: str) -> dict:
     for sb in blocks(text, "symbol"):
-        if atom(sb, "lib_id") != "Connector_Generic:Conn_01x07":
-            continue
-        if qprop(sb, "Reference") != ref:
-            continue
-        return {
-            "ref": ref,
-            "lib_id": atom(sb, "lib_id"),
-            "value": qprop(sb, "Value"),
-            "footprint": qprop(sb, "Footprint"),
-            "at": first_at(sb),
-            "dnp": atom(sb, "dnp"),
-        }
+        if atom(sb, "lib_id") == "Connector_Generic:Conn_01x07" and qprop(sb, "Reference") == ref:
+            return {
+                "ref": ref, "lib_id": atom(sb, "lib_id"), "value": qprop(sb, "Value"),
+                "footprint": qprop(sb, "Footprint"), "at": first_at(sb), "dnp": atom(sb, "dnp"),
+            }
     raise ValueError(f"schematic connector {ref} not found")
 
 
 def exact_no_connect(text: str, x: float, y: float) -> bool:
-    pat = re.compile(r"\(no_connect\s+\(at\s+" + re.escape(str(x)) + r"\s+" + re.escape(str(y)) + r"\)")
-    return bool(pat.search(text))
+    return bool(re.search(r"\(no_connect\s+\(at\s+" + re.escape(str(x)) + r"\s+" + re.escape(str(y)) + r"\)", text))
 
 
 def find_slot_size(text: str) -> list[float] | None:
-    m = re.search(
-        r"trackball_breakout_right:\s*\n(?:.*\n){0,8}?\s*-\s+what:\s+rectangle\s*\n\s+size:\s*\[\s*([0-9.]+)\s*,\s*([0-9.]+)\s*\]",
-        text,
-    )
+    m = re.search(r"trackball_breakout_right:\s*\n(?:.*\n){0,8}?\s*-\s+what:\s+rectangle\s*\n\s+size:\s*\[\s*([0-9.]+)\s*,\s*([0-9.]+)\s*\]", text)
     return [float(m.group(1)), float(m.group(2))] if m else None
 
 
-def near(a: float, b: float, eps: float = 1e-6) -> bool:
-    return abs(a - b) <= eps
+def norm(net: str | None) -> str | None:
+    if net is None:
+        return None
+    return net[1:] if net.startswith("/") else net
 
 
 def main() -> int:
@@ -214,28 +257,44 @@ def main() -> int:
     right_sch_text = RIGHT_SCH.read_text(encoding="utf-8")
     ergogen_text = ERGOGEN.read_text(encoding="utf-8")
 
-    breakout_j1 = fp_by_ref(breakout_text, "J1")
-    breakout_u2 = fp_by_ref(breakout_text, "U2")
-    right_j2 = fp_by_ref(right_pcb_text, "J2")
-    right_sch_j2 = schematic_connector(right_sch_text, "J2")
-    breakout_edges = board_edge_report(breakout_text)
+    bj1 = fp_by_ref(breakout_text, "J1")
+    sensor = fp_by_ref(breakout_text, "U2")
+    rj2 = fp_by_ref(right_pcb_text, "J2")
+    rsch = schematic_connector(right_sch_text, "J2")
+    bmap, rmap = pad_map(bj1), pad_map(rj2)
+    bedges = breakout_edge_report(breakout_text)
+    slots = slot_candidates(right_pcb_text)
     slot_size = find_slot_size(ergogen_text)
 
-    breakout_map = pad_map(breakout_j1)
-    right_map = pad_map(right_j2)
+    b_positions = {n: global_pad_xy(bj1, pad_by_number(bj1, n)) for n in BREAKOUT_ORDER}
+    r_positions = {n: global_pad_xy(rj2, pad_by_number(rj2, n)) for n in REFERENCE_RIGHT_ORDER}
+    b_mid = [(b_positions["1"][0] + b_positions["7"][0]) / 2, (b_positions["1"][1] + b_positions["7"][1]) / 2]
+    sensor_xy = sensor["at"][:2]
+
+    mate = []
+    mate_ok = True
+    for bp, rp in MATE_PAIRS:
+        bnet, rnet = bmap.get(bp), rmap.get(rp)
+        if bp == "3":
+            signal_ok = bnet == "/MOTION" and (rnet or "").startswith("unconnected-(J2-Pin_5")
+        else:
+            signal_ok = norm(bnet) == norm(rnet)
+        mate_ok &= signal_ok
+        mate.append({"breakout_pin": int(bp), "breakout_net": bnet, "reference_right_pin": int(rp), "reference_right_net": rnet, "signal_match": signal_ok})
 
     checks = {
-        "breakout_j1_expected_footprint": breakout_j1["footprint"] == EXPECTED_FOOTPRINT,
-        "breakout_j1_on_back_copper": breakout_j1["layer"] == "B.Cu",
-        "breakout_j1_at_expected_location": breakout_j1["at"] is not None and near(breakout_j1["at"][0], 118.64) and near(breakout_j1["at"][1], 73.4),
-        "breakout_pin_order_exact": all(breakout_map.get(pin) == net for pin, net in EXPECTED_ORDER.items()),
-        "breakout_sensor_on_same_side": breakout_u2["layer"] == "B.Cu",
-        "breakout_outline_22x25": breakout_edges["bbox"] == [100.0, 50.0, 122.0, 75.0],
-        "reference_right_j2_expected_footprint": right_j2["footprint"] == EXPECTED_FOOTPRINT,
-        "reference_right_pin_order_exact": all(right_map.get(pin) == net for pin, net in EXPECTED_RIGHT_ORDER.items()),
-        "reference_right_schematic_j2_matches": right_sch_j2["footprint"] == EXPECTED_FOOTPRINT,
+        "breakout_j1_expected_footprint": bj1["footprint"] == HEADER_FP,
+        "breakout_j1_back_component_side": bj1["layer"] == "B.Cu" and sensor["layer"] == "B.Cu",
+        "breakout_pin_order_exact": bmap == BREAKOUT_ORDER,
+        "breakout_outline_22x25": bedges["bbox"] == [100.0, 50.0, 122.0, 75.0],
+        "breakout_header_along_trailing_edge": abs(b_mid[0] - sensor_xy[0]) < 0.1 and b_mid[1] > sensor_xy[1],
+        "reference_right_j2_expected_footprint": rj2["footprint"] == HEADER_FP,
+        "reference_right_j2_front_side": rj2["layer"] == "F.Cu",
+        "reference_right_reversed_order_exact": rmap == REFERENCE_RIGHT_ORDER,
+        "reversed_mate_signal_for_signal": mate_ok,
         "reference_motion_pin_intentionally_nc": exact_no_connect(right_sch_text, 135.89, 87.63),
         "ergogen_pass_through_slot_2x22": slot_size == [2.0, 22.0],
+        "actual_right_pcb_has_one_2x22_slot": len(slots) == 1,
     }
 
     report = {
@@ -247,16 +306,20 @@ def main() -> int:
             "ergogen": str(ERGOGEN.relative_to(ROOT)),
         },
         "breakout": {
-            "connector": breakout_j1,
-            "sensor": breakout_u2,
-            "edge_cuts": breakout_edges,
-            "pin_map": breakout_map,
+            "connector": bj1, "sensor": sensor, "edge_cuts": bedges,
+            "pin_map": bmap, "pin_global_xy": b_positions,
+            "header_midpoint_xy": b_mid,
+            "header_to_sensor_vector_xy": [sensor_xy[0] - b_mid[0], sensor_xy[1] - b_mid[1]],
         },
         "reference_right": {
-            "connector_pcb": right_j2,
-            "connector_schematic": right_sch_j2,
-            "pin_map": right_map,
+            "connector_pcb": rj2, "connector_schematic": rsch,
+            "pin_map": rmap, "pin_global_xy": r_positions,
             "motion_pin_3_no_connect": exact_no_connect(right_sch_text, 135.89, 87.63),
+            "slot_candidates_2x22": slots,
+        },
+        "mating": {
+            "rule": "opposite-facing 1x7 headers mate breakout pin N to keyboard pin 8-N",
+            "pairs": mate,
         },
         "pass_through_slot_size_mm": slot_size,
         "checks": checks,
