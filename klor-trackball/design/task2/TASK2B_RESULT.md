@@ -111,7 +111,7 @@ Locked disposition:
 - specifically, do not populate `J2` haptic hardware because `J2.3` is hardwired to the former SCL net;
 - Task 3 may prune obsolete unpopulated branch copper/footprints where useful for routing or mechanical clearance, but must not reconnect a legacy load to GP2/GP3.
 
-No hardwired pull-up or active device was found directly on GP2/SDA or GP3/SCL by this pad/net audit; the directly connected non-jumper exception is the unpopulated `J2.3` haptic connection on SCL.
+No hardwired pull-up or active device was found directly on GP2/SDA or GP3/SCL by this pad/net audit; the directly connected non-jumper exception is the `J2.3` haptic-footprint connection on SCL. The source audit does not infer stock assembly population from the footprint alone; the trackball variant explicitly locks J2 as DNP.
 
 ## GP9 — retire audio
 
