@@ -1,0 +1,134 @@
+task: 2
+name: electrical-and-firmware-interface
+status: in-progress
+
+subtasks:
+  2a:
+    name: removed-key-circuit-audit
+    status: complete
+    result_document: TASK2A_RESULT.md
+  2b:
+    name: gpio-and-split-trrs-audit
+    status: not-started
+  2c:
+    name: kivipallur-connector-lock
+    status: not-started
+  2d:
+    name: pcb-net-contract
+    status: not-started
+  2e:
+    name: firmware-ownership
+    status: not-started
+  2f:
+    name: interface-freeze
+    status: not-started
+
+sources:
+  schematic: ../../klor1.4/PCB/klor1_4/klor1_4.kicad_sch
+  pcb: ../../klor1.4/PCB/klor1_4/klor1_4.kicad_pcb
+
+task2a:
+  logical_key:
+    name: R34
+    is_kicad_component_reference: false
+    pcb_reference: SW22
+
+  sw22:
+    symbol: KLORlib:SW_PUSH-MX_W_LED
+    footprint: KLOR:SK6812MINI_and_cherry_1
+    construction:
+      schematic_unit_1: mx-switch
+      schematic_unit_2: sk6812-rgb
+      pcb_pads_1_to_4: sk6812
+      pcb_pads_5_to_6: switch
+    disposition: remove
+
+  matrix:
+    column:
+      sw22_pad: 5
+      net: col1
+    switch_to_diode:
+      sw22_pad: 6
+      net: Net-(D22-A)
+      d22_pad: 2
+      d22_pinfunction: A
+    row:
+      d22_pad: 1
+      d22_pinfunction: K
+      net: row3
+    d22_disposition: remove
+    obsolete_net_after_removal: Net-(D22-A)
+    bridge_matrix_nets: false
+    rule: >-
+      Delete SW22, D22, and the local Net-(D22-A) copper. Preserve the col1
+      and row3 trunks and do not connect them together.
+
+  rgb:
+    integrated_device: SW22-unit-2
+    din:
+      sw22_pad: 3
+      net: Net-(SW13B-DOUT)
+      upstream_ref: SW13
+      upstream_pad: 1
+      upstream_function: DOUT
+    dout:
+      sw22_pad: 1
+      net: Net-(SW14B-DIN)
+      downstream_ref: SW14
+      downstream_pad: 3
+      downstream_function: DIN
+    power:
+      gnd:
+        sw22_pad: 2
+        net: GND
+      vcc:
+        sw22_pad: 4
+        net: VCC
+    bypass:
+      from: SW13-DOUT
+      to: SW14-DIN
+      required: true
+    power_bypass_required: false
+    rule: >-
+      Remove the SW22 RGB unit with the footprint and connect SW13 DOUT
+      directly to SW14 DIN. Delete only SW22-local VCC/GND branches while
+      preserving the shared power rails.
+
+  stock_net_ids:
+    GND: 1
+    VCC: 3
+    col1: 17
+    row3: 38
+    Net-(D22-A): 46
+    Net-(SW13B-DOUT): 76
+    Net-(SW14B-DIN): 77
+
+  nearby_followup_components:
+    - ref: J3
+      approx_distance_from_sw22_mm: 10.046
+      disposition: defer-to-task-2b
+    - refs: [JP17, JP18, JP19, JP20]
+      approx_distance_from_sw22_mm: 11.4
+      disposition: defer-to-task-2b
+    - refs: [JP16, JP21]
+      approx_distance_from_sw22_mm: 12.2
+      disposition: defer-to-task-2b
+    - ref: BZ1
+      approx_distance_from_sw22_mm: 20.98
+      disposition: defer-to-task-2b
+
+  completion_gate:
+    sw22_connectivity_resolved: true
+    d22_connectivity_resolved: true
+    d22_disposition_locked: true
+    rgb_device_identified: true
+    rgb_upstream_resolved: true
+    rgb_downstream_resolved: true
+    rgb_bypass_locked: true
+    matrix_no_bridge_rule_locked: true
+    local_copper_captured: true
+
+rules:
+  - Task 2A does not edit production PCB geometry.
+  - Task 3 must implement the Task 2A disposition exactly unless a later Task 2 audit discovers a source-level conflict.
+  - Do not remove J3/JP16-JP21/BZ1 based only on proximity; their electrical ownership is resolved in Task 2B.
