@@ -24,23 +24,31 @@ The current placement remains the baseline. It should move only if the complete 
 
 ## Current source state
 
-### 1. Type-C housing archive is now stored in the repository
+### Type-C housing files are checked in directly
 
-The archive is available at:
+The unarchived Thingiverse source package is now stored at:
 
-`../../Keyball 25mm Trackball Case Type C - 6719828.zip`
+`../../Keyball 25mm Trackball Case Type C - 6719828/`
 
-The handoff records these expected hashes:
+Task 1 uses these files directly:
 
-- archive SHA-256: `ad2ee79388c01fcb775ee08e35761d14b27fbd53ecffabfbdc45add77830e206`
-- embedded STEP SHA-256: `79c3fdc445d6b4ecf63afdcc60d87a7ab3635902f155187c6687e3561d1ed57c`
-- embedded STEP member: `files/keyball_trackball_case_25mm_type_c.stp`
+- `files/keyball_trackball_case_25mm_type_c.stp` — primary CAD source
+- `files/keyball_trackball_case_25mm_type_c_left.stl` — source-package reference
+- `files/keyball_trackball_case_25mm_type_c_right.stl` — source-package reference
 
-`preflight_reference_assembly.py` now checks the repository archive automatically, verifies both hashes, and verifies that the expected STEP member is present before Task 1 uses the housing geometry.
+The recorded SHA-256 values are:
 
-Do not substitute a similarly named STL or redraw the housing from the recorded bounding box.
+- STEP: `79c3fdc445d6b4ecf63afdcc60d87a7ab3635902f155187c6687e3561d1ed57c`
+- left STL: `5bcd5f2ec9cf4f151f15423a27f68a44c96efbc45ad7ce103242b5b66511ab58`
+- right STL: `9ff67b5fe3acee937a14b84994b586b2993a2e0222d826da7d0275e4c68c4565`
 
-### 2. The stock right case is mesh-only here
+The original ZIP remains at the project root as provenance/reference, but Task 1 no longer depends on archive extraction.
+
+`preflight_reference_assembly.py` verifies the checked-in STEP and STL files directly. The ZIP check is supplementary and can be skipped with `--skip-archive-check`.
+
+Do not substitute a redraw or approximate envelope for the checked-in STEP.
+
+### The stock right case is mesh-only
 
 The regular Konrad right case is available as:
 
@@ -48,9 +56,9 @@ The regular Konrad right case is available as:
 
 That is sufficient for collision/reference work in Task 1, but not a clean editable source for Task 5.
 
-### 3. Cross-model coordinate alignment is not documented
+### Cross-model coordinate alignment is still unresolved
 
-The trackball datums are expressed in the native KLOR PCB/Gerber XY frame. The Konrad switchplate STEP and right-case STL do not have a documented transform back to that PCB frame.
+The trackball datums are expressed in the native KLOR PCB/Gerber XY frame. The Konrad switchplate STEP and right-case STL do not yet have a documented transform back to that PCB frame.
 
 Task 1 must establish and record those transforms from geometry. They must not be guessed from screenshots or bounding boxes.
 
@@ -59,8 +67,7 @@ Task 1 must establish and record those transforms from geometry. They must not b
 `reference_assembly_manifest.yaml` records:
 
 - current placement datums
-- repository housing archive path
-- expected archive and embedded STEP hashes
+- direct housing STEP/STL paths and expected hashes
 - stock source files
 - unresolved transforms
 - the Task 1 completion gate
@@ -69,19 +76,25 @@ A completion-gate field must remain `false` until it has been checked against th
 
 ## Reference assembly workflow
 
-1. Run the preflight. It verifies stock sources, the repository housing archive, and the embedded Type-C STEP.
+1. Run the preflight. It verifies the stock sources and the checked-in Type-C STEP/STLs directly.
 2. Export the stock KLOR PCB to STEP from the existing KiCad board without editing it.
 3. Align the stock Konrad switchplate to the PCB using common physical features (switch centers and/or mounting features), then record the rigid transform.
 4. Align the stock right-case STL to the switchplate/PCB assembly using matching seating and mounting geometry, then record the rigid transform.
-5. Extract/use the verified Type-C STEP and place it using the recorded ball-centred transform; align its mounting plane to the switchplate interface.
+5. Place the verified Type-C STEP using the recorded ball-centred transform and align its mounting plane to the switchplate interface.
 6. Add the real Kivipallur breakout geometry and verify its orientation and insertion/service path.
 7. Add R32/R33, encoder, MCU and TRRS collision envelopes from source geometry or verified component dimensions.
 8. Run the complete collision/access audit and write the results into the manifest.
 
-Run preflight from the project root:
+Run preflight from `klor-trackball/`:
 
 ```bash
 python3 design/task1/preflight_reference_assembly.py
+```
+
+To omit the supplementary ZIP cross-check:
+
+```bash
+python3 design/task1/preflight_reference_assembly.py --skip-archive-check
 ```
 
 To also export the unmodified stock PCB as a board-only STEP when `kicad-cli` is installed:
@@ -94,7 +107,7 @@ python3 design/task1/preflight_reference_assembly.py --export-pcb-step
 
 - a reproducible reference assembly file or script
 - recorded PCB → switchplate and PCB → case transforms
-- verified repository archive and embedded Type-C STEP hashes
+- verified direct Type-C STEP/STL hashes
 - collision results for all retained components/keepouts
 - verified ball exposure and housing mounting-plane relationship
 - verified breakout insertion/service path
