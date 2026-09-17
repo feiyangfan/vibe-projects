@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 """Task 1 mechanical-reference-assembly preflight.
 
-This tool deliberately does not edit any production CAD/PCB source. It verifies
-the required stock sources, validates the repository Type-C housing archive and
-its embedded STEP, and can export a stock board-only STEP using KiCad CLI.
+This tool deliberately does not edit production CAD/PCB source. It verifies the
+required stock sources and the checked-in Type-C housing models, and can export
+an unmodified stock PCB as a board-only STEP using KiCad CLI.
 
-It does not declare the placement locked. Cross-model transforms and collision
+The unarchived housing STEP/STLs are the primary Task 1 sources. The original ZIP
+is retained only as an optional provenance cross-check.
+
+This script never declares placement locked. Cross-model transforms and collision
 checks remain Task 1 work and are tracked in reference_assembly_manifest.yaml.
 """
 
@@ -23,16 +26,24 @@ from pathlib import Path
 EXPECTED_ARCHIVE_SHA256 = (
     "ad2ee79388c01fcb775ee08e35761d14b27fbd53ecffabfbdc45add77830e206"
 )
-EXPECTED_HOUSING_STEP_SHA256 = (
+EXPECTED_STEP_SHA256 = (
     "79c3fdc445d6b4ecf63afdcc60d87a7ab3635902f155187c6687e3561d1ed57c"
+)
+EXPECTED_LEFT_STL_SHA256 = (
+    "5bcd5f2ec9cf4f151f15423a27f68a44c96efbc45ad7ce103242b5b66511ab58"
+)
+EXPECTED_RIGHT_STL_SHA256 = (
+    "9ff67b5fe3acee937a14b84994b586b2993a2e0222d826da7d0275e4c68c4565"
 )
 EXPECTED_STEP_MEMBER = "files/keyball_trackball_case_25mm_type_c.stp"
 
 TASK1_DIR = Path(__file__).resolve().parent
 PROJECT_DIR = TASK1_DIR.parents[1]
-DEFAULT_HOUSING_ARCHIVE = (
-    PROJECT_DIR / "Keyball 25mm Trackball Case Type C - 6719828.zip"
-)
+HOUSING_DIR = PROJECT_DIR / "Keyball 25mm Trackball Case Type C - 6719828"
+DEFAULT_HOUSING_STEP = HOUSING_DIR / "files/keyball_trackball_case_25mm_type_c.stp"
+DEFAULT_LEFT_STL = HOUSING_DIR / "files/keyball_trackball_case_25mm_type_c_left.stl"
+DEFAULT_RIGHT_STL = HOUSING_DIR / "files/keyball_trackball_case_25mm_type_c_right.stl"
+DEFAULT_HOUSING_ARCHIVE = PROJECT_DIR / "Keyball 25mm Trackball Case Type C - 6719828.zip"
 
 SOURCES = {
     "pcb": PROJECT_DIR / "klor1.4/PCB/klor1_4/klor1_4.kicad_pcb",
@@ -60,13 +71,44 @@ def sha256_stream(stream) -> str:
     return digest.hexdigest()
 
 
+def verify_file(path: Path, expected_sha256: str) -> dict[str, object]:
+    result: dict[str, object] = {
+        "path": str(path),
+        "exists": path.exists(),
+        "expected_sha256": expected_sha256,
+        "ok": False,
+    }
+    if not path.exists():
+        return result
+
+    actual_hash = sha256(path)
+    result["actual_sha256"] = actual_hash
+    result["hash_matches"] = actual_hash == expected_sha256
+    result["ok"] = result["hash_matches"]
+    return result
+
+
+def verify_direct_housing_sources(
+    step: Path, left_stl: Path, right_stl: Path
+) -> dict[str, object]:
+    models = {
+        "step": verify_file(step, EXPECTED_STEP_SHA256),
+        "left_stl": verify_file(left_stl, EXPECTED_LEFT_STL_SHA256),
+        "right_stl": verify_file(right_stl, EXPECTED_RIGHT_STL_SHA256),
+    }
+    return {
+        "models": models,
+        "ok": all(bool(model["ok"]) for model in models.values()),
+    }
+
+
 def verify_housing_archive(archive: Path) -> dict[str, object]:
     result: dict[str, object] = {
         "path": str(archive),
         "exists": archive.exists(),
         "expected_archive_sha256": EXPECTED_ARCHIVE_SHA256,
         "expected_step_member": EXPECTED_STEP_MEMBER,
-        "expected_step_sha256": EXPECTED_HOUSING_STEP_SHA256,
+        "expected_step_sha256": EXPECTED_STEP_SHA256,
         "ok": False,
     }
     if not archive.exists():
@@ -81,17 +123,11 @@ def verify_housing_archive(archive: Path) -> dict[str, object]:
             names = zf.namelist()
             result["zip_readable"] = True
             result["step_member_present"] = EXPECTED_STEP_MEMBER in names
-            result["model_members"] = [
-                name
-                for name in names
-                if name.lower().endswith((".step", ".stp", ".stl"))
-            ]
-
             if EXPECTED_STEP_MEMBER in names:
                 with zf.open(EXPECTED_STEP_MEMBER) as step_fh:
                     step_hash = sha256_stream(step_fh)
                 result["actual_step_sha256"] = step_hash
-                result["step_hash_matches"] = step_hash == EXPECTED_HOUSING_STEP_SHA256
+                result["step_hash_matches"] = step_hash == EXPECTED_STEP_SHA256
             else:
                 result["step_hash_matches"] = False
     except (OSError, zipfile.BadZipFile) as exc:
@@ -106,23 +142,6 @@ def verify_housing_archive(archive: Path) -> dict[str, object]:
         and result.get("step_member_present")
         and result.get("step_hash_matches")
     )
-    return result
-
-
-def verify_direct_step(step: Path) -> dict[str, object]:
-    result: dict[str, object] = {
-        "path": str(step),
-        "exists": step.exists(),
-        "expected_sha256": EXPECTED_HOUSING_STEP_SHA256,
-        "ok": False,
-    }
-    if not step.exists():
-        return result
-
-    actual_hash = sha256(step)
-    result["actual_sha256"] = actual_hash
-    result["hash_matches"] = actual_hash == EXPECTED_HOUSING_STEP_SHA256
-    result["ok"] = result["hash_matches"]
     return result
 
 
@@ -161,21 +180,33 @@ def export_pcb_step(pcb: Path, output: Path) -> dict[str, object]:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument(
+        "--housing-step",
+        type=Path,
+        default=DEFAULT_HOUSING_STEP,
+        help="Checked-in Type-C STEP. Defaults to the unarchived repository file.",
+    )
+    parser.add_argument(
+        "--housing-left-stl",
+        type=Path,
+        default=DEFAULT_LEFT_STL,
+        help="Checked-in left STL used for source-package verification.",
+    )
+    parser.add_argument(
+        "--housing-right-stl",
+        type=Path,
+        default=DEFAULT_RIGHT_STL,
+        help="Checked-in right STL used for source-package verification.",
+    )
+    parser.add_argument(
         "--housing-archive",
         type=Path,
         default=DEFAULT_HOUSING_ARCHIVE,
-        help=(
-            "Path to the Keyball Type-C source archive. Defaults to the archive "
-            "stored at the klor-trackball project root."
-        ),
+        help="Optional original ZIP provenance cross-check.",
     )
     parser.add_argument(
-        "--housing-step",
-        type=Path,
-        help=(
-            "Optional direct STEP override. If provided, its SHA-256 is verified "
-            "in addition to the repository archive."
-        ),
+        "--skip-archive-check",
+        action="store_true",
+        help="Skip the optional ZIP provenance cross-check.",
     )
     parser.add_argument(
         "--export-pcb-step",
@@ -199,21 +230,21 @@ def main() -> int:
     for name, path in SOURCES.items():
         exists = path.exists()
         sources_ok &= exists
-        report["sources"][name] = {
-            "path": str(path),
-            "exists": exists,
-        }
+        report["sources"][name] = {"path": str(path), "exists": exists}
 
-    archive_path = args.housing_archive.expanduser().resolve()
-    archive_report = verify_housing_archive(archive_path)
-    report["housing_archive"] = archive_report
-    housing_ok = bool(archive_report["ok"])
+    direct_report = verify_direct_housing_sources(
+        args.housing_step.expanduser().resolve(),
+        args.housing_left_stl.expanduser().resolve(),
+        args.housing_right_stl.expanduser().resolve(),
+    )
+    report["housing_direct_sources"] = direct_report
+    housing_ok = bool(direct_report["ok"])
 
-    if args.housing_step:
-        direct_step = args.housing_step.expanduser().resolve()
-        direct_report = verify_direct_step(direct_step)
-        report["housing_step_override"] = direct_report
-        housing_ok = housing_ok and bool(direct_report["ok"])
+    if not args.skip_archive_check:
+        archive_report = verify_housing_archive(args.housing_archive.expanduser().resolve())
+        report["housing_archive_provenance"] = archive_report
+        # The archive is supplementary. A missing or mismatched ZIP is reported but
+        # does not invalidate the directly verified STEP/STL source package.
 
     if args.export_pcb_step and SOURCES["pcb"].exists():
         report["pcb_step_export"] = export_pcb_step(
