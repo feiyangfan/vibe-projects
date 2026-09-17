@@ -19,20 +19,65 @@ Reference sources that remain unchanged:
 
 Modified PCB, CAD, and firmware artifacts must be trackball-specific derivatives rather than silent replacements of the stock source files.
 
+---
+
 ## Current status
 
-**Task 1 — mechanical reference assembly is complete and the trackball placement is mechanically locked.**
+### Task 1 — mechanical reference assembly: COMPLETE
 
-The successful Task 1 audit verified the checked-in Type-C sources, solved the PCB/switchplate/case coordinate relationships, reconstructed the stock stack-up, checked retained components and structural mounts, verified the breakout service corridor, and confirmed that the original placement does not need to move.
+Task 1 is fully complete. All subtasks `1A → 1G` passed and the original candidate trackball placement is mechanically locked.
 
-The overall project is **not fabrication-locked**. Electrical/PCB/CAD/firmware implementation and final integrated validation remain.
+Canonical Task 1 evidence:
 
-Canonical references:
+- [`design/task1/TASK1_RESULT.md`](design/task1/TASK1_RESULT.md)
+- [`design/task1/TASK1B_RESULT.md`](design/task1/TASK1B_RESULT.md)
+- [`design/task1/reference_assembly_manifest.yaml`](design/task1/reference_assembly_manifest.yaml)
+- `.github/workflows/klor-task1-mechanical-audit.yml`
 
-- [`design/task1/TASK1_RESULT.md`](design/task1/TASK1_RESULT.md) — Task 1 engineering result
-- [`design/task1/reference_assembly_manifest.yaml`](design/task1/reference_assembly_manifest.yaml) — machine-readable mechanical source of truth
-- [`docs/KONRAD_TRACKBALL_HANDOFF.md`](docs/KONRAD_TRACKBALL_HANDOFF.md) — consolidated engineering handoff
-- [`design/konrad_trackball_geometry.yaml`](design/konrad_trackball_geometry.yaml) — machine-readable project geometry and pin assignments
+Locked fabrication frame: **KLOR Gerber/Excellon XY**, millimetres.
+
+| Datum | X | Y |
+| --- | ---: | ---: |
+| Ball center | **162.323** | **-134.748** |
+| Housing screw midpoint | **156.111** | **-134.748** |
+| Housing screw 1 | **156.111** | **-126.768** |
+| Housing screw 2 | **156.111** | **-142.728** |
+| PMW3360 breakout-slot center | **143.111** | **-134.748** |
+| Deleted SW22 center | **143.025** | **-128.770** |
+
+Verified coordinate solves:
+
+- KiCad → Gerber: 21 matched MX centers, RMS **0.000181 mm**
+- KiCad → switchplate: 18 matched MX openings, RMS **0.020019 mm**
+- switchplate → right case: 8 structural mounting axes, RMS **0.006063 mm**
+- composed PCB → right-case conservative propagated residual bound: **≤ 0.026082 mm**
+
+Verified mechanical findings:
+
+- Type-C housing mounting plane = switchplate top at case `Z = 7.7 mm`
+- ball top = case `Z = 38.2 mm`
+- housing rim ≈ case `Z = 38.9 mm`
+- nearest retained keycap gap: `SW15` **2.654 mm**
+- next retained keycap gap: `SW21` **3.444 mm**
+- right encoder `SW18` clearance: **27.772 mm**
+- MCU `U1` clearance: **40.321 mm**
+- TRRS `J1` clearance: **46.460 mm**
+- structural fastener collisions: **0 / 8**
+- structural boss collisions: **0 / 8**
+- breakout service corridor minimum retained-keycap clearance: approximately **8.000 mm**
+
+The unmodified stock right-case shell **does intersect the Type-C housing locally**. This is an expected downstream case-relief requirement, not a placement failure: all eight structural mounting axes and all retained components remain clear. Do not move the locked trackball placement merely to avoid that local shell relief.
+
+Task 1 result: **`placement_locked: true`**.
+
+The overall keyboard is **not fabrication-locked**. Electrical, PCB, switchplate, case, firmware, and final integrated validation remain.
+
+Canonical project references:
+
+- [`docs/KONRAD_TRACKBALL_HANDOFF.md`](docs/KONRAD_TRACKBALL_HANDOFF.md)
+- [`design/konrad_trackball_geometry.yaml`](design/konrad_trackball_geometry.yaml)
+
+---
 
 ## Locked design direction
 
@@ -44,15 +89,17 @@ Canonical references:
 - Final target: **39 keys** = 20 left + 19 right
 - Keep right encoder
 - Keep R32 and R33
-- Remove **R34 / SW22 / matrix `[7,1]`** for the trackball
+- Remove logical key **R34**, implemented on the PCB as `SW22`, matrix `[7,1]`
 - Preserve all other unaffected MX and south-facing SK6812 Mini-E positions
+
+`R34` is the logical Konrad key position; it is **not** a KiCad resistor reference.
 
 ### Trackball stack
 
-- 25 mm ball
-- PixArt PMW3360DM-T2QU
-- Kivipallur PMW3360 breakout
-- kepeo **Keyball 25mm Trackball Case Type C**, Thingiverse 6719828
+- ball: 25 mm
+- sensor: PixArt PMW3360DM-T2QU
+- sensor breakout: Kivipallur PMW3360 breakout
+- housing: kepeo **Keyball 25mm Trackball Case Type C**, Thingiverse 6719828
 
 Important Type-C values:
 
@@ -63,19 +110,6 @@ Important Type-C values:
 - mounting screw pair = **15.96 mm measured / 16 mm nominal**
 - screw-pair midpoint ≈ **6.212 mm toward the sensor side from ball center**
 
-### Locked mechanical placement
-
-Canonical frame: **KLOR Gerber/Excellon fabrication XY**, millimetres.
-
-| Datum | X | Y |
-| --- | ---: | ---: |
-| Ball center | **162.323** | **-134.748** |
-| Housing screw midpoint | **156.111** | **-134.748** |
-| Screw 1 | **156.111** | **-126.768** |
-| Screw 2 | **156.111** | **-142.728** |
-| PMW3360 breakout-slot center | **143.111** | **-134.748** |
-| Deleted SW22 center | **143.025** | **-128.770** |
-
 The Type-C housing screws belong to the **switchplate/housing interface**, not the main PCB. The main PCB needs Kivipallur breakout clearance/pass-through plus its electrical interface.
 
 ---
@@ -84,166 +118,148 @@ The Type-C housing screws belong to the **switchplate/housing interface**, not t
 
 Do the tasks in dependency order. A later task must not build on an unverified output of an earlier task.
 
-### Task 1 — Build and lock the mechanical reference assembly
-
-Task 1 is decomposed into smaller gates so future changes can be revalidated without treating the entire mechanical problem as one opaque step.
+### Task 1 — Build and lock the mechanical reference assembly — COMPLETE
 
 Dependency chain:
 
 `1A → 1B → 1C → 1D → 1E → 1F → 1G`
 
-The original Task 1 audit was completed before this decomposition was introduced, so the existing verified evidence maps onto all seven subtasks. The split below is now the required structure for future reruns or placement changes.
+All gates pass. See [`design/task1/README.md`](design/task1/README.md) for the detailed decomposition and evidence.
 
-#### Task 1A — Lock source geometry — COMPLETE
-
-Verify and identify every mechanical input:
-
-- exact Type-C STEP and both source STL hashes
-- original ZIP provenance
-- stock KLOR PCB and NPTH drill/frame reference
-- Konrad switchplate source
-- stock right-case STL
-- Kivipallur breakout source
-
-**Gate:** every mechanical input is reproducible, checked in, and unambiguously identified.
-
-The current source set passes this gate.
-
-#### Task 1B — Establish the common coordinate frame — COMPLETE
-
-Derive and validate rigid transforms using multiple physical features rather than screenshots, bounding-box alignment, or a single datum:
-
-- KiCad PCB → Gerber/Excellon fabrication frame
-- KiCad PCB → native Konrad switchplate frame
-- native switchplate → native right-case frame
-- composed KiCad PCB → native right-case frame
-
-Record the transform matrices, translations, matched feature counts, and fit residuals.
-
-**Gate:** PCB, switchplate, and case can be overlaid reproducibly in one coordinate system with quantified alignment error.
-
-Current verified evidence:
-
-- KiCad → Gerber: 21 matched MX centers, RMS **0.000181 mm**
-- KiCad → switchplate: 18 matched MX openings, RMS **0.020019 mm**
-- switchplate → case: 8 structural mounting axes, RMS **0.006063 mm**
-- explicit composed PCB → case transform is recorded in the Task 1 manifest and [`design/task1/TASK1B_RESULT.md`](design/task1/TASK1B_RESULT.md)
-
-#### Task 1C — Place the trackball housing — COMPLETE
-
-- apply the locked XY ball/screw placement
-- resolve housing Z from the real switchplate mounting plane
-- include the 25 mm ball
-- verify mounting-plane relationship and ball exposure
-
-**Gate:** housing placement is fully defined in XYZ and independently reproducible.
-
-#### Task 1D — Place the breakout and service path — COMPLETE
-
-- use the real Kivipallur breakout geometry
-- position it relative to the housing/sensor
-- verify pass-through direction
-- verify insertion/removal and service access
-
-**Gate:** breakout orientation and service path are physically plausible and documented.
-
-#### Task 1E — Add retained-component keepouts — COMPLETE
-
-Include collision bodies/envelopes for:
-
-- R32/R33 retained switch/keycap region
-- right encoder
-- MCU region
-- TRRS region
-- structural mounting axes/fasteners
-- any other nearby fixed geometry that constrains the trackball
-
-**Gate:** every required retained component has a usable collision representation.
-
-#### Task 1F — Run collision and clearance audit — COMPLETE
-
-Check and record explicit pass/fail evidence for:
-
-- housing ↔ retained thumb keys
-- housing ↔ encoder
-- housing/breakout ↔ MCU/TRRS
-- housing ↔ structural mounts
-- housing ↔ stock right-case shell
-- ball access/exposure
-- breakout serviceability
-
-Record minimum clearances where meaningful.
-
-**Gate:** every required collision/service check has an explicit result. Local stock-case shell interference is permitted only when structural mounts remain clear and the later case task has a defined local-relief requirement.
-
-#### Task 1G — Freeze or revise placement — COMPLETE
-
-If 1F passes, freeze the placement. If it fails, change only the minimum necessary placement parameter and rerun every affected upstream/downstream check.
-
-If XY ever changes, update together:
+If the locked XY placement ever changes, rerun Task 1A–1G and update together:
 
 - `design/task1/reference_assembly_manifest.yaml`
 - `design/konrad_trackball_geometry.yaml`
 - `docs/KONRAD_TRACKBALL_HANDOFF.md`
 
-**Gate:** one justified mechanical placement is locked as the input to Tasks 2–5.
+### Task 2 — Lock the electrical and firmware interface — IN PROGRESS
 
-Current result: **`placement_locked: true`**. Do not move the trackball merely to avoid the documented local stock-case shell relief.
+Task 2 converts the current electrical proposal into one source-backed implementation contract before production PCB editing begins.
 
-### Task 2 — Lock the electrical and firmware interface
+Dependency chain:
 
-Audit the stock schematic/PCB and convert the current pin proposal into an exact implementation contract.
+`2A → 2B → 2C → 2D → 2E → 2F`
+
+#### Task 2A — Audit the removed-key circuit — IN PROGRESS
+
+Audit the stock KiCad schematic and PCB around logical key R34 / `SW22`.
+
+Resolve from source:
+
+- exact `SW22` switch pad/net connectivity
+- exact `D22` matrix-diode connectivity
+- whether `D22` is removed or may remain electrically harmless
+- exact RGB device associated with the deleted key position
+- RGB `DIN` and `DOUT` nets and immediate upstream/downstream chain neighbors
+- exact permanent copper bypass required after deleting that RGB device
+- nearby components/traces that materially constrain the trackball PCB derivative
+
+**Gate:** there is one unambiguous source-backed disposition for `SW22`, `D22`, the associated RGB device, and its data-chain bypass.
+
+Reproducible audit script:
+
+`design/task2/audit_task2a_removed_key.py`
+
+CI workflow:
+
+`.github/workflows/klor-task2a-electrical-audit.yml`
+
+#### Task 2B — Audit GPIO ownership and split/TRRS routing
+
+Trace GP2, GP3, GP4, and GP9 through the actual schematic and PCB copper.
 
 Resolve:
 
-- R34/SW22 matrix and diode removal details
-- deleted RGB device and exact copper bypass
-- D22 and neighboring component/trace disposition
-- GP4/full-duplex TRRS isolation point
-- Kivipallur connector footprint, pin order, side, and orientation
-- GP2/GP3/GP4/GP9 routing targets
-- which stock optional features are disabled in the trackball firmware variant
+- every stock function currently attached to those GPIOs
+- GP4's optional full-duplex TX/TRRS route
+- the exact copper segment/pad/via that must be isolated for GP4 to become PMW3360 MISO
+- confirmation that GP1 remains the active half-duplex split serial path
+- confirmation that retained matrix/RGB/encoder pins are unaffected
 
-Firmware contract for revision 1 should keep:
+**Gate:** every proposed PMW GPIO has one owner and every conflicting stock electrical path has an explicit disposition.
+
+#### Task 2C — Lock the Kivipallur physical/electrical connector
+
+Audit the real Kivipallur source rather than assuming connector order.
+
+Resolve:
+
+- connector footprint and pitch
+- physical side/orientation on the right PCB
+- pin numbering as viewed from the KLOR PCB
+- breakout mating orientation and service direction
+- exact signal order: GND, 3V3, MOTION, SCK, MOSI, MISO, CS
+
+**Gate:** connector footprint, orientation, pin numbering, and breakout mating direction are unambiguous.
+
+#### Task 2D — Freeze the PCB net contract
+
+Convert 2A–2C into an authoritative connector/net table.
+
+Current proposal to verify, not yet the final contract:
+
+| Breakout signal | Proposed KLOR right connection |
+| --- | --- |
+| GND | GND |
+| 3.3 V | 3V3 |
+| MOTION | NC for revision 1 |
+| SCK | GP2 |
+| MOSI | GP3 |
+| MISO | GP4 |
+| CS | GP9 |
+
+**Gate:** every connector pin maps to one PCB net and MCU signal with no unresolved electrical ambiguity.
+
+#### Task 2E — Freeze firmware ownership
+
+Verify the trackball firmware variant against the actual stock QMK configuration.
+
+Revision 1 should retain:
 
 - GP1 = half-duplex split serial
 - GP0 = RGB
-- GP5/6/7/8 = rows
-- GP20/21/22/23/26/27 = columns
+- GP5/6/7/8 = matrix rows
+- GP20/21/22/23/26/27 = matrix columns
 - GP28/29 = encoder
 
-Revision 1 should disable on the right-side trackball build:
+Revision 1 is expected to disable on the right trackball build:
 
-- OLED
+- OLED / stock I2C use on GP2/GP3
 - haptic
-- audio
-- stock PAW3204 path
+- audio on GP9
+- stock PAW3204 path on GP2/GP3
 
-**Completion gate:** one unambiguous connector/pin/net table exists and there is no unresolved GPIO ownership conflict.
+**Gate:** firmware ownership agrees exactly with the electrical contract and contains no overlapping GPIO use.
+
+#### Task 2F — Freeze the complete interface
+
+Produce one authoritative table covering:
+
+`connector pin → breakout signal → PCB net → MCU GPIO → firmware function → stock-circuit change`
+
+Also record every required stock-circuit deletion, isolation, bypass, and intentionally unpopulated optional feature.
+
+**Task 2 completion gate:** one unambiguous connector/pin/net/firmware contract exists and there is **zero unresolved GPIO or net ownership conflict**.
+
+Do not begin production PCB routing before Task 2F passes.
 
 ### Task 3 — Create the right-hand trackball PCB derivative
 
 Start from the stock KLOR 1.4 PCB but create a distinct right-hand trackball derivative.
 
-Implement:
+Implement only the changes authorized by Task 2:
 
-- remove R34 / SW22
+- remove R34 / `SW22`
 - remove its RGB device and permanently bypass the LED chain in copper
-- remove/relocate D22 or other parts only where the audited geometry requires it
-- add the Kivipallur 7-pin connector/interface
+- remove or retain `D22` exactly as Task 2A specifies
+- add the locked Kivipallur connector/interface
 - route GP2/GP3/GP4/GP9
 - physically isolate GP4 from the optional full-duplex TRRS TX route
 - add breakout pass-through / edge clearance
 - alter the PCB outline only where required
 - preserve R32/R33 and the right encoder
 
-**Completion gate:**
-
-- KiCad DRC passes except for documented intentional exceptions
-- no unrouted PMW3360 nets
-- RGB bypass continuity is explicit
-- board edge/cutout clearances pass
-- left/reference stock PCB files remain unchanged
+**Completion gate:** KiCad DRC passes except documented intentional exceptions; no unrouted PMW nets remain; RGB bypass continuity is explicit; board-edge/cutout clearances pass; stock/reference PCB files remain unchanged.
 
 ### Task 4 — Modify the right Konrad switchplate
 
@@ -251,7 +267,7 @@ Use the STEP as the mechanical source of truth.
 
 Implement:
 
-- delete the R34 switch opening as required
+- remove the R34 switch opening as required
 - add the two Type-C housing mounting locations from actual housing CAD
 - add local outer relief for the housing
 - add breakout pass-through / edge relief
@@ -261,64 +277,38 @@ Implement:
 
 ### Task 5 — Create an editable right-case derivative and modify the case
 
-The repository contains the regular right case as STL only. Establish a reproducible editable workflow, then make only local trackball-region changes.
+Establish a reproducible editable workflow from the stock right-case STL, then make only local trackball-region changes.
 
-Check:
+Task 1 already established that local stock-shell relief is required around the locked housing.
 
-- housing shell clearance
-- ball access
-- switchplate seating/contact plane
-- breakout/header/cable service access
-- R32/R33 clearance
-- encoder clearance
-- MCU/TRRS clearance
-- preservation of the eight verified structural mounting axes
-- wall thickness
-- printability and assembly sequence
-
-Task 1 established that the stock shell requires local relief around the housing; this is expected and must not be solved by moving the locked placement.
+Check housing/ball access, switchplate seating, breakout service access, retained keys, encoder, MCU/TRRS, structural mounts, wall thickness, printability, and assembly sequence.
 
 **Completion gate:** the right-case derivative is editable/reproducible, manifold for printing, and fits the locked assembly without undocumented mesh-only hacks.
 
 ### Task 6 — Run the complete mechanical + PCB validation pass
 
-Assemble the final right-side PCB + switchplate + housing + ball + breakout + retained switches + encoder + case.
+Assemble the final right PCB, switchplate, housing, ball, breakout, retained switches, encoder, and case.
 
-Verify:
+Verify no unresolved 3D collision, no trapped connector/breakout, acceptable key travel/clearance, fastener access, coherent mounting, and final PCB DRC after mechanically driven changes.
 
-- no unresolved 3D collisions
-- no trapped/unserviceable connector or breakout
-- acceptable keycap-to-housing clearance through full key travel
-- acceptable case wall thickness and fastener access
-- PCB/switchplate/case mounting remains coherent
-- final PCB DRC still passes after mechanically driven PCB changes
-
-**Completion gate:** the implemented mechanical and PCB fabrication geometry is frozen.
+**Completion gate:** implemented mechanical and PCB fabrication geometry is frozen.
 
 ### Task 7 — Implement the QMK trackball firmware variant
 
-Create a trackball-specific Konrad variant rather than mutating the stock firmware into a mixed-purpose configuration.
+Create a trackball-specific Konrad variant rather than mutating stock firmware into a mixed-purpose configuration.
 
 Implement and verify:
 
-- Konrad 39-key matrix/keymap behavior with R34 absent
-- asymmetric RGB topology: 20 left / 19 right / 39 total
+- 39-key matrix/keymap with R34 absent
+- asymmetric RGB: 20 left / 19 right / 39 total
 - trackball-specific `g_led_config`
-- PMW3360 on SPI0 using GP2/GP3/GP4 and CS=GP9
-- right-half-only pointing-device configuration
-- half-duplex split on GP1
+- PMW3360 SPI0 according to locked Task 2 contract
+- right-half-only pointing device
+- half-duplex split retained
 - right encoder retained
-- OLED/haptic/audio/PAW3204 disabled for the initial trackball variant
+- conflicting optional stock features disabled
 
-Bring-up order:
-
-1. matrix
-2. split transport
-3. encoder
-4. RGB chain/map
-5. SPI communication
-6. PMW3360 motion
-7. pointer orientation/scaling
+Bring-up order: matrix → split → encoder → RGB → SPI → PMW3360 motion → pointer orientation/scaling.
 
 **Completion gate:** firmware builds cleanly and contains no overlapping pin ownership.
 
@@ -327,14 +317,14 @@ Bring-up order:
 Only after Tasks 1–7 pass:
 
 - regenerate Gerbers/drills from the modified right PCB
-- review fabrication outputs independently from KiCad source
-- export final printable case and switchplate files
-- prepare BOM/assembly notes for the trackball-specific right half
-- fabricate/print a first revision
-- perform continuity/power checks before installing MCU/sensor
-- bring up keyboard functions first, then PMW3360
+- independently review fabrication outputs
+- export final printable case/switchplate files
+- prepare BOM/assembly notes
+- fabricate/print first revision
+- continuity/power checks before MCU/sensor installation
+- keyboard bring-up first, then PMW3360
 
-**Completion gate:** first-revision hardware passes electrical, mechanical, and firmware smoke tests; deviations are fed back into the handoff/YAML before declaring the design fabrication-locked.
+**Completion gate:** first-revision hardware passes electrical, mechanical, and firmware smoke tests; deviations are fed back into the handoff/YAML before fabrication lock.
 
 ---
 
@@ -342,4 +332,4 @@ Only after Tasks 1–7 pass:
 
 Do **not** order the modified PCB or treat final printed parts as production-ready until Tasks 1–7 pass their completion gates.
 
-Task 1 locks the **reference placement**, not the finished fabrication geometry. Tasks 2–7 still have to implement and validate the derivative hardware.
+Task 1 locks the **reference mechanical placement**. Tasks 2–7 still have to implement and validate the final right-side hardware.
