@@ -2,329 +2,415 @@
 
 ## Purpose
 
-This document is the canonical handoff for the KLOR trackball modification. A future agent should be able to continue PCB, switchplate, case, and firmware work from this file without reconstructing the design history from chat.
+This is the canonical engineering handoff for the KLOR trackball modification.
 
-The target is a **KLOR 1.4 MX, Konrad layout** with a **25 mm PMW3360 trackball on the right half**, derived from the mechanical/electrical approach used by Klorball35 while preserving as much of KLOR 1.4 as practical.
+Target: **KLOR 1.4 MX, Konrad layout**, with a **25 mm PMW3360 trackball on the right half** using the Klorball35/Kivipallur architecture. The left half remains stock.
 
-The left half remains stock.
+## Current implementation status
 
-## Design decisions that are already locked
+**Task 1 — mechanical reference assembly: COMPLETE.**
 
-### Keyboard/layout
+The candidate trackball placement has been validated against the checked-in PCB, Konrad switchplate, right-case STL, Type-C housing geometry, retained keys, encoder, MCU/TRRS regions, structural mounting axes, and Kivipallur breakout service corridor.
+
+The placement did **not** need to move and is now mechanically locked.
+
+Canonical Task 1 evidence:
+
+- [`../design/task1/TASK1_RESULT.md`](../design/task1/TASK1_RESULT.md)
+- [`../design/task1/reference_assembly_manifest.yaml`](../design/task1/reference_assembly_manifest.yaml)
+- CI workflow: `.github/workflows/klor-task1-mechanical-audit.yml`
+
+**Next task: Task 2 — lock the electrical and firmware interface.** Do not begin PCB routing before the Task 2 connector/pin/net contract is unambiguous.
+
+The overall design is **not fabrication-locked** yet. Mechanical placement is locked; PCB/CAD/firmware implementation and final integrated validation remain.
+
+---
+
+## Locked keyboard direction
 
 - Base PCB: `klor1.4/PCB/klor1_4/klor1_4.kicad_pcb`
-- Base layout: **Konrad**
-- Switch type: **MX**, retaining KLOR 1.4 south-facing SK6812 Mini-E RGB architecture
-- Final key count target: **39 keys**
+- Layout: **Konrad**
+- Switch type: **MX**
+- Left half: stock
+- Final key count: **39**
   - left: 20
   - right: 19
-- Right rotary encoder: **retain**
+- Right rotary encoder: retain
 - Right thumb keys:
   - R32: retain
   - R33: retain
-  - R34 / SW22 / matrix `[7,1]`: remove and replace with trackball
-- Do not move R32 or R33 merely to make room for the trackball.
+  - R34 / PCB switch `SW22` / matrix `[7,1]`: remove for trackball
+- Preserve all unaffected MX and south-facing SK6812 Mini-E positions.
 
-### Trackball stack
+Do not move retained thumb keys merely to avoid local case/switchplate modification; Task 1 demonstrated adequate clearance at the locked placement.
 
-Use the proven Klorball35-style external sensor assembly rather than integrating PMW3360 support circuitry directly onto the KLOR PCB.
+---
+
+## Trackball stack
+
+Use the external Klorball35-style sensor assembly rather than integrating the PMW3360 support circuit directly onto the KLOR PCB.
 
 - Ball: 25 mm
 - Sensor: PixArt PMW3360DM-T2QU
 - Sensor breakout: Kivipallur PMW3360 breakout
 - Housing: kepeo **Keyball 25mm Trackball Case Type C**, Thingiverse 6719828
 
-### PMW3360 electrical interface
+Checked-in source directory:
 
-Kivipallur breakout pinout:
+`Keyball 25mm Trackball Case Type C - 6719828/`
 
-| Pin | Signal | KLOR right connection |
-| ---: | --- | --- |
-| 1 | GND | GND |
-| 2 | 3.3 V | 3V3 |
-| 3 | MOTION | NC for initial revision |
-| 4 | SCK | GP2 |
-| 5 | MOSI | GP3 |
-| 6 | MISO | GP4 |
-| 7 | CS | GP9 |
-
-GPIO plan:
-
-- GP2 = SPI0 SCK
-- GP3 = SPI0 TX / MOSI
-- GP4 = SPI0 RX / MISO
-- GP9 = PMW3360 CS
-- GP1 remains KLOR half-duplex split serial
-- GP0 remains RGB
-- GP5/6/7/8 remain matrix rows
-- GP20/21/22/23/26/27 remain matrix columns
-- GP28/29 remain encoder
-
-Required PCB electrical edit: **physically isolate GP4 from the optional full-duplex TX/TRRS route**. Firmware configuration alone is not sufficient because the copper connection would remain.
-
-### Optional right-side peripherals
-
-The goal is minimal PCB disturbance. Unused footprints may remain unless they mechanically collide.
-
-- Right OLED: do not populate; stock right-side I2C cannot be used because GP2/GP3 become SPI.
-- Right haptic module: do not populate.
-- Right speaker/audio: do not populate; GP9 becomes trackball CS.
-- Stock PAW3204 support: do not use; pads/routes can remain if electrically harmless and mechanically clear.
-
-### RGB
-
-SW22/R34's integrated RGB position is deleted. Permanently bypass that device in the right-half RGB chain:
-
-`previous LED DOUT -> next LED DIN`
-
-Target RGB topology:
-
-- left: 20
-- right: 19
-- total: 39
-
-Firmware must use an asymmetric 20/19 map; changing only the total LED count is insufficient.
-
----
-
-## Type-C housing CAD audit
-
-The missing mechanical source was obtained and inspected directly from the Thingiverse 6719828 download.
-
-Archive name used during the audit:
-
-`Keyball 25mm Trackball Case Type C - 6719828.zip`
-
-Contained CAD/model files:
+Primary files:
 
 - `files/keyball_trackball_case_25mm_type_c.stp`
 - `files/keyball_trackball_case_25mm_type_c_left.stl`
 - `files/keyball_trackball_case_25mm_type_c_right.stl`
 
-The STEP is the preferred source for dimensions.
-
-### Exact source hashes
-
-These hashes identify the exact third-party files used for the mechanical measurements:
+Exact verified hashes:
 
 | File | SHA-256 |
 | --- | --- |
 | ZIP archive | `ad2ee79388c01fcb775ee08e35761d14b27fbd53ecffabfbdc45add77830e206` |
-| `README.txt` | `51830328ac04a21fd0c48dae2aded484cc5560fc1dad66f6cd4218e766eef783` |
-| `LICENSE.txt` | `77aaab67a7fc3d544c38e2c075b7134dc8000fcf5391c7b0120735ab8162d503` |
 | Type-C STEP | `79c3fdc445d6b4ecf63afdcc60d87a7ab3635902f155187c6687e3561d1ed57c` |
 | left STL | `5bcd5f2ec9cf4f151f15423a27f68a44c96efbc45ad7ce103242b5b66511ab58` |
 | right STL | `9ff67b5fe3acee937a14b84994b586b2993a2e0222d826da7d0275e4c68c4565` |
 
-Thingiverse metadata included in the archive says the model is by **kepeo** and licensed **Creative Commons Attribution**.
+Thingiverse metadata identifies the model as by **kepeo**, licensed Creative Commons Attribution.
 
-### Type-C coordinate system and measured geometry
+### Type-C source geometry
 
-The STEP contains the ball-centred geometry. Measurements below are in millimetres.
+The STEP is ball-centred: ball center = local `(0, 0, 0)`.
 
-- Ball center: **model origin `(0, 0, 0)`**
-  - verified from spherical CAD surfaces centred at the origin
-- Overall STEP bounding box:
-  - X: `-9.631504603 .. +27.963306547`
-  - Y: `-14.998377044 .. +15.000000000`
-  - Z: `-18.000000100 .. +13.200000100`
-- Envelope size: **37.594811 × 29.998377 × 31.200000 mm**
-- Housing/switchplate mounting plane: approximately **Z = -18.0 mm**
-- Actual 25 mm ball radius: 12.5 mm
-- Actual ball top above mounting plane: **30.5 mm**
+- bounding box X: `-9.631504603 .. +27.963306547`
+- bounding box Y: `-14.998377044 .. +15.000000000`
+- bounding box Z: `-18.000000100 .. +13.200000100`
+- envelope: **37.594811 × 29.998377 × 31.200000 mm**
+- housing/switchplate mounting plane: approximately local **Z = -18.0 mm**
+- real ball radius: 12.5 mm
+- real ball top above mounting plane: **30.5 mm**
+- mounting pilots: approximately `(6.200000,+7.980000)` and `(6.224641,-7.980000)`
+- measured screw spacing: **15.96 mm**, nominal 16 mm
+- screw-pair midpoint: approximately **6.212 mm toward the sensor side from ball center**
 
-The STEP includes spherical housing surfaces at radii 15.0 mm and 13.25 mm centred at the ball origin. These are housing/cavity geometry, not the physical trackball diameter.
-
-### Housing mounting holes
-
-The two mounting pilots are nominally a **16 mm pair** and are aligned along the local Y axis.
-
-Measured pilot axes from the STEP:
-
-- `(X=6.200000, Y=+7.980000)`
-- `(X=6.224641, Y=-7.980000)`
-
-Pilot cylinder radius is 0.8 mm. The slight X asymmetry is part of the source CAD; use the actual CAD for production geometry rather than rounding every feature to a simplified sketch.
-
-Useful nominal values:
-
-- screw spacing: **15.96 mm measured / 16 mm nominal**
-- screw-pair midpoint: approximately **6.212 mm from ball center toward the sensor side**
+Use the actual STEP for production geometry rather than a rounded redraw.
 
 ---
 
-## Klorball35 reference geometry
+## Locked mechanical placement
 
-`klorball35/config.yml` establishes the interface relationship used by the known working Klorball35 design:
+### Canonical coordinate frame
 
-- two housing/switchplate screw positions: **16 mm center-to-center**
-- PMW3360 breakout reference slot: **2 mm × 22 mm**
-- breakout-slot centerline: **13 mm from the screw-pair midpoint toward the sensor side**
+The placement coordinates below are explicitly **KLOR Gerber/Excellon fabrication coordinates**, in millimetres.
 
-The mounting screws are a **housing-to-switchplate interface**. Do not automatically duplicate those screw holes into the KLOR main PCB.
+Task 1 solved the KiCad↔fabrication relationship from all 21 MX centers in the NPTH drill data. The fabrication frame is effectively KiCad X unchanged and KiCad Y reflected.
 
-The main PCB needs clearance/pass-through for the vertical Kivipallur breakout plus the electrical interface.
-
----
-
-## Candidate placement on KLOR 1.4 Konrad
-
-All PCB coordinates below use the native KLOR KiCad/Gerber coordinate system in millimetres.
-
-The current placement intentionally puts the ball outside/right of the deleted R34 region while sending the sensor/breakout inward toward the former switch corridor.
-
-### Placement datums
+### Locked datums
 
 | Datum | X | Y |
 | --- | ---: | ---: |
 | Ball center | **162.323** | **-134.748** |
 | Housing screw midpoint | **156.111** | **-134.748** |
-| Screw 1 | **156.111** | **-126.768** |
-| Screw 2 | **156.111** | **-142.728** |
+| Housing screw 1 | **156.111** | **-126.768** |
+| Housing screw 2 | **156.111** | **-142.728** |
 | PMW3360 breakout-slot center | **143.111** | **-134.748** |
+| Deleted SW22 center | **143.025** | **-128.770** |
 
 Interpretation:
 
-- sensor direction is global **-X** from the ball center
-- ball -> screw midpoint: approximately 6.212 mm toward -X
-- screw midpoint -> breakout center: 13 mm farther toward -X
-- screw pair runs approximately along global Y
+- sensor direction: fabrication-frame **-X**
+- ball → screw midpoint: about 6.212 mm toward -X
+- screw midpoint → breakout center: 13 mm farther toward -X
+- screw pair axis: approximately fabrication-frame Y
+- Type-C housing screws are a **housing-to-switchplate interface**, not main-PCB mounting holes
 
-This matches the Type-C/Klorball35 relationship while locating the ball where the Konrad thumb cluster can accept it with one key removed.
+The deleted-switch datum resolves to source PCB footprint `SW22` with approximately 0.000045 mm error.
 
-### Deleted-switch reference
+### Verified coordinate transforms
 
-From the KLOR rev1.4 manufacturing drill data, the R34/SW22 MX center is approximately:
+KiCad PCB → Gerber/Excellon:
 
-`(143.025, -128.770)`
+```text
+R = [[ 1.000000000,  0.000000342],
+     [ 0.000000342, -1.000000000]]
+t = [-0.000089, -0.000052] mm
+```
 
-The breakout center is therefore only about 0.086 mm away in X from the deleted switch centerline, with a Y offset of about -5.978 mm. This is why the deleted R34 corridor is the correct place for the sensor pass-through.
+- 21/21 matched centers
+- RMS residual: **0.000181 mm**
 
-### Housing 2D envelope at this placement
+KiCad PCB → native Konrad switchplate STL:
 
-Using the current orientation (`global X = ball_X - model_X`, `global Y = ball_Y + model_Y`), the Type-C STEP AABB projects to approximately:
+```text
+R = [[ 0.999999991,  0.000131877],
+     [ 0.000131877, -0.999999991]]
+t = [-80.655587, 153.995244] mm
+```
 
-- X: **134.360 .. 171.955 mm**
-- Y: **-149.746 .. -119.748 mm**
+- 18/18 Konrad MX openings matched
+- RMS residual: **0.020019 mm**
 
-This envelope strongly overlaps R34/SW22, confirming that switch cannot remain.
+Native switchplate → native right-case STL:
 
-Using an 18 mm square keycap envelope for the adjacent retained R33 position at approximately X=121.915 mm, the simple X-edge clearance to the Type-C AABB is approximately **3.445 mm**. This is a conservative rectangular-envelope sanity check, not a final 3D collision result.
+```text
+R = [[ 0.999999999,  0.000033962],
+     [-0.000033962,  0.999999999]]
+t = [80.582795, 55.951799] mm
+```
 
-### Switchplate/case implication
+- 8/8 structural M2 axes matched
+- RMS residual: **0.006063 mm**
 
-The stock Konrad switchplate cannot remain geometrically untouched. Preliminary overlay work indicates a local outward relief on the order of **6–7 mm maximum** near the trackball area, plus the breakout edge/pass-through.
+### Stock mechanical stack-up
 
-Do not enlarge the entire keyboard. Modify only the local right thumb/trackball region.
+The stock case support plane is native case `Z = -0.8 mm`. KLOR specifies 7 mm M2 standoffs; the stock 3DP switchplate is 1.5 mm thick.
 
----
+Therefore the installed stock stack is:
 
-## Mechanical architecture to implement
+- switchplate bottom: case `Z = 6.2 mm`
+- switchplate top / Type-C mounting plane: case `Z = 7.7 mm`
+- stock case top: case `Z = 8.800025 mm`
+- case lip above switchplate: about **1.100 mm**
+- 25 mm ball top: case `Z = 38.2 mm`
+- Type-C housing rim top: about case `Z = 38.9 mm`
+- ball is about **0.7 mm below the housing rim**
 
-### Right main PCB
+### Placement in native source-model frames
 
-Required/expected changes:
+Ball center:
 
-1. remove SW22/R34 switch footprint and its integrated RGB device
-2. bypass the removed RGB device in copper
-3. add the Kivipallur 7-pin electrical connection
-4. route GP2/GP3/GP4/GP9 locally to the breakout
-5. physically isolate GP4 from optional full-duplex TRRS TX
-6. provide the breakout pass-through / edge clearance corresponding to the 2 × 22 mm reference slot
-7. alter the board outline only where the Type-C assembly requires it
-8. remove or relocate D22 only if the actual layout/collision audit requires it
-9. relocate any other small components/tracks only if they intersect the housing/breakout corridor
+- KiCad: `(162.323043, 134.748004)`
+- native switchplate: `(81.685225, 19.268648)`
+- native right case: `(162.268674, 75.217672)`
 
-Do **not** add the two Type-C housing mounting screws to the main PCB unless a later mechanical redesign intentionally changes the architecture.
+Housing screw centers in native switchplate coordinates:
 
-### Right switchplate
+- `(75.472175, 27.247831)`
+- `(75.474275, 11.287831)`
 
-Modify the Konrad right switchplate to:
+Breakout-slot center:
 
-- accept the Type-C housing using its two approximately 16 mm-spaced mounting locations
-- create the necessary local outer profile/relief for the Type-C housing
-- provide the vertical Kivipallur breakout pass-through/edge relief
-- preserve all unaffected MX openings and mounting features
-
-Use the source STEP for final hole/profile placement rather than only the rounded nominal dimensions in this document.
-
-Relevant KLOR files:
-
-- `klor1.4/case/3DP/konrad/switchplate/KLOR_konrad_3DP_switchplate.step`
-- `klor1.4/case/3DP/konrad/switchplate/KLOR_konrad_3DP_switchplate.stl`
-- `klor1.4/case/3DP/konrad/switchplate/KLOR_konrad_3DP_switchplate.dxf`
-- `klor1.4/case/3DP/konrad/switchplate/KLOR_konrad_3DP_switchplate.svg`
-
-### Right Konrad case
-
-Proceed with **Konrad**. The stock right case source exists in the repository:
-
-- `klor1.4/case/3DP/konrad/regular/KLOR_konrad_case_R.stl`
-
-The right case needs a local trackball modification around the candidate placement. Preserve the stock left case and as much of the right case shell as practical.
-
-Final case work must check:
-
-- Type-C housing shell collision
-- 25 mm ball access/exposure
-- switchplate contact plane
-- PMW3360 breakout and cable/header access
-- R32/R33 keycap and switch-body clearance
-- encoder clearance
-- MCU/TRRS clearance
-- case wall thickness and printability
+- native switchplate: `(62.473225, 19.266121)`
+- native right case: `(143.056674, 75.215798)`
 
 ---
 
-## What is confirmed vs. what still needs engineering work
+## Task 1 clearance results
 
-### Confirmed / design intent locked
+Using a conservative 18 × 18 mm keycap XY envelope, the closest retained PCB switches clear the Type-C housing:
 
-- KLOR 1.4 MX + Konrad
-- left half stock
-- R34/SW22 deleted
-- R32/R33 retained
+- `SW15`: **2.654 mm**
+- `SW21`: **3.444 mm**
+- `SW13`: **4.022 mm**
+- `SW12`: **4.424 mm**
+
+Other conservative XY clearances:
+
+- right encoder `SW18`: **27.772 mm**
+- MCU `U1` / ProMicro region: **40.321 mm**
+- TRRS `J1`: **46.460 mm**
+
+All eight structural M2 axes were also checked against the actual placed housing mesh with a deliberately conservative fastener envelope:
+
+- M2 head: 4.5 mm diameter × 2.0 mm high
+- below-plate boss: 6.1 mm diameter
+- M2-head collisions: **0/8**
+- below-plate boss collisions: **0/8**
+- nearest structural axis has about **9.159 mm** radial clearance to a housing vertex in the first 3 mm above the plate
+
+### Kivipallur breakout/service path
+
+The Kivipallur breakout Edge.Cuts are **22 × 25 mm**. Klorball35 uses a **2 × 22 mm** reference pass-through.
+
+Task 1 verified the intended orientation:
+
+- the breakout 22 mm short edge aligns with the 22 mm slot dimension
+- the 2 mm slot dimension clears PCB thickness
+- the breakout extends inward along the sensor direction
+- the conservative retained-keycap corridor gap is approximately **8.000 mm**
+
+The orientation and insertion/service path are mechanically valid.
+
+### Stock case shell interference
+
+The **unmodified stock right-case shell intersects the Type-C housing** at the locked placement.
+
+This is expected local material that Task 5 must relieve. It is **not** a reason to move the trackball because:
+
+- all eight structural case/switchplate mounting axes remain clear
+- retained switches remain clear
+- encoder remains clear
+- MCU remains clear
+- TRRS remains clear
+
+**Preserve all eight structural mounting axes. Do not move the locked trackball merely to avoid local stock-shell relief.**
+
+---
+
+## PMW3360 electrical plan — Task 2 must audit before routing
+
+Current proposed Kivipallur breakout pinout:
+
+| Pin | Signal | Proposed KLOR right connection |
+| ---: | --- | --- |
+| 1 | GND | GND |
+| 2 | 3.3 V | 3V3 |
+| 3 | MOTION | NC initially |
+| 4 | SCK | GP2 |
+| 5 | MOSI | GP3 |
+| 6 | MISO | GP4 |
+| 7 | CS | GP9 |
+
+Proposed retained GPIO ownership:
+
+- GP1 = half-duplex split serial
+- GP0 = RGB
+- GP5/6/7/8 = matrix rows
+- GP20/21/22/23/26/27 = matrix columns
+- GP28/29 = encoder
+
+Known conflicts in the stock firmware/configuration:
+
+- GP2/GP3 are used/declared by I2C and stock PAW3204 paths
+- GP9 is used/declared by audio
+- GP4 participates in the optional full-duplex serial TX/TRRS route
+- OLED, haptic, audio are enabled in stock metadata
+- pointing-device support is disabled in stock metadata
+- stock RGB topology assumes the original symmetric layout
+
+Required electrical edit already identified: **physically isolate GP4 from the optional full-duplex TX/TRRS route** before using GP4 as PMW3360 MISO.
+
+Initial right-side trackball variant should leave unpopulated/disabled:
+
+- OLED
+- haptic
+- audio/speaker
+- stock PAW3204
+
+### Task 2 completion requirement
+
+Before Task 3 PCB routing, Task 2 must resolve from actual schematic/copper:
+
+1. exact R34/SW22 matrix/diode removal details
+2. exact deleted-RGB device and copper bypass
+3. D22 and neighboring component/trace disposition
+4. exact GP4/full-duplex TRRS isolation point
+5. Kivipallur connector footprint, pin order, board side, and orientation
+6. GP2/GP3/GP4/GP9 routing targets
+7. exact firmware feature ownership so no GPIO is double-used
+
+Task 2 closes only when there is one unambiguous connector/pin/net contract and no unresolved GPIO ownership conflict.
+
+---
+
+## RGB target
+
+Delete the RGB device associated with SW22/R34 and permanently bypass it in copper:
+
+`previous LED DOUT -> next LED DIN`
+
+Target topology:
+
+- left: 20
+- right: 19
+- total: 39
+
+Firmware needs an asymmetric 20/19 LED map and a trackball-specific `g_led_config`.
+
+---
+
+## Remaining implementation sequence
+
+### Task 2 — electrical + firmware interface
+
+Audit and lock the exact connector, GPIO, optional-feature, RGB-bypass, and GP4 isolation contract.
+
+### Task 3 — right-hand trackball PCB derivative
+
+Create a distinct right-hand derivative from stock KLOR. Do not convert the stock reversible PCB into a universal trackball board.
+
+Required direction:
+
+- remove SW22/R34
+- bypass its RGB device in copper
+- preserve retained switches and encoder
+- add Kivipallur electrical interface
+- route GP2/GP3/GP4/GP9
+- isolate GP4 from optional full-duplex TRRS TX
+- provide breakout pass-through/edge clearance
+- alter board outline only where necessary
+- move/remove D22 or other parts only when audited geometry requires it
+- run KiCad DRC
+
+### Task 4 — right Konrad switchplate
+
+Use the STEP source of truth. Add:
+
+- Type-C mounting points from actual housing CAD
+- local housing relief
+- breakout pass-through/edge relief
+- deletion/relief of the R34 opening as required
+
+Preserve unaffected openings and all verified structural mounting axes.
+
+### Task 5 — editable right-case derivative
+
+The stock regular right case is STL-only in this repository:
+
+`klor1.4/case/3DP/konrad/regular/KLOR_konrad_case_R.stl`
+
+Establish a reproducible editable CAD workflow, then provide the **local shell relief proven necessary by Task 1**. Preserve the eight structural mount axes and validate printability/wall thickness/service access.
+
+### Task 6 — final modified-assembly validation
+
+Assemble the actual modified PCB + switchplate + housing + ball + breakout + retained keys + encoder + case and freeze final fabrication geometry.
+
+### Task 7 — QMK trackball variant
+
+Create a trackball-specific Konrad firmware variant:
+
+- 39-key behavior with SW22/R34 absent
+- RGB 20 left / 19 right / 39 total
+- trackball-specific `g_led_config`
+- PMW3360 SPI0: GP2/GP3/GP4, CS=GP9
+- right-half-only pointing device
+- split GP1 half-duplex
 - right encoder retained
-- 25 mm Type-C / Kivipallur PMW3360 stack
-- Type-C CAD dimensions and ball-centred datum
-- switchplate-mounted Type-C housing architecture
-- PMW3360 breakout reference slot relationship from Klorball35
-- PMW GPIOs GP2/GP3/GP4/GP9
-- GP1 half-duplex split retained
-- GP4 physical isolation from optional full-duplex TRRS TX
-- right OLED/haptic/audio not populated for first revision
-- right RGB count 19, left RGB count 20
-- candidate ball/screw/breakout placement listed above
+- OLED/haptic/audio/PAW3204 disabled initially
 
-### Not yet fabrication-locked
+Suggested bring-up order:
 
-The mechanical uncertainty about the Type-C housing itself is closed, but the **modified KLOR parts have not yet been produced or collision-checked as final CAD**.
+1. matrix
+2. split transport
+3. encoder
+4. RGB chain/map
+5. SPI communication
+6. PMW3360 motion
+7. pointer orientation/scaling
 
-Before ordering PCBs or printing the final case, complete:
+### Task 8 — fabrication and hardware bring-up
 
-1. exact KiCad component audit around R34, including D22 and nearby passives/tracks
-2. exact PCB outline edit and breakout slot/connector geometry
-3. final right switchplate CAD edit using the Type-C STEP
-4. final right Konrad case CAD edit
-5. assembled 3D interference check with PCB + switchplate + Type-C housing + R32/R33 + encoder + case
-6. KiCad DRC and fabrication-output review
-7. QMK implementation and right-only pointing-device bring-up
+Only after Tasks 1–7 pass:
 
-The current XY placement is the working baseline. Change it only if a concrete collision or assembly constraint demands it; if changed, update both this document and `design/konrad_trackball_geometry.yaml`.
+- regenerate Gerbers/drills
+- independently review fabrication outputs
+- export final printable CAD
+- prepare BOM/assembly notes
+- fabricate first revision
+- continuity/power test before MCU/sensor installation
+- keyboard bring-up first, then PMW3360
 
 ---
 
-## Firmware bring-up order
+## Fabrication gate
 
-For the first hardware revision:
+Task 1 mechanical placement is locked, but **the project as a whole is not fabrication-locked**.
 
-1. keep half-duplex split on GP1
-2. validate matrix and encoder
-3. validate asymmetric RGB chain after SW22 bypass
-4. bring up PMW3360 on SPI0 using GP2/GP3/GP4 and CS=GP9
-5. configure pointing device as right-half only
-6. keep OLED/haptic/audio disabled initially
-7. restore any desired left-only optional peripherals only after basic hardware is stable
+Do not order the modified PCB or treat printed parts as final until Tasks 2–7 pass their completion gates.
+
+If the locked Task 1 XY placement is ever changed, rerun the Task 1 mechanical audit and update together:
+
+- this handoff
+- `design/konrad_trackball_geometry.yaml`
+- `design/task1/reference_assembly_manifest.yaml`
 
 ---
 
@@ -352,20 +438,7 @@ Klorball35 / Kivipallur:
 Third-party mechanical reference:
 
 - kepeo, Thingiverse 6719828, `Keyball 25mm Trackball Case Type C`
-- exact hashes are recorded above
 
 ## Next agent: start here
 
-The next implementation task is **not more research**. It is to edit the right KLOR 1.4 PCB and Konrad mechanical parts using the placement in this handoff.
-
-Recommended order:
-
-1. duplicate/rename the right-board design if needed so stock KLOR sources remain clearly identifiable
-2. remove R34/SW22 and inspect D22/passives/traces in KiCad
-3. add the breakout clearance and 7-pin interface
-4. reroute GP2/GP3/GP4/GP9 and RGB bypass; isolate GP4/TRRS TX
-5. run KiCad DRC
-6. edit Konrad switchplate around the same datums
-7. edit the right Konrad case
-8. perform final 3D assembly/collision validation
-9. only then generate fabrication files
+Start **Task 2 only**. Treat the Task 1 fabrication datums as locked mechanical inputs. Do not revisit placement unless a newly discovered hard constraint invalidates one of the verified Task 1 assumptions.
