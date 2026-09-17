@@ -1,0 +1,79 @@
+task: 1
+name: mechanical-reference-assembly
+status: in-progress
+units: mm
+
+coordinate_frame:
+  name: klor-pcb-native
+  note: >-
+    XY placement datums use native KLOR KiCad/Gerber coordinates. The Z origin
+    for the complete mechanical assembly is intentionally unresolved until the
+    stock PCB, switchplate and case are aligned from source geometry.
+
+placement:
+  ball_center_xy: [162.323, -134.748]
+  housing_screw_midpoint_xy: [156.111, -134.748]
+  housing_screws_xy:
+    - [156.111, -126.768]
+    - [156.111, -142.728]
+  breakout_slot_center_xy: [143.111, -134.748]
+  sensor_direction: negative_x
+
+trackball:
+  ball_diameter: 25.0
+  housing:
+    name: Keyball 25mm Trackball Case Type C
+    source: Thingiverse 6719828
+    author: kepeo
+    license: CC-BY-4.0
+    expected_filename: keyball_trackball_case_25mm_type_c.stp
+    expected_sha256: 79c3fdc445d6b4ecf63afdcc60d87a7ab3635902f155187c6687e3561d1ed57c
+    repo_status: missing
+    local_mounting_plane_z: -18.0
+    transform_xy:
+      x_global: ball_x_minus_local_x
+      y_global: ball_y_plus_local_y
+    transform_z: unresolved
+
+sources:
+  pcb:
+    path: ../../klor1.4/PCB/klor1_4/klor1_4.kicad_pcb
+    role: stock-right-reference
+    geometry_export: generated/klor1_4.step
+  switchplate:
+    path: ../../klor1.4/case/3DP/konrad/switchplate/KLOR_konrad_3DP_switchplate.step
+    role: stock-konrad-reference
+    transform_to_pcb: unresolved
+  case_right:
+    path: ../../klor1.4/case/3DP/konrad/regular/KLOR_konrad_case_R.stl
+    role: stock-konrad-right-reference
+    transform_to_pcb: unresolved
+  breakout:
+    path: ../../klorball35/kicad/Kivipallur_PMW3360_breakout/Kivipallur_PMW3360_breakout.kicad_pcb
+    role: geometry-reference
+    transform_to_pcb: unresolved
+
+required_keepouts:
+  - r32_switch_and_keycap
+  - r33_switch_and_keycap
+  - right_encoder
+  - mcu_region
+  - trrs_region
+
+completion_gate:
+  housing_source_hash_verified: false
+  pcb_switchplate_case_frames_aligned: false
+  breakout_orientation_and_service_path_verified: false
+  r32_r33_collision_free: false
+  encoder_collision_free: false
+  mcu_trrs_collision_free: false
+  case_collision_free: false
+  ball_exposure_verified: false
+  housing_mounting_plane_verified: false
+  placement_locked: false
+
+rules:
+  - Do not change the placement merely to make an approximate envelope pass.
+  - Do not mark placement_locked true while any completion-gate item is false.
+  - If XY placement changes, update this manifest, ../konrad_trackball_geometry.yaml, and ../../docs/KONRAD_TRACKBALL_HANDOFF.md in the same commit.
+  - Task 1 must not edit the production PCB, firmware, switchplate, or case geometry.
