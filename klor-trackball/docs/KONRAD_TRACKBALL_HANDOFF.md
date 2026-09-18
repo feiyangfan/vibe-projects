@@ -22,7 +22,7 @@ Canonical Task 1 evidence:
 
 **Task 2 — electrical and firmware interface: COMPLETE.** Task 2F passed with zero unresolved GPIO/net conflicts.
 
-**Task 3 — right-hand trackball PCB derivative: IN PROGRESS. Task 3A is COMPLETE.** The schematic-driven derivative project exists at `PCB/konrad_trackball/`. **Next: Task 3B — implement the frozen Task 2 contract in the derivative schematic.**
+**Task 3 — right-hand trackball PCB derivative: IN PROGRESS. Tasks 3A and 3B are COMPLETE.** The schematic-driven derivative project exists at `PCB/konrad_trackball/`, and its schematic now implements the frozen Task 2 interface. **Next: Task 3C — synchronize the schematic contract onto the PCB and perform the authorized destructive PCB edits.**
 
 The overall design is **not fabrication-locked** yet. Mechanical placement is locked; PCB/CAD/firmware implementation and final integrated validation remain.
 
@@ -355,7 +355,18 @@ Task 3 is decomposed as `3A → 3B → 3C → 3D → 3E → 3F → 3G`. See [`..
 
 Task 3A created the non-destructive schematic-driven KiCad derivative at `../PCB/konrad_trackball/`. Stock `klor1.4/PCB/klor1_4/` remains reference-only. Stock Gerbers were not copied.
 
-**Next: Task 3B — implement the schematic contract.**
+Task 3B implemented the frozen Task 2 contract in `konrad_trackball.kicad_sch`:
+
+- SW22 and D22 removed from the derivative schematic;
+- `SW13 DOUT → SW14 DIN` direct RGB bypass;
+- U1-side ownership changed to `PMW_SCK`, `PMW_MOSI`, `PMW_MISO`, and `PMW_CS`;
+- new connector `J4`: `1=PMW_CS, 2=PMW_MISO, 3=PMW_MOSI, 4=PMW_SCK, 5=NC, 6=VCC, 7=GND`;
+- J1.3 explicitly NC; J1.4/TX preserved;
+- J2, OLED1, and BZ1 marked DNP for revision 1.
+
+The derivative PCB intentionally remains the stock baseline through 3B.
+
+**Next: Task 3C — synchronize the schematic contract onto the PCB and apply the authorized physical deletions/bypass/TRRS isolation.**
 
 Create a distinct right-hand derivative from stock KLOR. Do not convert the stock reversible PCB into a universal trackball board.
 
@@ -473,7 +484,7 @@ Third-party mechanical reference:
 
 ## Next agent: start here
 
-Continue **Task 3B — implement the schematic contract** in the derivative project at `PCB/konrad_trackball/`.
+Continue **Task 3C — apply the destructive PCB edits** in the derivative project at `PCB/konrad_trackball/`. The 3B schematic is now authoritative; synchronize it onto the board without changing the frozen Task 2 interface.
 
 Treat these as locked inputs:
 
