@@ -20,7 +20,7 @@ Canonical Task 1 evidence:
 - [`../design/task1/reference_assembly_manifest.yaml`](../design/task1/reference_assembly_manifest.yaml)
 - CI workflow: `.github/workflows/klor-task1-mechanical-audit.yml`
 
-**Task 2A–2D are complete. Next task: Task 2E — freeze firmware ownership.** Do not begin production PCB routing until Task 2F freezes the complete electrical/firmware interface.
+**Task 2A–2E are complete. Next task: Task 2F — freeze the complete interface.** Do not begin production PCB routing until Task 2F passes.
 
 The overall design is **not fabrication-locked** yet. Mechanical placement is locked; PCB/CAD/firmware implementation and final integrated validation remain.
 
@@ -247,7 +247,7 @@ This is expected local material that Task 5 must relieve. It is **not** a reason
 
 ## PMW3360 electrical contract — Task 2D locked
 
-Task 2A–2D have resolved the removed-key circuit, GPIO conflicts, Kivipallur mating orientation, and PCB connector/net contract. Task 2E and 2F still need to freeze firmware ownership and the final combined interface before production routing begins.
+Task 2A–2E have resolved the removed-key circuit, GPIO conflicts, Kivipallur mating orientation, PCB connector/net contract, and QMK firmware ownership. Task 2F still needs to freeze the final combined interface before production routing begins.
 
 ### Physical keyboard-side connector
 
@@ -294,9 +294,29 @@ Canonical Task 2 evidence now includes:
 - `../design/task2/TASK2B_RESULT.md`
 - `../design/task2/TASK2C_RESULT.md`
 - `../design/task2/TASK2D_RESULT.md`
+- `../design/task2/TASK2E_RESULT.md`
 - `../design/task2/task2_manifest.yaml`
 
-Task 2D does not authorize production routing yet. Task 3 remains blocked until Task 2E and Task 2F pass.
+### Locked QMK ownership from Task 2E
+
+The trackball variant uses QMK PMW3360 support over SPI0:
+
+```text
+GP2 = SPI0 SCK
+GP3 = SPI0 MOSI
+GP4 = SPI0 MISO
+GP9 = PMW3360 CS
+GP1 = half-duplex split serial
+GP0 = RGB
+```
+
+Required firmware configuration includes `POINTING_DEVICE_DRIVER = pmw3360`, explicit SPI0 pin overrides, `SPLIT_POINTING_ENABLE`, `POINTING_DEVICE_RIGHT`, and preserved `EE_HANDS`.
+
+The trackball build disables OLED, haptic, audio/music, I2C1, stock PAW3204 ownership, and audio PWM4. Both stock default and Vial keymap rules currently re-enable OLED/audio/haptic, so neither may be reused unchanged.
+
+MOTION remains unused. Pointer rotation/inversion, CPI, lift-off distance, scrolling, acceleration, and auto-mouse behavior remain Task 7 bring-up work.
+
+Task 2E does not authorize production routing yet. Task 3 remains blocked until Task 2F passes.
 
 ---
 
@@ -320,7 +340,7 @@ Firmware needs an asymmetric 20/19 LED map and a trackball-specific `g_led_confi
 
 ### Task 2 — electrical + firmware interface
 
-Audit and lock the exact connector, GPIO, optional-feature, RGB-bypass, and GP4 isolation contract.
+Tasks 2A–2E are complete. Task 2F must consolidate the connector, PCB-net, stock-circuit, GPIO, and firmware ownership into one final implementation table and close the Task 2 gate.
 
 ### Task 3 — right-hand trackball PCB derivative
 
