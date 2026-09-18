@@ -86,7 +86,11 @@ Current state:
 - **2F complete** — final connector/net/GPIO/firmware interface frozen
 - **Task 2 complete** — zero unresolved GPIO or net ownership conflicts; Task 3 authorized
 
-Canonical Task 2 files:
+Canonical Task 2 overview:
+
+- **[`design/task2/README.md`](design/task2/README.md)** — consolidated Task 2A–2F narrative, final interface contract, and Task 3 handoff
+
+Detailed Task 2 evidence:
 
 - [`design/task2/TASK2A_RESULT.md`](design/task2/TASK2A_RESULT.md)
 - [`design/task2/TASK2B_RESULT.md`](design/task2/TASK2B_RESULT.md)
@@ -171,6 +175,8 @@ If the locked XY placement ever changes, rerun Task 1A–1G and update together:
 - `docs/KONRAD_TRACKBALL_HANDOFF.md`
 
 ### Task 2 — Lock the electrical and firmware interface — COMPLETE
+
+For the complete Task 2 narrative and final handoff, start with **[`design/task2/README.md`](design/task2/README.md)**.
 
 Task 2 converts the current electrical proposal into one source-backed implementation contract before production PCB editing begins.
 
