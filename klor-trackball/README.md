@@ -82,8 +82,8 @@ Current state:
 - **2B complete** — GPIO ownership and split/TRRS routing audited and disposition locked
 - **2C complete** — Kivipallur connector footprint, pin order, mating handedness, and service orientation locked
 - **2D complete** — connector-to-PCB-net/MCU contract frozen
-- **2E next** — firmware ownership
-- 2F not started
+- **2E complete** — QMK firmware ownership and peripheral contract frozen
+- **2F next** — complete interface freeze
 
 Canonical Task 2 files:
 
@@ -91,15 +91,18 @@ Canonical Task 2 files:
 - [`design/task2/TASK2B_RESULT.md`](design/task2/TASK2B_RESULT.md)
 - [`design/task2/TASK2C_RESULT.md`](design/task2/TASK2C_RESULT.md)
 - [`design/task2/TASK2D_RESULT.md`](design/task2/TASK2D_RESULT.md)
+- [`design/task2/TASK2E_RESULT.md`](design/task2/TASK2E_RESULT.md)
 - [`design/task2/task2_manifest.yaml`](design/task2/task2_manifest.yaml)
 - `design/task2/audit_task2a_removed_key.py`
 - `design/task2/audit_task2b_gpio_trrs.py`
 - `design/task2/audit_task2c_kivipallur_connector.py`
 - `design/task2/audit_task2d_pcb_net_contract.py`
+- `design/task2/audit_task2e_firmware_ownership.py`
 - `.github/workflows/klor-task2a-electrical-audit.yml`
 - `.github/workflows/klor-task2b-gpio-trrs-audit.yml`
 - `.github/workflows/klor-task2c-kivipallur-connector-audit.yml`
 - `.github/workflows/klor-task2d-pcb-net-contract-audit.yml`
+- `.github/workflows/klor-task2e-firmware-ownership-audit.yml`
 
 The overall keyboard is **not fabrication-locked**. PCB, switchplate, case, firmware, and final integrated validation remain.
 
@@ -301,26 +304,71 @@ Task 3 must still implement all Task 2B dispositions: J1.3 physical isolation fo
 
 **Gate: passed.** See [`design/task2/TASK2D_RESULT.md`](design/task2/TASK2D_RESULT.md).
 
-#### Task 2E — Freeze firmware ownership
+#### Task 2E — Freeze firmware ownership — COMPLETE
 
-Verify the trackball firmware variant against the stock QMK configuration.
+The trackball firmware must be a separate derivative of the stock KLOR QMK source.
 
-Revision 1 should retain:
+Locked revision-1 GPIO ownership:
 
-- GP1 = half-duplex split serial
-- GP0 = RGB
-- GP5/6/7/8 = matrix rows
-- GP20/21/22/23/26/27 = matrix columns
-- GP28/29 = encoder
+| GPIO | Firmware owner |
+| --- | --- |
+| GP0 | WS2812 / RGB matrix |
+| GP1 | half-duplex split serial |
+| GP2 | PMW3360 SCK |
+| GP3 | PMW3360 MOSI |
+| GP4 | PMW3360 MISO |
+| GP5/6/7/8 | matrix rows |
+| GP9 | PMW3360 CS |
+| GP20/21/22/23/26/27 | matrix columns |
+| GP28/29 | encoder |
 
-Revision 1 disables:
+The QMK trackball path is locked to PMW3360 over SPI0:
 
-- OLED / stock I2C use on GP2/GP3
-- haptic
-- audio on GP9
-- stock PAW3204 path on GP2/GP3
+```text
+POINTING_DEVICE_ENABLE = yes
+POINTING_DEVICE_DRIVER = pmw3360
+SPI_DRIVER = SPID0
+SPI_SCK_PIN = GP2
+SPI_MOSI_PIN = GP3
+SPI_MISO_PIN = GP4
+PMW33XX_CS_PIN = GP9
+SPLIT_POINTING_ENABLE
+POINTING_DEVICE_RIGHT
+EE_HANDS
+```
 
-**Gate:** firmware ownership agrees exactly with the electrical contract and contains no overlapping GPIO use.
+MOTION remains unused, so revision 1 must not define `POINTING_DEVICE_MOTION_PIN`.
+
+The stock source has several conflicts that the trackball variant must retire:
+
+- `I2C1_SDA_PIN GP2` / `I2C1_SCL_PIN GP3`
+- PAW3204 SDIO/SCLK on GP2/GP3
+- optional full-duplex serial TX on GP4
+- `AUDIO_PIN GP9`
+- I2C1 and audio PWM peripheral ownership
+
+The stock default **and** Vial keymap `rules.mk` files also explicitly re-enable OLED, audio, music, and haptics. Therefore neither rules file may be reused unchanged for the trackball build.
+
+Revision 1 feature state:
+
+- pointing device: enabled
+- RGB matrix: enabled
+- encoder: enabled
+- split serial: enabled, half duplex
+- OLED: disabled
+- haptic: disabled
+- audio/music: disabled
+- stock PAW3204: disabled
+- I2C1: disabled
+- audio PWM4: disabled
+
+SPI remains enabled with `HAL_USE_SPI TRUE` and `RP_SPI_USE_SPI0 TRUE`. The trackball variant disables unused I2C1 and PWM4 ownership.
+
+Pointer rotation/inversion, CPI, lift-off distance, scrolling, acceleration, and auto-mouse behavior remain Task 7 bring-up/tuning work. The revision-1 baseline leaves auto-mouse disabled until raw PMW3360 motion is verified.
+
+RGB ownership remains GP0 with the already-locked 20-left / 19-right / 39-total topology; detailed `g_led_config` implementation remains Task 7.
+
+**Gate: passed.** See [`design/task2/TASK2E_RESULT.md`](design/task2/TASK2E_RESULT.md).
 
 #### Task 2F — Freeze the complete interface
 
