@@ -1,6 +1,6 @@
 task: 2
 name: electrical-and-firmware-interface
-status: in-progress
+status: complete
 
 subtasks:
   2a:
@@ -29,7 +29,9 @@ subtasks:
     audit_script: audit_task2e_firmware_ownership.py
   2f:
     name: interface-freeze
-    status: not-started
+    status: complete
+    result_document: TASK2F_RESULT.md
+    audit_script: audit_task2f_interface_freeze.py
 
 sources:
   schematic: ../../klor1.4/PCB/klor1_4/klor1_4.kicad_sch
@@ -530,8 +532,143 @@ task2e:
     revision1_gpio_owners_unique: true
     unresolved_firmware_gpio_conflict: false
 
+
+task2f:
+  status: complete
+  task2_complete: true
+  unresolved_gpio_conflicts: 0
+  unresolved_net_conflicts: 0
+  production_files_changed_by_task2: false
+
+  final_interface:
+    1:
+      breakout_pin: 7
+      signal: CS
+      pcb_net: PMW_CS
+      gpio: GP9
+      u1_pad: 12
+      firmware: PMW3360-CS
+      stock_change: disable-audio-music-pwm4-bz1-inactive
+    2:
+      breakout_pin: 6
+      signal: MISO
+      pcb_net: PMW_MISO
+      gpio: GP4
+      u1_pad: 7
+      firmware: SPI0-MISO-PMW3360-MISO
+      stock_change: isolate-j1-pad3-using-task2b-verified-rx-branch
+    3:
+      breakout_pin: 5
+      signal: MOSI
+      pcb_net: PMW_MOSI
+      gpio: GP3
+      u1_pad: 6
+      firmware: SPI0-MOSI-PMW3360-MOSI
+      stock_change: disable-i2c1-paw3204-j2-dnp-jumpers-open
+    4:
+      breakout_pin: 4
+      signal: SCK
+      pcb_net: PMW_SCK
+      gpio: GP2
+      u1_pad: 5
+      firmware: SPI0-SCK-PMW3360-SCK
+      stock_change: disable-i2c1-paw3204-jumpers-open
+    5:
+      breakout_pin: 3
+      signal: MOTION
+      pcb_net: NC
+      gpio: null
+      firmware: unused-polled
+      stock_change: connector-pad-unrouted-no-motion-pin
+    6:
+      breakout_pin: 2
+      signal: 3V3
+      pcb_net: VCC
+      gpio: null
+      u1_pad: 21
+      firmware: power
+      stock_change: use-existing-klor-vcc-no-separate-3v3-net
+    7:
+      breakout_pin: 1
+      signal: GND
+      pcb_net: GND
+      gpio: null
+      u1_pads: [3, 4, 23]
+      firmware: ground
+      stock_change: use-existing-klor-ground
+
+  non_connector_changes:
+    removed_key:
+      logical_key: R34
+      pcb_switch: SW22
+      diode: D22
+      matrix_position: [7, 1]
+      rgb_bypass: SW13-DOUT-to-SW14-DIN
+      matrix_bridge_forbidden: true
+    split:
+      gpio: GP1
+      path: TX-to-J1-pad4
+      mode: half-duplex
+      preserve: true
+    gp4_isolation:
+      trrs_pad: J1.3
+      layer: F.Cu
+      width_mm: 0.254
+      from_xy: [92.700, 127.025]
+      to_xy: [90.880, 127.025]
+    rgb:
+      gpio: GP0
+      left_count: 20
+      right_count: 19
+      total_count: 39
+
+  connector_orientation:
+    keyboard_side: F.Cu
+    row_axis: global-y
+    pin1_end: negative-y
+    pin7_end: positive-y
+    mating_rule: breakout-pin-N-to-keyboard-pin-8-minus-N
+    service_direction: negative-x
+    task1_pass_through_center_xy: [143.111, -134.748]
+    reference_guide_mm: [2.0, 22.0]
+    reference_guide_layer: Cmts.User
+    reference_guide_is_fabricated_cut: false
+
+  firmware:
+    driver: pmw3360
+    spi_driver: SPID0
+    sck: GP2
+    mosi: GP3
+    miso: GP4
+    cs: GP9
+    motion: NC
+    split_pointing: true
+    pointing_device_side: right
+    handedness: EE_HANDS
+    auto_mouse_revision1: false
+
+  task3:
+    authorized: true
+    prerequisite: task2-complete
+    implementation_contract: TASK2F_RESULT.md
+
+  completion_gate:
+    task2a_verified: true
+    task2b_verified: true
+    task2c_verified: true
+    task2d_verified: true
+    task2e_verified: true
+    seven_connector_pins_resolved: true
+    connector_net_gpio_firmware_contract_locked: true
+    stock_circuit_changes_locked: true
+    retained_gpio_ownership_locked: true
+    optional_peripheral_dispositions_locked: true
+    unresolved_gpio_conflicts_zero: true
+    unresolved_net_conflicts_zero: true
+    task3_authorized: true
+
 rules:
-  - Task 2A through Task 2E do not edit production PCB or production firmware.
+  - Task 2A through Task 2F do not edit production PCB or production firmware.
   - Task 3 must implement the Task 2A matrix/RGB disposition exactly.
   - Preserve GP1 TX to J1.4 for half-duplex split serial.
   - On the right trackball derivative, J1.3 must be NC and its verified RX branch must be removed before GP4 is used as PMW3360 MISO.
@@ -545,4 +682,5 @@ rules:
   - Task 7 must use PMW3360 over SPI0 with GP2 SCK, GP3 MOSI, GP4 MISO, GP9 CS, SPLIT_POINTING_ENABLE, POINTING_DEVICE_RIGHT, and EE_HANDS.
   - The trackball firmware build must not inherit stock default/Vial keymap rules that re-enable OLED, haptic, audio, or music.
   - The trackball firmware must remove PAW3204/I2C ownership from GP2/GP3, audio/PWM ownership from GP9, and full-duplex serial ownership from GP4.
-  - Task 3 remains blocked until Task 2F is complete; Task 7 implementation remains governed by Task 2E and the final Task 2F interface freeze.
+  - Task 2F is complete. Task 3 is authorized to create the right-hand trackball PCB derivative against TASK2F_RESULT.md and this manifest.
+  - Task 7 implementation remains governed by Task 2E and the final Task 2F interface freeze.
