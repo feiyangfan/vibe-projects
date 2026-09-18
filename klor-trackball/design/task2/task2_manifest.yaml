@@ -9,7 +9,9 @@ subtasks:
     result_document: TASK2A_RESULT.md
   2b:
     name: gpio-and-split-trrs-audit
-    status: not-started
+    status: complete
+    result_document: TASK2B_RESULT.md
+    audit_script: audit_task2b_gpio_trrs.py
   2c:
     name: kivipallur-connector-lock
     status: not-started
@@ -26,6 +28,8 @@ subtasks:
 sources:
   schematic: ../../klor1.4/PCB/klor1_4/klor1_4.kicad_sch
   pcb: ../../klor1.4/PCB/klor1_4/klor1_4.kicad_pcb
+  qmk_config: ../../klor1.4/FIRMWARE/qmk_rp2040/electronlab/klor/config.h
+  qmk_keyboard_json: ../../klor1.4/FIRMWARE/qmk_rp2040/electronlab/klor/keyboard.json
 
 task2a:
   logical_key:
@@ -103,20 +107,6 @@ task2a:
     Net-(SW13B-DOUT): 76
     Net-(SW14B-DIN): 77
 
-  nearby_followup_components:
-    - ref: J3
-      approx_distance_from_sw22_mm: 10.046
-      disposition: defer-to-task-2b
-    - refs: [JP17, JP18, JP19, JP20]
-      approx_distance_from_sw22_mm: 11.4
-      disposition: defer-to-task-2b
-    - refs: [JP16, JP21]
-      approx_distance_from_sw22_mm: 12.2
-      disposition: defer-to-task-2b
-    - ref: BZ1
-      approx_distance_from_sw22_mm: 20.98
-      disposition: defer-to-task-2b
-
   completion_gate:
     sw22_connectivity_resolved: true
     d22_connectivity_resolved: true
@@ -128,7 +118,110 @@ task2a:
     matrix_no_bridge_rule_locked: true
     local_copper_captured: true
 
+task2b:
+  controller: elite_pi
+  target_gpio_topology:
+    GP1:
+      u1_socket_pad: 2
+      stock_net: TX
+      stock_net_id: 31
+      stock_peer: J1.4
+      revision1_owner: split-half-duplex
+      disposition: preserve
+    GP2:
+      u1_socket_pad: 5
+      stock_net: SDA
+      stock_net_id: 6
+      stock_firmware_claims: [I2C1_SDA, PAW3204_SDIO]
+      revision1_owner: PMW3360-SCK
+      disposition: disable-stock-functions-and-keep-i2c-jumpers-open
+    GP3:
+      u1_socket_pad: 6
+      stock_net: SCL
+      stock_net_id: 7
+      stock_firmware_claims: [I2C1_SCL, PAW3204_SCLK]
+      direct_stock_peer: J2.3
+      revision1_owner: PMW3360-MOSI
+      disposition: disable-stock-functions-j2-dnp-and-keep-i2c-jumpers-open
+    GP4:
+      u1_socket_pad: 7
+      stock_net: RX
+      stock_net_id: 28
+      stock_firmware_claim: optional-full-duplex-serial-TX
+      stock_peer: J1.3
+      revision1_owner: PMW3360-MISO
+      disposition: isolate-j1.3
+    GP9:
+      u1_socket_pad: 12
+      stock_net: AUDIO
+      stock_net_id: 2
+      stock_peer: BZ1.1
+      revision1_owner: PMW3360-CS
+      disposition: disable-audio-bz1-dnp
+
+  split_trrs:
+    connector: J1
+    active_half_duplex:
+      gpio: GP1
+      net: TX
+      connector_pad: 4
+      preserve: true
+    unused_full_duplex_contact:
+      gpio: GP4
+      stock_net: RX
+      connector_pad: 3
+      trackball_state: NC
+      exact_isolation_segment:
+        layer: F.Cu
+        width_mm: 0.254
+        from_xy: [92.700, 127.025]
+        to_xy: [90.880, 127.025]
+      verified_in_source: true
+
+  i2c_optional_paths:
+    gp2_net: SDA
+    gp3_net: SCL
+    connected_jumpers_default_open: true
+    relevant_jumpers:
+      oled_reversible: [JP3, JP4, JP5, JP6]
+      j3_reversible: [JP16, JP17, JP20, JP21]
+      haptic_sda: [JP27, JP28]
+    haptic:
+      ref: J2
+      scl_direct_pad: 3
+      revision1_population: DNP
+    revision1_rules:
+      - disable-I2C-on-GP2-GP3
+      - disable-stock-PAW3204
+      - keep-legacy-I2C-jumpers-open
+      - do-not-populate-right-OLED-or-haptic
+
+  audio:
+    gpio: GP9
+    stock_net: AUDIO
+    buzzer_ref: BZ1
+    buzzer_pad: 1
+    revision1_rules:
+      - disable-QMK-audio
+      - BZ1-DNP
+      - no-active-audio-load-on-GP9
+
+  completion_gate:
+    stock_gpio_ownership_resolved: true
+    gp1_half_duplex_path_preserved: true
+    gp2_i2c_paw_conflicts_disposed: true
+    gp3_i2c_paw_haptic_conflicts_disposed: true
+    gp4_trrs_peer_resolved: true
+    gp4_exact_isolation_segment_verified: true
+    gp9_audio_peer_resolved: true
+    gp9_audio_disposition_locked: true
+    revision1_gpio_owners_unique: true
+
 rules:
-  - Task 2A does not edit production PCB geometry.
-  - Task 3 must implement the Task 2A disposition exactly unless a later Task 2 audit discovers a source-level conflict.
-  - Do not remove J3/JP16-JP21/BZ1 based only on proximity; their electrical ownership is resolved in Task 2B.
+  - Task 2A and Task 2B do not edit production PCB geometry.
+  - Task 3 must implement the Task 2A matrix/RGB disposition exactly.
+  - Preserve GP1 TX to J1.4 for half-duplex split serial.
+  - On the right trackball derivative, J1.3 must be NC and its verified RX branch must be removed before GP4 is used as PMW3360 MISO.
+  - GP2 and GP3 may be used by the PMW3360 only when stock I2C/PAW3204 ownership is disabled and legacy I2C jumpers remain open/unpopulated.
+  - GP9 may be used as PMW3360 CS only with audio disabled and no active BZ1 load.
+  - Task 3 remains blocked until Task 2C through Task 2F are complete.
