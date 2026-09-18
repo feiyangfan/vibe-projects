@@ -1,6 +1,7 @@
 task: 2
 name: electrical-and-firmware-interface
 status: complete
+overview_document: README.md
 
 subtasks:
   2a:
