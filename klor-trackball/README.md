@@ -14,7 +14,7 @@ The **left half remains stock**.
 | --- | --- | --- |
 | Task 1 — mechanical reference assembly | **COMPLETE** | trackball placement mechanically locked |
 | Task 2 — electrical + firmware interface | **COMPLETE** | connector/net/GPIO/firmware contract locked |
-| Task 3 — right-hand trackball PCB derivative | **IN PROGRESS** | 3A–3B complete; 3C PCB synchronization next |
+| Task 3 — right-hand trackball PCB derivative | **IN PROGRESS** | 3A–3C complete; 3D connector/pass-through next |
 | Task 4 — right Konrad switchplate | pending | — |
 | Task 5 — editable right-case derivative | pending | — |
 | Task 6 — complete mechanical + PCB validation | pending | — |
@@ -224,7 +224,25 @@ The derivative PCB is intentionally still byte-identical to stock at the end of 
 
 See [`design/task3/TASK3B_RESULT.md`](design/task3/TASK3B_RESULT.md).
 
-**3C — NEXT:** synchronize the schematic contract onto the PCB and perform the authorized destructive physical edits.
+**3C — COMPLETE.**
+
+The derivative PCB now implements the authorized physical synchronization:
+
+- SW22 and D22 removed;
+- obsolete R34 matrix branches and local D22 net removed without merging `col1` and `row3`;
+- GP4/RX path to J1.3 removed and J1.3 made no-net;
+- J1.4/TX split path preserved;
+- U1 pads reassigned to the four semantic PMW nets;
+- permanent `SW13 DOUT → SW14 DIN` B.Cu bypass implemented;
+- J4 introduced with the frozen electrical pin order.
+
+J4 is intentionally staged **off-board** at KiCad `(60,70)`. Its production placement and the breakout/pass-through geometry belong to Task 3D. PMW routing to J4 belongs to Task 3E.
+
+The 3C preservation audit confirms stock Edge.Cuts and all unrelated retained footprint/trace/via geometry are unchanged.
+
+See [`design/task3/TASK3C_RESULT.md`](design/task3/TASK3C_RESULT.md).
+
+**3D — NEXT:** final-place J4 and create the manufacturable breakout pass-through/edge clearance using the locked Task 1/2 orientation.
 
 Task 3 must continue to preserve the locked Task 1 mechanical placement and Task 2 electrical/firmware interface.
 
