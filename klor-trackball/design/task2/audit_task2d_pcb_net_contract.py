@@ -68,7 +68,7 @@ CONTRACT = [
         "u1_pad": None,
         "stock_source_net": None,
         "stock_source_net_id": None,
-        "required_disposition": "NC for revision 1; no trace, copper island, test pad, or MCU assignment required",
+        "required_disposition": "NC for revision 1; no routed trace, test pad, or MCU assignment; connector pad remains electrically unconnected",
     },
     {
         "connector_pin": 6,
