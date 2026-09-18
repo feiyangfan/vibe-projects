@@ -31,9 +31,12 @@ jobs:
         shell: bash
         run: |
           set +e
+          mkdir -p klor-trackball/design/task3/generated
           python3 klor-trackball/design/task3/audit_task3c_pcb_sync.py \
-            --json-output klor-trackball/design/task3/generated/task3c-pcb-sync-audit.json
+            --json-output klor-trackball/design/task3/generated/task3c-pcb-sync-audit.json \
+            > klor-trackball/design/task3/generated/task3c-pcb-sync-audit.log 2>&1
           code=$?
+          cat klor-trackball/design/task3/generated/task3c-pcb-sync-audit.log
           echo "exit_code=$code" >> "$GITHUB_OUTPUT"
           exit 0
 
