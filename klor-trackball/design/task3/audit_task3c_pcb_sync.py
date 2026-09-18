@@ -210,8 +210,10 @@ def ref(block: str) -> str | None:
 
 
 def top_at(block: str) -> tuple[float, float, float]:
+    # First top-level (at ...) after the footprint header. Accept tabs or spaces;
+    # the generated J4 block is intentionally formatted independently of stock.
     m = re.search(
-        r'^\(footprint "[^"]+"[\s\S]*?\n\t\t\(at ([\d.-]+) ([\d.-]+)(?: ([\d.-]+))?\)',
+        r'^\\(footprint "[^"]+"[\\s\\S]*?\\n\\s*\\(at ([\\d.-]+) ([\\d.-]+)(?: ([\\d.-]+))?\\)',
         block,
     )
     if not m:
@@ -220,7 +222,11 @@ def top_at(block: str) -> tuple[float, float, float]:
 
 
 def top_layer(block: str) -> str:
-    m = re.search(r'^\(footprint "[^"]+"[\s\S]*?\n\t\t\(layer "([^"]+)"\)', block)
+    # First layer in a footprint block is the footprint side.
+    m = re.search(
+        r'^\\(footprint "[^"]+"[\\s\\S]*?\\n\\s*\\(layer "([^"]+)"\\)',
+        block,
+    )
     if not m:
         raise ValueError(f"footprint layer missing for {ref(block)}")
     return m.group(1)
