@@ -558,7 +558,7 @@ def main() -> int:
         "stock_schematic_blob_locked": git_blob(STOCK_SCH) == STOCK_SCH_BLOB,
         "task3b_schematic_unchanged": git_blob(DERIV_SCH) == TASK3B_SCH_BLOB,
         "task3c_pcb_blob_locked": git_blob(DERIV_PCB) == TASK3C_PCB_BLOB,
-        "pcb_parentheses_balanced": balanced_block(deriv, 0)[1] == len(deriv),
+        "pcb_parentheses_balanced": deriv[balanced_block(deriv, 0)[1]:].strip() == "",
         "footprint_reference_set_exact": deriv_refs == retained_refs | {"J4"},
         "sw22_removed": "SW22" not in dfp,
         "d22_removed": "D22" not in dfp,
