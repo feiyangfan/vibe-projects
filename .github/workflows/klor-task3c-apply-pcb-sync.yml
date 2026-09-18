@@ -1,0 +1,46 @@
+name: KLOR Task 3C apply PCB synchronization
+
+on:
+  push:
+    branches:
+      - "klor-trackball/task-3c-destructive-pcb-edits"
+    paths:
+      - "klor-trackball/design/task3/apply_task3c_pcb_sync.py"
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: "klor-trackball/task-3c-destructive-pcb-edits"
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Apply Task 3C PCB synchronization
+        run: python3 klor-trackball/design/task3/apply_task3c_pcb_sync.py
+
+      - name: Verify generated PCB changed
+        shell: bash
+        run: |
+          git diff --check
+          git diff --exit-code -- klor-trackball/klor1.4/PCB/klor1_4
+          if git diff --quiet -- klor-trackball/PCB/konrad_trackball/konrad_trackball.kicad_pcb; then
+            echo "Task 3C transform produced no PCB change" >&2
+            exit 1
+          fi
+
+      - name: Commit generated PCB
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add klor-trackball/PCB/konrad_trackball/konrad_trackball.kicad_pcb
+          git commit -m "task3c: generate synchronized PCB"
+          git push origin HEAD:"$GITHUB_REF_NAME"
