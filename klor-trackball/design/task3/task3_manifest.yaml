@@ -18,10 +18,12 @@ subtasks:
     audit_script: audit_task3a_derivative_project.py
   3b:
     name: schematic-contract
-    status: next
+    status: complete
+    result_document: TASK3B_RESULT.md
+    audit_script: audit_task3b_schematic_contract.py
   3c:
     name: destructive-pcb-edits
-    status: not-started
+    status: next
   3d:
     name: connector-and-pass-through
     status: not-started
@@ -52,10 +54,41 @@ task3a:
     project_file_only_intentional_content_change: meta.filename
   next_subtask: 3B
 
+task3b:
+  schematic: ../../PCB/konrad_trackball/konrad_trackball.kicad_sch
+  pcb_synchronization_deferred_to: 3C
+  derivative_pcb_still_stock_baseline: true
+  connector:
+    reference: J4
+    value: PMW3360-Kivipallur
+    symbol: Connector_Generic:Conn_01x07
+    footprint: Connector_PinHeader_2.54mm:PinHeader_1x07_P2.54mm_Vertical
+    pins:
+      1: PMW_CS
+      2: PMW_MISO
+      3: PMW_MOSI
+      4: PMW_SCK
+      5: NC
+      6: VCC
+      7: GND
+  u1_reassignments:
+    GP2: PMW_SCK
+    GP3: PMW_MOSI
+    GP4: PMW_MISO
+    GP9: PMW_CS
+  removed_schematic_components: [SW22, D22]
+  rgb_bypass: SW13-DOUT-to-SW14-DIN
+  trrs:
+    J1_3: NC
+    J1_4: TX-GP1-preserved
+  revision1_dnp: [J2, OLED1, BZ1]
+  motion: NC
+  next_subtask: 3C
+
 rules:
   - Stock KLOR source under klor1.4/ remains reference-only.
   - Task 3 implementation occurs only under PCB/konrad_trackball and design/task3.
   - Do not copy stock Gerbers into the derivative.
   - Keep the project schematic-driven; PCB-only electrical edits are not authoritative.
-  - Task 3B must implement Task 2F in the schematic before destructive PCB/routing work.
+  - Task 3B is complete; Task 3C must synchronize the locked schematic contract onto the derivative PCB before connector placement or PMW routing.
   - Production fabrication outputs remain Task 8.

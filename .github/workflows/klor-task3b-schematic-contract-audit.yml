@@ -1,18 +1,20 @@
-name: KLOR Task 3A derivative project audit
+name: KLOR Task 3B schematic contract audit
 
 on:
   push:
     paths:
       - "klor-trackball/PCB/konrad_trackball/**"
+      - "klor-trackball/design/task2/TASK2F_RESULT.md"
       - "klor-trackball/design/task3/**"
       - "klor-trackball/klor1.4/PCB/klor1_4/**"
-      - ".github/workflows/klor-task3a-derivative-project-audit.yml"
+      - ".github/workflows/klor-task3b-schematic-contract-audit.yml"
   pull_request:
     paths:
       - "klor-trackball/PCB/konrad_trackball/**"
+      - "klor-trackball/design/task2/TASK2F_RESULT.md"
       - "klor-trackball/design/task3/**"
       - "klor-trackball/klor1.4/PCB/klor1_4/**"
-      - ".github/workflows/klor-task3a-derivative-project-audit.yml"
+      - ".github/workflows/klor-task3b-schematic-contract-audit.yml"
 
 jobs:
   audit:
@@ -24,24 +26,24 @@ jobs:
         with:
           python-version: "3.x"
 
-      - name: Audit Task 3A derivative baseline
+      - name: Audit Task 3B schematic contract
         id: audit
         shell: bash
         run: |
           set +e
-          python3 klor-trackball/design/task3/audit_task3a_derivative_project.py \
-            --json-output klor-trackball/design/task3/generated/task3a-derivative-project-audit.json
+          python3 klor-trackball/design/task3/audit_task3b_schematic_contract.py \
+            --json-output klor-trackball/design/task3/generated/task3b-schematic-contract-audit.json
           code=$?
           echo "exit_code=$code" >> "$GITHUB_OUTPUT"
           exit 0
 
-      - name: Upload Task 3A evidence
+      - name: Upload Task 3B evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: klor-task3a-derivative-project-audit
+          name: klor-task3b-schematic-contract-audit
           path: klor-trackball/design/task3/generated/
           if-no-files-found: error
 
-      - name: Enforce Task 3A gate
+      - name: Enforce Task 3B gate
         run: test "${{ steps.audit.outputs.exit_code }}" = "0"
