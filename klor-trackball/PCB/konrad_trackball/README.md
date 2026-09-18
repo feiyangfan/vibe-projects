@@ -32,8 +32,28 @@ The derivative schematic now owns the frozen Task 2 electrical interface:
 - `J1.3` is NC and `J1.4/TX` remains the active split connection;
 - `J2`, `OLED1`, and `BZ1` are DNP for revision 1.
 
-The PCB remains the stock baseline intentionally. Do not interpret the still-present SW22/D22 PCB footprints or stock copper as the final board.
-
-**Next: Task 3C** synchronizes this schematic contract onto the PCB and performs the authorized destructive physical edits.
+The PCB remained the stock baseline through Task 3B. Task 3C subsequently synchronized the physical board.
 
 See `../../design/task3/TASK3B_RESULT.md`.
+
+## Task 3C PCB synchronization
+
+Task 3C is complete.
+
+The PCB now matches the authorized destructive portion of the Task 3B contract:
+
+- `SW22` and `D22` are physically removed;
+- the deleted-key local matrix copper is removed while `col1` and `row3` remain distinct;
+- `RX` is retired and `J1.3` is physically no-net;
+- `J1.4/TX` remains intact;
+- U1 owns `PMW_SCK`, `PMW_MOSI`, `PMW_MISO`, and `PMW_CS`;
+- SW13 DOUT and SW14 DIN are one PCB net with a permanent B.Cu splice;
+- J4 exists with the frozen 1×7 keyboard-side pin contract.
+
+J4 is currently staged off-board at KiCad `(60,70)` on `F.Cu`. **Do not use this as a production coordinate.** Task 3D owns the final connector XY/rotation and actual breakout/pass-through geometry.
+
+The stock Edge.Cuts remain unchanged. J4-to-U1 PMW routing remains intentionally incomplete until Task 3E.
+
+See `../../design/task3/TASK3C_RESULT.md`.
+
+**Next: Task 3D — final connector placement and fabricated breakout pass-through.**
