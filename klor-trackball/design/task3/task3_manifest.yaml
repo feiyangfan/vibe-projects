@@ -1,0 +1,61 @@
+task: 3
+name: right-hand-trackball-pcb-derivative
+status: in-progress
+dependency_chain: [3A, 3B, 3C, 3D, 3E, 3F, 3G]
+
+inputs:
+  task1: ../task1/reference_assembly_manifest.yaml
+  task2: ../task2/task2_manifest.yaml
+  canonical_state: ../konrad_trackball_geometry.yaml
+  stock_project: ../../klor1.4/PCB/klor1_4
+  derivative_project: ../../PCB/konrad_trackball
+
+subtasks:
+  3a:
+    name: derivative-project
+    status: complete
+    result_document: TASK3A_RESULT.md
+    audit_script: audit_task3a_derivative_project.py
+  3b:
+    name: schematic-contract
+    status: next
+  3c:
+    name: destructive-pcb-edits
+    status: not-started
+  3d:
+    name: connector-and-pass-through
+    status: not-started
+  3e:
+    name: pmw-routing
+    status: not-started
+  3f:
+    name: preservation-and-drc
+    status: not-started
+  3g:
+    name: pcb-freeze
+    status: not-started
+
+task3a:
+  derivative_directory: ../../PCB/konrad_trackball
+  project_basename: konrad_trackball
+  schematic_driven: true
+  stock_source_immutable: true
+  fabrication_outputs_copied: false
+  baseline:
+    pcb_identical_to_stock: true
+    schematic_identical_to_stock: true
+    design_rules_identical_to_stock: true
+    symbol_library_identical_to_stock: true
+    footprint_library_identical_to_stock: true
+    library_tables_identical_to_stock: true
+    round_tracks_config_identical_to_stock: true
+    project_file_only_intentional_content_change: meta.filename
+  next_subtask: 3B
+
+rules:
+  - Stock KLOR source under klor1.4/ remains reference-only.
+  - Task 3 implementation occurs only under PCB/konrad_trackball and design/task3.
+  - Do not copy stock Gerbers into the derivative.
+  - Keep the project schematic-driven; PCB-only electrical edits are not authoritative.
+  - Task 3B must implement Task 2F in the schematic before destructive PCB/routing work.
+  - Production fabrication outputs remain Task 8.

@@ -14,7 +14,7 @@ The **left half remains stock**.
 | --- | --- | --- |
 | Task 1 — mechanical reference assembly | **COMPLETE** | trackball placement mechanically locked |
 | Task 2 — electrical + firmware interface | **COMPLETE** | connector/net/GPIO/firmware contract locked |
-| Task 3 — right-hand trackball PCB derivative | **NEXT** | implementation not started |
+| Task 3 — right-hand trackball PCB derivative | **IN PROGRESS** | 3A complete; 3B schematic contract next |
 | Task 4 — right Konrad switchplate | pending | — |
 | Task 5 — editable right-case derivative | pending | — |
 | Task 6 — complete mechanical + PCB validation | pending | — |
@@ -27,6 +27,7 @@ The project is **not fabrication-locked yet**. Tasks 1 and 2 provide the verifie
 
 - **Task 1:** [`design/task1/README.md`](design/task1/README.md)
 - **Task 2:** [`design/task2/README.md`](design/task2/README.md)
+- **Task 3:** [`design/task3/README.md`](design/task3/README.md)
 - Engineering handoff: [`docs/KONRAD_TRACKBALL_HANDOFF.md`](docs/KONRAD_TRACKBALL_HANDOFF.md)
 - Machine-readable geometry/electrical state: [`design/konrad_trackball_geometry.yaml`](design/konrad_trackball_geometry.yaml)
 
@@ -172,41 +173,45 @@ Detailed firmware configuration and disabled stock-feature ownership are documen
 
 ---
 
-## Next: Task 3 — create the right-hand trackball PCB derivative
+## Task 3 — create the right-hand trackball PCB derivative — IN PROGRESS
 
-Task 3 starts from the stock KLOR 1.4 PCB but must create a **distinct right-hand trackball derivative**.
+The detailed Task 3 plan is in **[`design/task3/README.md`](design/task3/README.md)**.
 
-Task 3 must implement the already-locked Task 2 contract, including:
+Task 3 is split into:
 
-- remove `SW22` and `D22`
-- remove obsolete local matrix copper without bridging `col1` and `row3`
-- add the permanent `SW13 DOUT → SW14 DIN` RGB bypass
-- add the locked 1×7 Kivipallur interface
-- route `PMW_CS`, `PMW_MISO`, `PMW_MOSI`, and `PMW_SCK`
-- connect breakout +3V3 to KLOR `VCC`
-- leave MOTION unconnected
-- isolate `J1.3` from GP4 using the exact Task 2B copper disposition
-- preserve GP1 / `J1.4` half-duplex split
-- keep legacy I2C jumpers open
-- keep J2 haptic DNP
-- keep BZ1 inactive/DNP
-- create the actual fabricated breakout pass-through / edge clearance
-- preserve R32, R33, right encoder, and unaffected stock circuitry
+```text
+3A derivative project
+ ↓
+3B schematic contract
+ ↓
+3C destructive PCB edits
+ ↓
+3D connector + fabricated pass-through
+ ↓
+3E PMW3360 routing
+ ↓
+3F preservation + DRC audit
+ ↓
+3G PCB freeze
+```
 
-Task 3 may choose routing layers, widths, vias, local obsolete-copper cleanup, and final connector XY consistent with the locked Task 1/Task 2 constraints.
+### Current status
 
-It may **not** change the locked connector order, GPIO assignments, PMW net names, VCC/GND mapping, MOTION disposition, or split/TRRS disposition without reopening Task 2.
+**3A — COMPLETE.**
 
-### Task 3 completion gate
+A distinct schematic-driven derivative now exists at:
 
-- KiCad DRC passes except documented intentional exceptions
-- no unrouted PMW3360 nets
-- RGB bypass continuity is explicit
-- board-edge/pass-through clearances pass
-- retained switch/encoder/structural geometry remains valid
-- stock/reference PCB files remain unchanged
+```text
+PCB/konrad_trackball/
+```
 
----
+The derivative starts from an exact stock KLOR PCB/schematic/library baseline, uses the project basename `konrad_trackball`, and intentionally excludes stock Gerbers. The stock project under `klor1.4/PCB/klor1_4/` remains unchanged.
+
+See [`design/task3/TASK3A_RESULT.md`](design/task3/TASK3A_RESULT.md).
+
+**3B — NEXT:** implement the frozen Task 2 electrical contract in the derivative schematic before destructive PCB edits or routing.
+
+Task 3 must continue to preserve the locked Task 1 mechanical placement and Task 2 electrical/firmware interface.
 
 ## Remaining roadmap
 

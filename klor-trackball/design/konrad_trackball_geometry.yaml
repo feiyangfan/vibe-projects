@@ -1,6 +1,6 @@
 project: klor-trackball
 variant: klor-1.4-mx-konrad-pmw3360-25mm
-status: task2-electrical-firmware-interface-locked-overall-not-fabrication-locked
+status: task3a-derivative-project-complete-overall-not-fabrication-locked
 units: mm
 
 implementation_progress:
@@ -13,13 +13,33 @@ implementation_progress:
   task_2e_firmware_ownership: complete
   task_2f_interface_freeze: complete
   task_2_interface_locked: true
-  next_task: task_3_right_hand_trackball_pcb_derivative
+  task_3_right_hand_trackball_pcb_derivative: in-progress
+  task_3a_derivative_project: complete
+  next_task: task_3b_schematic_contract
   task_1_result: task1/TASK1_RESULT.md
   task_1_manifest: task1/reference_assembly_manifest.yaml
   task_2_manifest: task2/task2_manifest.yaml
   task_2d_result: task2/TASK2D_RESULT.md
   task_2e_result: task2/TASK2E_RESULT.md
   task_2f_result: task2/TASK2F_RESULT.md
+  task_3_manifest: task3/task3_manifest.yaml
+  task_3a_result: task3/TASK3A_RESULT.md
+
+
+pcb_derivative:
+  status: task_3a_baseline_created
+  project_directory: PCB/konrad_trackball
+  project_basename: konrad_trackball
+  schematic_driven: true
+  stock_project_immutable: true
+  stock_gerbers_copied: false
+  task_3a_baseline:
+    pcb_identical_to_stock: true
+    schematic_identical_to_stock: true
+    design_rules_identical_to_stock: true
+    local_symbol_library_identical_to_stock: true
+    local_footprint_library_identical_to_stock: true
+  next_edit: task_3b_schematic_contract
 
 keyboard:
   base_pcb: klor1.4/PCB/klor1_4/klor1_4.kicad_pcb
