@@ -1,6 +1,6 @@
 project: klor-trackball
 variant: klor-1.4-mx-konrad-pmw3360-25mm
-status: task3b-schematic-contract-complete-overall-not-fabrication-locked
+status: task3c-destructive-pcb-edits-complete-overall-not-fabrication-locked
 units: mm
 
 implementation_progress:
@@ -16,7 +16,8 @@ implementation_progress:
   task_3_right_hand_trackball_pcb_derivative: in-progress
   task_3a_derivative_project: complete
   task_3b_schematic_contract: complete
-  next_task: task_3c_destructive_pcb_edits
+  task_3c_destructive_pcb_edits: complete
+  next_task: task_3d_connector_and_pass_through
   task_1_result: task1/TASK1_RESULT.md
   task_1_manifest: task1/reference_assembly_manifest.yaml
   task_2_manifest: task2/task2_manifest.yaml
@@ -26,10 +27,11 @@ implementation_progress:
   task_3_manifest: task3/task3_manifest.yaml
   task_3a_result: task3/TASK3A_RESULT.md
   task_3b_result: task3/TASK3B_RESULT.md
+  task_3c_result: task3/TASK3C_RESULT.md
 
 
 pcb_derivative:
-  status: task_3b_schematic_locked_pcb_still_stock
+  status: task_3c_pcb_synchronized_connector_staged
   project_directory: PCB/konrad_trackball
   project_basename: konrad_trackball
   schematic_driven: true
@@ -51,7 +53,27 @@ pcb_derivative:
     trrs_j1_4: TX-GP1-preserved
     revision1_dnp: [J2, OLED1, BZ1]
     derivative_pcb_still_stock_baseline: true
-  next_edit: task_3c_destructive_pcb_edits
+  task_3c_pcb:
+    blob: 9e34c771ed27f5f87d79cd7cc78e41c8ec1bbb74
+    schematic_blob_preserved: 4239dd2f139be30e24ee7109800a5ae9f179aee3
+    removed_footprints: [SW22, D22]
+    retired_nets: [RX, Net-(D22-A), Net-(SW14B-DIN)]
+    pmw_nets: {PMW_CS: 82, PMW_MISO: 83, PMW_MOSI: 84, PMW_SCK: 85}
+    trrs_j1_3: NC
+    trrs_j1_4: TX-GP1-preserved
+    rgb_bypass:
+      layer: B.Cu
+      start_kicad: [148.115, 131.730]
+      end_kicad: [148.109492, 133.815508]
+      net: Net-(SW13B-DOUT)
+    connector_j4:
+      side: F.Cu
+      staging_xy_kicad: [60.0, 70.0]
+      staging_only: true
+      final_placement_owner: task_3d
+    edge_cuts_changed: false
+    pmw_routing_to_j4: deferred-to-task-3e
+  next_edit: task_3d_connector_and_pass_through
 
 keyboard:
   base_pcb: klor1.4/PCB/klor1_4/klor1_4.kicad_pcb
