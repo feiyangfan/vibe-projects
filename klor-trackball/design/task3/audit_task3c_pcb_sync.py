@@ -213,7 +213,7 @@ def top_at(block: str) -> tuple[float, float, float]:
     # First top-level (at ...) after the footprint header. Accept tabs or spaces;
     # the generated J4 block is intentionally formatted independently of stock.
     m = re.search(
-        r'^\\(footprint "[^"]+"[\\s\\S]*?\\n\\s*\\(at ([\\d.-]+) ([\\d.-]+)(?: ([\\d.-]+))?\\)',
+        r'^\(footprint "[^"]+"[\s\S]*?\n\s*\(at ([\d.-]+) ([\d.-]+)(?: ([\d.-]+))?\)',
         block,
     )
     if not m:
@@ -224,7 +224,7 @@ def top_at(block: str) -> tuple[float, float, float]:
 def top_layer(block: str) -> str:
     # First layer in a footprint block is the footprint side.
     m = re.search(
-        r'^\\(footprint "[^"]+"[\\s\\S]*?\\n\\s*\\(layer "([^"]+)"\\)',
+        r'^\(footprint "[^"]+"[\s\S]*?\n\s*\(layer "([^"]+)"\)',
         block,
     )
     if not m:
