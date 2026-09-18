@@ -1,14 +1,25 @@
 project: klor-trackball
 variant: klor-1.4-mx-konrad-pmw3360-25mm
-status: task1-mechanical-placement-locked-overall-not-fabrication-locked
+status: task2-electrical-firmware-interface-locked-overall-not-fabrication-locked
 units: mm
 
 implementation_progress:
   task_1_mechanical_reference_assembly: complete
   task_1_placement_locked: true
-  next_task: task_2_electrical_and_firmware_interface
+  task_2a_removed_key_audit: complete
+  task_2b_gpio_split_trrs_audit: complete
+  task_2c_kivipallur_connector_lock: complete
+  task_2d_pcb_net_contract: complete
+  task_2e_firmware_ownership: complete
+  task_2f_interface_freeze: complete
+  task_2_interface_locked: true
+  next_task: task_3_right_hand_trackball_pcb_derivative
   task_1_result: task1/TASK1_RESULT.md
   task_1_manifest: task1/reference_assembly_manifest.yaml
+  task_2_manifest: task2/task2_manifest.yaml
+  task_2d_result: task2/TASK2D_RESULT.md
+  task_2e_result: task2/TASK2E_RESULT.md
+  task_2f_result: task2/TASK2F_RESULT.md
 
 keyboard:
   base_pcb: klor1.4/PCB/klor1_4/klor1_4.kicad_pcb
@@ -163,15 +174,33 @@ case_result:
     provide local shell relief around the housing.
 
 pcb_electrical:
-  status: task_2_pending_source_level_audit
+  status: task_2_interface_locked
+  connector_keyboard_side_order:
+    1: {signal: CS, target_net: PMW_CS, gpio: GP9, u1_pad: 12}
+    2: {signal: MISO, target_net: PMW_MISO, gpio: GP4, u1_pad: 7}
+    3: {signal: MOSI, target_net: PMW_MOSI, gpio: GP3, u1_pad: 6}
+    4: {signal: SCK, target_net: PMW_SCK, gpio: GP2, u1_pad: 5}
+    5: {signal: MOTION, target_net: NC}
+    6: {signal: 3V3, target_net: VCC, u1_pad: 21}
+    7: {signal: GND, target_net: GND, u1_pads: [3, 4, 23]}
   pmw3360:
     motion: NC
     sck: GP2
+    sck_net: PMW_SCK
     mosi: GP3
+    mosi_net: PMW_MOSI
     miso: GP4
+    miso_net: PMW_MISO
     cs: GP9
-    power: 3V3
+    cs_net: PMW_CS
+    power_breakout_label: 3V3
+    power_klor_net: VCC
     ground: GND
+  stock_source_nets_reassigned:
+    GP2: SDA
+    GP3: SCL
+    GP4: RX
+    GP9: AUDIO
   split_serial:
     pin: GP1
     mode: half-duplex
@@ -184,13 +213,70 @@ pcb_electrical:
   matrix_rows: [GP5, GP6, GP7, GP8]
   matrix_columns: [GP20, GP21, GP22, GP23, GP26, GP27]
   encoder: [GP28, GP29]
-  required_edit:
-    - isolate_GP4_from_optional_full_duplex_TRRS_TX
+  required_edits:
+    - isolate_GP4_from_TRRS_J1_pad3_using_task2b_verified_branch
+    - disable_I2C_and_PAW3204_on_GP2_GP3
+    - keep_legacy_I2C_jumpers_open
+    - right_haptic_J2_DNP
+    - disable_audio_and_keep_BZ1_inactive_on_GP9
   right_optional_features_initial_population:
     oled: false
     haptic: false
     audio: false
     stock_paw3204: false
+
+
+firmware_ownership:
+  status: task_2_interface_locked
+  variant: trackball-specific-derivative
+  controller: elite_pi
+  pointing_device:
+    enabled: true
+    driver: pmw3360
+    split_pointing: true
+    side: right
+    motion_pin: NC
+    auto_mouse_revision1: false
+  spi:
+    driver: SPID0
+    sck: GP2
+    mosi: GP3
+    miso: GP4
+    cs: GP9
+    hal_use_spi: true
+    rp_spi_use_spi0: true
+  split:
+    serial_pin: GP1
+    mode: half-duplex
+    handedness: EE_HANDS
+    full_duplex: false
+  retained_gpio:
+    rgb: GP0
+    matrix_rows: [GP5, GP6, GP7, GP8]
+    matrix_columns: [GP27, GP26, GP22, GP20, GP23, GP21]
+    encoder: [GP28, GP29]
+  disabled:
+    oled: true
+    haptic: true
+    audio: true
+    music: true
+    i2c1: true
+    stock_paw3204: true
+    pwm4_audio: true
+  target_hal_mcu:
+    HAL_USE_SPI: true
+    HAL_USE_I2C: false
+    HAL_USE_PWM: false
+    RP_SPI_USE_SPI0: true
+    RP_I2C_USE_I2C1: false
+    RP_PWM_USE_PWM4: false
+  task7_deferred_tuning:
+    - pointer_rotation
+    - pointer_axis_inversion
+    - cpi
+    - lift_off_distance
+    - scrolling
+    - acceleration
 
 mechanical_architecture:
   typec_mounting_screws_on_main_pcb: false
@@ -205,8 +291,9 @@ mechanical_architecture:
 fabrication_gate:
   locked: false
   task_1_mechanical_placement_locked: true
+  task_2_electrical_firmware_interface_locked: true
+  task_3_authorized: true
   remaining:
-    - task_2_exact_electrical_and_firmware_interface_audit
     - task_3_right_hand_trackball_pcb_derivative_and_drc
     - task_4_final_konrad_right_switchplate_cad_modification
     - task_5_final_konrad_right_case_cad_modification_with_local_shell_relief
@@ -217,3 +304,5 @@ fabrication_gate:
 canonical_handoff: docs/KONRAD_TRACKBALL_HANDOFF.md
 canonical_task_1_result: design/task1/TASK1_RESULT.md
 canonical_task_1_manifest: design/task1/reference_assembly_manifest.yaml
+canonical_task_2_result: design/task2/TASK2F_RESULT.md
+canonical_task_2_manifest: design/task2/task2_manifest.yaml
