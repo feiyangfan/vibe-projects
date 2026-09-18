@@ -288,7 +288,11 @@ Task 3 must not invent a second KLOR `3V3` rail just to mirror the breakout labe
 - MOTION remains electrically unconnected for revision 1.
 - Right OLED, haptic, audio, and stock PAW3204 remain disabled/unpopulated for revision 1.
 
-Canonical Task 2 evidence now includes:
+Canonical Task 2 overview:
+
+- [`../design/task2/README.md`](../design/task2/README.md)
+
+Canonical Task 2 evidence also includes:
 
 - `../design/task2/TASK2A_RESULT.md`
 - `../design/task2/TASK2B_RESULT.md`
@@ -461,4 +465,11 @@ Third-party mechanical reference:
 
 ## Next agent: start here
 
-Start **Task 2 only**. Treat the Task 1 fabrication datums as locked mechanical inputs. Do not revisit placement unless a newly discovered hard constraint invalidates one of the verified Task 1 assumptions.
+Start **Task 3 — create the right-hand trackball PCB derivative**.
+
+Treat these as locked inputs:
+
+- Task 1 mechanical placement and fabrication datums;
+- Task 2 electrical/firmware interface, summarized in [`../design/task2/README.md`](../design/task2/README.md) and frozen in `../design/task2/TASK2F_RESULT.md`.
+
+Do not revisit Task 1 placement or Task 2 connector/net/GPIO/firmware ownership unless implementation uncovers a hard constraint that invalidates one of their verified assumptions.
