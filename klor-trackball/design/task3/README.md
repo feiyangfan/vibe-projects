@@ -65,7 +65,7 @@ Baseline invariants:
 
 ---
 
-## 3B — Implement the schematic contract — NEXT
+## 3B — Implement the schematic contract — COMPLETE
 
 Make the Task 2 electrical contract explicit in the derivative schematic before changing PCB routing.
 
@@ -89,13 +89,34 @@ Required logical changes include:
 - retire the right-side schematic ownership that conflicts with GP2/GP3/GP9;
 - represent haptic/audio/legacy optional paths consistently with the Task 2 DNP/disabled contract.
 
-The exact new connector reference designator is an implementation detail selected in 3B; its pin order and electrical function are not negotiable.
+The connector reference selected in 3B is **J4**. Its physical pin order is the frozen keyboard-side order from Task 2:
 
-**Gate:** schematic contract matches Task 2F and ERC has no unexplained errors.
+```text
+J4.1 PMW_CS
+J4.2 PMW_MISO
+J4.3 PMW_MOSI
+J4.4 PMW_SCK
+J4.5 NC / MOTION
+J4.6 VCC
+J4.7 GND
+```
+
+Task 3B also:
+
+- removes SW22 and D22 from the derivative schematic;
+- replaces the SW22 LED path with a direct `SW13 DOUT → SW14 DIN` schematic connection;
+- changes the U1-side semantic ownership to `PMW_SCK`, `PMW_MOSI`, `PMW_MISO`, and `PMW_CS`;
+- makes J1.3 explicitly NC while preserving J1.4/TX;
+- marks J2, OLED1, and BZ1 DNP for revision 1;
+- intentionally leaves the derivative PCB byte-identical to stock so physical synchronization is isolated to 3C.
+
+The retired 3A workflow is no longer an active CI gate because its purpose was to prove a byte-identical starting baseline. Its audit script and result remain as historical evidence. Task 3B is now the active Task 3 regression gate.
+
+**Gate:** [`TASK3B_RESULT.md`](TASK3B_RESULT.md) and the Task 3B structural contract audit pass. Full integrated ERC/DRC validation remains Task 3F after schematic-to-PCB synchronization.
 
 ---
 
-## 3C — Apply destructive stock-PCB edits
+## 3C — Apply destructive stock-PCB edits — NEXT
 
 Update/synchronize the PCB from the derivative schematic and perform the already-authorized destructive changes:
 
