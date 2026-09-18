@@ -24,7 +24,9 @@ subtasks:
     audit_script: audit_task2d_pcb_net_contract.py
   2e:
     name: firmware-ownership
-    status: not-started
+    status: complete
+    result_document: TASK2E_RESULT.md
+    audit_script: audit_task2e_firmware_ownership.py
   2f:
     name: interface-freeze
     status: not-started
@@ -34,6 +36,13 @@ sources:
   pcb: ../../klor1.4/PCB/klor1_4/klor1_4.kicad_pcb
   qmk_config: ../../klor1.4/FIRMWARE/qmk_rp2040/electronlab/klor/config.h
   qmk_keyboard_json: ../../klor1.4/FIRMWARE/qmk_rp2040/electronlab/klor/keyboard.json
+  qmk_rules: ../../klor1.4/FIRMWARE/qmk_rp2040/electronlab/klor/rules.mk
+  qmk_halconf: ../../klor1.4/FIRMWARE/qmk_rp2040/electronlab/klor/halconf.h
+  qmk_mcuconf: ../../klor1.4/FIRMWARE/qmk_rp2040/electronlab/klor/mcuconf.h
+  qmk_default_keymap_config: ../../klor1.4/FIRMWARE/qmk_rp2040/electronlab/klor/keymaps/default/config.h
+  qmk_default_keymap_rules: ../../klor1.4/FIRMWARE/qmk_rp2040/electronlab/klor/keymaps/default/rules.mk
+  qmk_vial_keymap_config: ../../klor1.4/FIRMWARE/qmk_rp2040/electronlab/klor/keymaps/vial/config.h
+  qmk_vial_keymap_rules: ../../klor1.4/FIRMWARE/qmk_rp2040/electronlab/klor/keymaps/vial/rules.mk
   kivipallur_breakout_pcb: ../../klorball35/kicad/Kivipallur_PMW3360_breakout/Kivipallur_PMW3360_breakout.kicad_pcb
   klorball35_right_pcb: ../../klorball35/kicad/klorball35_right/klorball35_right.kicad_pcb
   klorball35_right_schematic: ../../klorball35/kicad/klorball35_right/klorball35_right.kicad_sch
@@ -412,8 +421,117 @@ task2d:
     final_spi_net_names_locked: true
     unresolved_connector_net_ownership: false
 
+
+task2e:
+  firmware_variant:
+    scope: trackball-specific-derivative
+    selected_controller: elite_pi
+    pointing_device:
+      enabled: true
+      driver: pmw3360
+      split_pointing: true
+      side: right
+      motion_pin: NC
+      auto_mouse_revision1: false
+      tuning_deferred_to_task7:
+        - rotation
+        - axis-inversion
+        - cpi
+        - lift-off-distance
+        - scrolling
+        - acceleration
+    spi:
+      driver: SPID0
+      sck: GP2
+      mosi: GP3
+      miso: GP4
+      cs: GP9
+      hal_use_spi: true
+      rp_spi_use_spi0: true
+    split:
+      mode: half-duplex
+      serial_tx: GP1
+      full_duplex: false
+      handedness: EE_HANDS
+    retained:
+      rgb_pin: GP0
+      matrix_rows: [GP5, GP6, GP7, GP8]
+      matrix_columns: [GP27, GP26, GP22, GP20, GP23, GP21]
+      encoder_left: {a: GP28, b: GP29}
+      encoder_right: {a: GP29, b: GP28}
+    rgb:
+      left_count: 20
+      right_count: 19
+      total_count: 39
+      detailed_mapping_deferred_to: task7
+    disabled_features:
+      oled: true
+      haptic: true
+      audio: true
+      music: true
+      stock_paw3204: true
+      i2c1: true
+      audio_pwm4: true
+    required_qmk_settings:
+      POINTING_DEVICE_ENABLE: yes
+      POINTING_DEVICE_DRIVER: pmw3360
+      SPI_DRIVER_REQUIRED: yes
+      SPI_DRIVER: SPID0
+      SPI_SCK_PIN: GP2
+      SPI_MOSI_PIN: GP3
+      SPI_MISO_PIN: GP4
+      PMW33XX_CS_PIN: GP9
+      SPLIT_POINTING_ENABLE: true
+      POINTING_DEVICE_RIGHT: true
+      SERIAL_USART_TX_PIN: GP1
+    forbidden_or_removed_settings:
+      - I2C1_SDA_PIN_GP2
+      - I2C1_SCL_PIN_GP3
+      - PAW3204_SDIO_PIN_GP2
+      - PAW3204_SCLK_PIN_GP3
+      - AUDIO_PIN_GP9
+      - SERIAL_USART_TX_PIN_GP4
+      - SERIAL_USART_RX_PIN_GP1
+      - SERIAL_USART_FULL_DUPLEX
+      - SERIAL_USART_PIN_SWAP
+      - POINTING_DEVICE_MOTION_PIN
+      - I2C_DRIVER_REQUIRED_yes
+      - AUDIO_DRIVER_pwm_hardware
+      - OLED_ENABLE_yes
+      - HAPTIC_ENABLE_yes
+      - SPLIT_HAPTIC_ENABLE_yes
+      - AUDIO_ENABLE_yes
+      - MUSIC_ENABLE_yes
+    target_hal_mcu:
+      HAL_USE_SPI: true
+      HAL_USE_I2C: false
+      HAL_USE_PWM: false
+      RP_SPI_USE_SPI0: true
+      RP_SPI_USE_SPI1: false
+      RP_I2C_USE_I2C1: false
+      RP_PWM_USE_PWM4: false
+    keymap_rule:
+      note: >-
+        Both stock default and Vial keymaps re-enable OLED/audio/haptic.
+        The trackball build must use keymap rules that omit or explicitly
+        disable those feature assignments.
+
+  completion_gate:
+    task2d_dependency_verified: true
+    retained_gpio_ownership_verified: true
+    pmw3360_gpio_ownership_matches_task2d: true
+    spi0_contract_locked: true
+    right_only_split_pointing_locked: true
+    ee_hands_preserved: true
+    motion_pin_unused: true
+    i2c_and_paw3204_ownership_retired: true
+    audio_pwm_ownership_retired: true
+    keymap_reenable_conflicts_accounted_for: true
+    revision1_gpio_owners_unique: true
+    unresolved_firmware_gpio_conflict: false
+
 rules:
-  - Task 2A through Task 2D do not edit production PCB geometry.
+  - Task 2A through Task 2E do not edit production PCB or production firmware.
   - Task 3 must implement the Task 2A matrix/RGB disposition exactly.
   - Preserve GP1 TX to J1.4 for half-duplex split serial.
   - On the right trackball derivative, J1.3 must be NC and its verified RX branch must be removed before GP4 is used as PMW3360 MISO.
@@ -424,4 +542,7 @@ rules:
   - Task 3 must turn the Task 1 breakout datum into real PCB pass-through/edge clearance; the Klorball35 Cmts.User guide is not a fabrication cut by itself.
   - Task 3 must use final SPI net names PMW_CS, PMW_MISO, PMW_MOSI, and PMW_SCK; AUDIO/RX/SCL/SDA are stock-source names only after reassignment.
   - Kivipallur +3V3 maps to the existing KLOR VCC rail on connector pin 6; do not create a separate KLOR 3V3 net.
-  - Task 3 remains blocked until Task 2E and Task 2F are complete.
+  - Task 7 must use PMW3360 over SPI0 with GP2 SCK, GP3 MOSI, GP4 MISO, GP9 CS, SPLIT_POINTING_ENABLE, POINTING_DEVICE_RIGHT, and EE_HANDS.
+  - The trackball firmware build must not inherit stock default/Vial keymap rules that re-enable OLED, haptic, audio, or music.
+  - The trackball firmware must remove PAW3204/I2C ownership from GP2/GP3, audio/PWM ownership from GP9, and full-duplex serial ownership from GP4.
+  - Task 3 remains blocked until Task 2F is complete; Task 7 implementation remains governed by Task 2E and the final Task 2F interface freeze.
