@@ -20,7 +20,9 @@ Canonical Task 1 evidence:
 - [`../design/task1/reference_assembly_manifest.yaml`](../design/task1/reference_assembly_manifest.yaml)
 - CI workflow: `.github/workflows/klor-task1-mechanical-audit.yml`
 
-**Task 2 — electrical and firmware interface: COMPLETE.** Task 2F passed with zero unresolved GPIO/net conflicts. **Next task: Task 3 — create the right-hand trackball PCB derivative.**
+**Task 2 — electrical and firmware interface: COMPLETE.** Task 2F passed with zero unresolved GPIO/net conflicts.
+
+**Task 3 — right-hand trackball PCB derivative: IN PROGRESS. Task 3A is COMPLETE.** The schematic-driven derivative project exists at `PCB/konrad_trackball/`. **Next: Task 3B — implement the frozen Task 2 contract in the derivative schematic.**
 
 The overall design is **not fabrication-locked** yet. Mechanical placement is locked; PCB/CAD/firmware implementation and final integrated validation remain.
 
@@ -347,7 +349,13 @@ Firmware needs an asymmetric 20/19 LED map and a trackball-specific `g_led_confi
 
 Tasks 2A–2F are complete. The final connector/net/GPIO/firmware table is frozen in `../design/task2/TASK2F_RESULT.md`. Reopen Task 2 only if the connector order, GPIO assignments, power-net mapping, stock-circuit dispositions, or firmware ownership must change.
 
-### Task 3 — right-hand trackball PCB derivative — NEXT
+### Task 3 — right-hand trackball PCB derivative — IN PROGRESS
+
+Task 3 is decomposed as `3A → 3B → 3C → 3D → 3E → 3F → 3G`. See [`../design/task3/README.md`](../design/task3/README.md).
+
+Task 3A created the non-destructive schematic-driven KiCad derivative at `../PCB/konrad_trackball/`. Stock `klor1.4/PCB/klor1_4/` remains reference-only. Stock Gerbers were not copied.
+
+**Next: Task 3B — implement the schematic contract.**
 
 Create a distinct right-hand derivative from stock KLOR. Do not convert the stock reversible PCB into a universal trackball board.
 
@@ -465,7 +473,7 @@ Third-party mechanical reference:
 
 ## Next agent: start here
 
-Start **Task 3 — create the right-hand trackball PCB derivative**.
+Continue **Task 3B — implement the schematic contract** in the derivative project at `PCB/konrad_trackball/`.
 
 Treat these as locked inputs:
 
