@@ -1,0 +1,62 @@
+name: KLOR Task 2D PCB net contract audit
+
+on:
+  push:
+    paths:
+      - "klor-trackball/design/task2/**"
+      - "klor-trackball/klor1.4/PCB/klor1_4/**"
+      - "klor-trackball/klor1.4/FIRMWARE/qmk_rp2040/electronlab/klor/**"
+      - "klor-trackball/klorball35/**"
+      - ".github/workflows/klor-task2d-pcb-net-contract-audit.yml"
+  pull_request:
+    paths:
+      - "klor-trackball/design/task2/**"
+      - "klor-trackball/klor1.4/PCB/klor1_4/**"
+      - "klor-trackball/klor1.4/FIRMWARE/qmk_rp2040/electronlab/klor/**"
+      - "klor-trackball/klorball35/**"
+      - ".github/workflows/klor-task2d-pcb-net-contract-audit.yml"
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Rebuild Task 2B dependency evidence
+        run: |
+          mkdir -p klor-trackball/design/task2/generated
+          python3 klor-trackball/design/task2/audit_task2b_gpio_trrs.py \
+            --json-output klor-trackball/design/task2/generated/task2b-gpio-trrs-audit.json
+
+      - name: Rebuild Task 2C dependency evidence
+        run: |
+          python3 klor-trackball/design/task2/audit_task2c_kivipallur_connector.py \
+            --json-output klor-trackball/design/task2/generated/task2c-kivipallur-connector-audit.json
+
+      - name: Audit Task 2D contract
+        id: audit
+        shell: bash
+        run: |
+          set +e
+          python3 klor-trackball/design/task2/audit_task2d_pcb_net_contract.py \
+            --task2b-json klor-trackball/design/task2/generated/task2b-gpio-trrs-audit.json \
+            --task2c-json klor-trackball/design/task2/generated/task2c-kivipallur-connector-audit.json \
+            --json-output klor-trackball/design/task2/generated/task2d-pcb-net-contract-audit.json
+          code=$?
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Upload Task 2D evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: klor-task2d-pcb-net-contract-audit
+          path: klor-trackball/design/task2/generated/
+          if-no-files-found: error
+
+      - name: Enforce Task 2D audit result
+        run: test "${{ steps.audit.outputs.exit_code }}" = "0"

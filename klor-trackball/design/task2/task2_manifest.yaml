@@ -19,7 +19,9 @@ subtasks:
     audit_script: audit_task2c_kivipallur_connector.py
   2d:
     name: pcb-net-contract
-    status: not-started
+    status: complete
+    result_document: TASK2D_RESULT.md
+    audit_script: audit_task2d_pcb_net_contract.py
   2e:
     name: firmware-ownership
     status: not-started
@@ -320,8 +322,98 @@ task2c:
     klor_target_axis_and_handedness_locked: true
     mating_direction_unambiguous: true
 
+
+task2d:
+  connector_contract:
+    keyboard_side_order:
+      1: CS
+      2: MISO
+      3: MOSI
+      4: SCK
+      5: NC
+      6: 3V3
+      7: GND
+    target_nets:
+      1: PMW_CS
+      2: PMW_MISO
+      3: PMW_MOSI
+      4: PMW_SCK
+      5: NC
+      6: VCC
+      7: GND
+
+  signal_routes:
+    CS:
+      connector_pin: 1
+      target_net: PMW_CS
+      gpio: GP9
+      u1_pad: 12
+      stock_net: AUDIO
+      stock_net_id: 2
+      disposition: disable-audio-bz1-dnp-no-active-load
+    MISO:
+      connector_pin: 2
+      target_net: PMW_MISO
+      gpio: GP4
+      u1_pad: 7
+      stock_net: RX
+      stock_net_id: 28
+      disposition: isolate-j1-pad3-using-task2b-verified-branch
+    MOSI:
+      connector_pin: 3
+      target_net: PMW_MOSI
+      gpio: GP3
+      u1_pad: 6
+      stock_net: SCL
+      stock_net_id: 7
+      disposition: disable-i2c-paw3204-j2-dnp-jumpers-open
+    SCK:
+      connector_pin: 4
+      target_net: PMW_SCK
+      gpio: GP2
+      u1_pad: 5
+      stock_net: SDA
+      stock_net_id: 6
+      disposition: disable-i2c-paw3204-jumpers-open
+
+  motion:
+    connector_pin: 5
+    breakout_signal: MOTION
+    target_net: NC
+    gpio: null
+    rule: connector-pad-unrouted-and-unassigned-for-revision1
+
+  power:
+    breakout_signal: 3V3
+    connector_pin: 6
+    target_klor_net: VCC
+    u1_pad: 21
+    stock_net_id: 3
+    selected_controller: elite_pi
+    rule: use-existing-klor-vcc-rail-do-not-create-separate-3v3-net
+  ground:
+    connector_pin: 7
+    target_klor_net: GND
+    u1_pads: [3, 4, 23]
+    stock_net_id: 1
+
+  naming:
+    final_spi_nets: [PMW_CS, PMW_MISO, PMW_MOSI, PMW_SCK]
+    legacy_stock_names_are_source_only: [AUDIO, RX, SCL, SDA]
+
+  completion_gate:
+    task2b_dependency_verified: true
+    task2c_dependency_verified: true
+    all_connector_pins_accounted_for: true
+    spi_gpio_routes_locked: true
+    motion_nc_locked: true
+    vcc_mapping_locked: true
+    ground_mapping_locked: true
+    final_spi_net_names_locked: true
+    unresolved_connector_net_ownership: false
+
 rules:
-  - Task 2A through Task 2C do not edit production PCB geometry.
+  - Task 2A through Task 2D do not edit production PCB geometry.
   - Task 3 must implement the Task 2A matrix/RGB disposition exactly.
   - Preserve GP1 TX to J1.4 for half-duplex split serial.
   - On the right trackball derivative, J1.3 must be NC and its verified RX branch must be removed before GP4 is used as PMW3360 MISO.
@@ -330,4 +422,6 @@ rules:
   - The KLOR-side PMW connector must use Task 2C keyboard-side order 1=CS, 2=MISO, 3=MOSI, 4=SCK, 5=NC, 6=3V3, 7=GND; do not copy the breakout numbering directly.
   - Preserve Task 2C F.Cu side, row handedness, and opposite-facing N-to-8-minus-N mate unless Task 2C is explicitly reopened.
   - Task 3 must turn the Task 1 breakout datum into real PCB pass-through/edge clearance; the Klorball35 Cmts.User guide is not a fabrication cut by itself.
-  - Task 3 remains blocked until Task 2D through Task 2F are complete.
+  - Task 3 must use final SPI net names PMW_CS, PMW_MISO, PMW_MOSI, and PMW_SCK; AUDIO/RX/SCL/SDA are stock-source names only after reassignment.
+  - Kivipallur +3V3 maps to the existing KLOR VCC rail on connector pin 6; do not create a separate KLOR 3V3 net.
+  - Task 3 remains blocked until Task 2E and Task 2F are complete.
