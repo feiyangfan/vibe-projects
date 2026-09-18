@@ -1,6 +1,6 @@
 project: klor-trackball
 variant: klor-1.4-mx-konrad-pmw3360-25mm
-status: task1-mechanical-placement-locked-overall-not-fabrication-locked
+status: task2-electrical-firmware-interface-locked-overall-not-fabrication-locked
 units: mm
 
 implementation_progress:
@@ -11,12 +11,15 @@ implementation_progress:
   task_2c_kivipallur_connector_lock: complete
   task_2d_pcb_net_contract: complete
   task_2e_firmware_ownership: complete
-  next_task: task_2f_interface_freeze
+  task_2f_interface_freeze: complete
+  task_2_interface_locked: true
+  next_task: task_3_right_hand_trackball_pcb_derivative
   task_1_result: task1/TASK1_RESULT.md
   task_1_manifest: task1/reference_assembly_manifest.yaml
   task_2_manifest: task2/task2_manifest.yaml
   task_2d_result: task2/TASK2D_RESULT.md
   task_2e_result: task2/TASK2E_RESULT.md
+  task_2f_result: task2/TASK2F_RESULT.md
 
 keyboard:
   base_pcb: klor1.4/PCB/klor1_4/klor1_4.kicad_pcb
@@ -171,7 +174,7 @@ case_result:
     provide local shell relief around the housing.
 
 pcb_electrical:
-  status: task_2d_pcb_net_contract_locked
+  status: task_2_interface_locked
   connector_keyboard_side_order:
     1: {signal: CS, target_net: PMW_CS, gpio: GP9, u1_pad: 12}
     2: {signal: MISO, target_net: PMW_MISO, gpio: GP4, u1_pad: 7}
@@ -224,7 +227,7 @@ pcb_electrical:
 
 
 firmware_ownership:
-  status: task_2e_locked
+  status: task_2_interface_locked
   variant: trackball-specific-derivative
   controller: elite_pi
   pointing_device:
@@ -288,8 +291,9 @@ mechanical_architecture:
 fabrication_gate:
   locked: false
   task_1_mechanical_placement_locked: true
+  task_2_electrical_firmware_interface_locked: true
+  task_3_authorized: true
   remaining:
-    - task_2_exact_electrical_and_firmware_interface_audit
     - task_3_right_hand_trackball_pcb_derivative_and_drc
     - task_4_final_konrad_right_switchplate_cad_modification
     - task_5_final_konrad_right_case_cad_modification_with_local_shell_relief
@@ -300,3 +304,5 @@ fabrication_gate:
 canonical_handoff: docs/KONRAD_TRACKBALL_HANDOFF.md
 canonical_task_1_result: design/task1/TASK1_RESULT.md
 canonical_task_1_manifest: design/task1/reference_assembly_manifest.yaml
+canonical_task_2_result: design/task2/TASK2F_RESULT.md
+canonical_task_2_manifest: design/task2/task2_manifest.yaml
