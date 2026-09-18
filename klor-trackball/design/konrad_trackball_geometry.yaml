@@ -10,11 +10,13 @@ implementation_progress:
   task_2b_gpio_split_trrs_audit: complete
   task_2c_kivipallur_connector_lock: complete
   task_2d_pcb_net_contract: complete
-  next_task: task_2e_firmware_ownership
+  task_2e_firmware_ownership: complete
+  next_task: task_2f_interface_freeze
   task_1_result: task1/TASK1_RESULT.md
   task_1_manifest: task1/reference_assembly_manifest.yaml
   task_2_manifest: task2/task2_manifest.yaml
   task_2d_result: task2/TASK2D_RESULT.md
+  task_2e_result: task2/TASK2E_RESULT.md
 
 keyboard:
   base_pcb: klor1.4/PCB/klor1_4/klor1_4.kicad_pcb
@@ -219,6 +221,59 @@ pcb_electrical:
     haptic: false
     audio: false
     stock_paw3204: false
+
+
+firmware_ownership:
+  status: task_2e_locked
+  variant: trackball-specific-derivative
+  controller: elite_pi
+  pointing_device:
+    enabled: true
+    driver: pmw3360
+    split_pointing: true
+    side: right
+    motion_pin: NC
+    auto_mouse_revision1: false
+  spi:
+    driver: SPID0
+    sck: GP2
+    mosi: GP3
+    miso: GP4
+    cs: GP9
+    hal_use_spi: true
+    rp_spi_use_spi0: true
+  split:
+    serial_pin: GP1
+    mode: half-duplex
+    handedness: EE_HANDS
+    full_duplex: false
+  retained_gpio:
+    rgb: GP0
+    matrix_rows: [GP5, GP6, GP7, GP8]
+    matrix_columns: [GP27, GP26, GP22, GP20, GP23, GP21]
+    encoder: [GP28, GP29]
+  disabled:
+    oled: true
+    haptic: true
+    audio: true
+    music: true
+    i2c1: true
+    stock_paw3204: true
+    pwm4_audio: true
+  target_hal_mcu:
+    HAL_USE_SPI: true
+    HAL_USE_I2C: false
+    HAL_USE_PWM: false
+    RP_SPI_USE_SPI0: true
+    RP_I2C_USE_I2C1: false
+    RP_PWM_USE_PWM4: false
+  task7_deferred_tuning:
+    - pointer_rotation
+    - pointer_axis_inversion
+    - cpi
+    - lift_off_distance
+    - scrolling
+    - acceleration
 
 mechanical_architecture:
   typec_mounting_screws_on_main_pcb: false
