@@ -81,21 +81,25 @@ Current state:
 - **2A complete** — removed-key circuit audited and disposition locked
 - **2B complete** — GPIO ownership and split/TRRS routing audited and disposition locked
 - **2C complete** — Kivipallur connector footprint, pin order, mating handedness, and service orientation locked
-- **2D next** — PCB connector/net contract
-- 2E–2F not started
+- **2D complete** — connector-to-PCB-net/MCU contract frozen
+- **2E next** — firmware ownership
+- 2F not started
 
 Canonical Task 2 files:
 
 - [`design/task2/TASK2A_RESULT.md`](design/task2/TASK2A_RESULT.md)
 - [`design/task2/TASK2B_RESULT.md`](design/task2/TASK2B_RESULT.md)
 - [`design/task2/TASK2C_RESULT.md`](design/task2/TASK2C_RESULT.md)
+- [`design/task2/TASK2D_RESULT.md`](design/task2/TASK2D_RESULT.md)
 - [`design/task2/task2_manifest.yaml`](design/task2/task2_manifest.yaml)
 - `design/task2/audit_task2a_removed_key.py`
 - `design/task2/audit_task2b_gpio_trrs.py`
 - `design/task2/audit_task2c_kivipallur_connector.py`
+- `design/task2/audit_task2d_pcb_net_contract.py`
 - `.github/workflows/klor-task2a-electrical-audit.yml`
 - `.github/workflows/klor-task2b-gpio-trrs-audit.yml`
 - `.github/workflows/klor-task2c-kivipallur-connector-audit.yml`
+- `.github/workflows/klor-task2d-pcb-net-contract-audit.yml`
 
 The overall keyboard is **not fabrication-locked**. PCB, switchplate, case, firmware, and final integrated validation remain.
 
@@ -273,23 +277,29 @@ Task 3 may resolve final production XY against the locked assembly, but it may n
 
 **Gate: passed.** See [`design/task2/TASK2C_RESULT.md`](design/task2/TASK2C_RESULT.md).
 
-#### Task 2D — Freeze the PCB net contract — NEXT
+#### Task 2D — Freeze the PCB net contract — COMPLETE
 
-Attach the Task 2A/2B electrical ownership to the Task 2C-fixed physical connector order.
+Task 2D composes the Task 2B GPIO ownership with the Task 2C-fixed physical connector order.
 
-Current contract to verify and freeze:
+Locked derivative contract:
 
-| KLOR connector pin | Breakout signal | Proposed KLOR connection |
-| ---: | --- | --- |
-| 1 | CS | GP9 |
-| 2 | MISO | GP4 |
-| 3 | MOSI | GP3 |
-| 4 | SCK | GP2 |
-| 5 | MOTION | NC for revision 1 |
-| 6 | 3V3 | 3V3 |
-| 7 | GND | GND |
+| KLOR pin | Breakout signal | Target PCB net | MCU / U1 pad | Stock source net |
+| ---: | --- | --- | --- | --- |
+| 1 | CS | `PMW_CS` | GP9 / U1.12 | `AUDIO` |
+| 2 | MISO | `PMW_MISO` | GP4 / U1.7 | `RX` |
+| 3 | MOSI | `PMW_MOSI` | GP3 / U1.6 | `SCL` |
+| 4 | SCK | `PMW_SCK` | GP2 / U1.5 | `SDA` |
+| 5 | MOTION | **NC** | none | none |
+| 6 | +3V3 | `VCC` | U1.21 / VCC rail | `VCC` |
+| 7 | GND | `GND` | U1 ground rail | `GND` |
 
-**Gate:** every connector pin maps to one PCB net and MCU signal with no unresolved electrical ambiguity.
+Important source correction: stock KLOR calls the controller supply rail **`VCC`**, not `3V3`. With the selected Elite-Pi this is the 3.3 V controller rail, so Kivipallur `+3V3` connects to the existing KLOR `VCC` net. Task 3 must not create a separate KLOR `3V3` rail merely to mirror the breakout label.
+
+The four reassigned signal nets are frozen as `PMW_CS`, `PMW_MISO`, `PMW_MOSI`, and `PMW_SCK`. `AUDIO`, `RX`, `SCL`, and `SDA` remain useful only as names for the stock-source topology being replaced.
+
+Task 3 must still implement all Task 2B dispositions: J1.3 physical isolation for GP4, audio disabled/BZ1 inactive for GP9, I2C/PAW3204 disabled on GP2/GP3, J2 haptic DNP, and legacy I2C jumpers open.
+
+**Gate: passed.** See [`design/task2/TASK2D_RESULT.md`](design/task2/TASK2D_RESULT.md).
 
 #### Task 2E — Freeze firmware ownership
 
