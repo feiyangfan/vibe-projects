@@ -20,7 +20,7 @@ Canonical Task 1 evidence:
 - [`../design/task1/reference_assembly_manifest.yaml`](../design/task1/reference_assembly_manifest.yaml)
 - CI workflow: `.github/workflows/klor-task1-mechanical-audit.yml`
 
-**Task 2A–2D are complete. Next task: Task 2E — freeze firmware ownership.** Do not begin production PCB routing until Task 2F freezes the complete electrical/firmware interface.
+**Task 2 — electrical and firmware interface: COMPLETE.** Task 2F passed with zero unresolved GPIO/net conflicts. **Next task: Task 3 — create the right-hand trackball PCB derivative.**
 
 The overall design is **not fabrication-locked** yet. Mechanical placement is locked; PCB/CAD/firmware implementation and final integrated validation remain.
 
@@ -245,9 +245,9 @@ This is expected local material that Task 5 must relieve. It is **not** a reason
 
 ---
 
-## PMW3360 electrical contract — Task 2D locked
+## PMW3360 electrical/firmware contract — Task 2 locked
 
-Task 2A–2D have resolved the removed-key circuit, GPIO conflicts, Kivipallur mating orientation, and PCB connector/net contract. Task 2E and 2F still need to freeze firmware ownership and the final combined interface before production routing begins.
+Task 2A–2F are complete. The removed-key circuit, GPIO conflicts, connector orientation, PCB nets, QMK ownership, and complete interface are frozen. Task 3 is authorized to implement the right-hand PCB derivative against this contract.
 
 ### Physical keyboard-side connector
 
@@ -288,15 +288,40 @@ Task 3 must not invent a second KLOR `3V3` rail just to mirror the breakout labe
 - MOTION remains electrically unconnected for revision 1.
 - Right OLED, haptic, audio, and stock PAW3204 remain disabled/unpopulated for revision 1.
 
-Canonical Task 2 evidence now includes:
+Canonical Task 2 overview:
+
+- [`../design/task2/README.md`](../design/task2/README.md)
+
+Canonical Task 2 evidence also includes:
 
 - `../design/task2/TASK2A_RESULT.md`
 - `../design/task2/TASK2B_RESULT.md`
 - `../design/task2/TASK2C_RESULT.md`
 - `../design/task2/TASK2D_RESULT.md`
+- `../design/task2/TASK2E_RESULT.md`
+- `../design/task2/TASK2F_RESULT.md`
 - `../design/task2/task2_manifest.yaml`
 
-Task 2D does not authorize production routing yet. Task 3 remains blocked until Task 2E and Task 2F pass.
+### Locked QMK ownership from Task 2E
+
+The trackball variant uses QMK PMW3360 support over SPI0:
+
+```text
+GP2 = SPI0 SCK
+GP3 = SPI0 MOSI
+GP4 = SPI0 MISO
+GP9 = PMW3360 CS
+GP1 = half-duplex split serial
+GP0 = RGB
+```
+
+Required firmware configuration includes `POINTING_DEVICE_DRIVER = pmw3360`, explicit SPI0 pin overrides, `SPLIT_POINTING_ENABLE`, `POINTING_DEVICE_RIGHT`, and preserved `EE_HANDS`.
+
+The trackball build disables OLED, haptic, audio/music, I2C1, stock PAW3204 ownership, and audio PWM4. Both stock default and Vial keymap rules currently re-enable OLED/audio/haptic, so neither may be reused unchanged.
+
+MOTION remains unused. Pointer rotation/inversion, CPI, lift-off distance, scrolling, acceleration, and auto-mouse behavior remain Task 7 bring-up work.
+
+Task 2F passed. Task 3 production PCB implementation is authorized. The canonical final contract is `../design/task2/TASK2F_RESULT.md`.
 
 ---
 
@@ -318,11 +343,11 @@ Firmware needs an asymmetric 20/19 LED map and a trackball-specific `g_led_confi
 
 ## Remaining implementation sequence
 
-### Task 2 — electrical + firmware interface
+### Task 2 — electrical + firmware interface — COMPLETE
 
-Audit and lock the exact connector, GPIO, optional-feature, RGB-bypass, and GP4 isolation contract.
+Tasks 2A–2F are complete. The final connector/net/GPIO/firmware table is frozen in `../design/task2/TASK2F_RESULT.md`. Reopen Task 2 only if the connector order, GPIO assignments, power-net mapping, stock-circuit dispositions, or firmware ownership must change.
 
-### Task 3 — right-hand trackball PCB derivative
+### Task 3 — right-hand trackball PCB derivative — NEXT
 
 Create a distinct right-hand derivative from stock KLOR. Do not convert the stock reversible PCB into a universal trackball board.
 
@@ -440,4 +465,11 @@ Third-party mechanical reference:
 
 ## Next agent: start here
 
-Start **Task 2 only**. Treat the Task 1 fabrication datums as locked mechanical inputs. Do not revisit placement unless a newly discovered hard constraint invalidates one of the verified Task 1 assumptions.
+Start **Task 3 — create the right-hand trackball PCB derivative**.
+
+Treat these as locked inputs:
+
+- Task 1 mechanical placement and fabrication datums;
+- Task 2 electrical/firmware interface, summarized in [`../design/task2/README.md`](../design/task2/README.md) and frozen in `../design/task2/TASK2F_RESULT.md`.
+
+Do not revisit Task 1 placement or Task 2 connector/net/GPIO/firmware ownership unless implementation uncovers a hard constraint that invalidates one of their verified assumptions.

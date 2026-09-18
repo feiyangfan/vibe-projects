@@ -70,7 +70,7 @@ The unmodified stock right-case shell **does intersect the Type-C housing locall
 
 Task 1 result: **`placement_locked: true`**.
 
-### Task 2 — electrical and firmware interface: IN PROGRESS
+### Task 2 — electrical and firmware interface: COMPLETE
 
 Task 2 is decomposed as:
 
@@ -82,24 +82,35 @@ Current state:
 - **2B complete** — GPIO ownership and split/TRRS routing audited and disposition locked
 - **2C complete** — Kivipallur connector footprint, pin order, mating handedness, and service orientation locked
 - **2D complete** — connector-to-PCB-net/MCU contract frozen
-- **2E next** — firmware ownership
-- 2F not started
+- **2E complete** — QMK firmware ownership and peripheral contract frozen
+- **2F complete** — final connector/net/GPIO/firmware interface frozen
+- **Task 2 complete** — zero unresolved GPIO or net ownership conflicts; Task 3 authorized
 
-Canonical Task 2 files:
+Canonical Task 2 overview:
+
+- **[`design/task2/README.md`](design/task2/README.md)** — consolidated Task 2A–2F narrative, final interface contract, and Task 3 handoff
+
+Detailed Task 2 evidence:
 
 - [`design/task2/TASK2A_RESULT.md`](design/task2/TASK2A_RESULT.md)
 - [`design/task2/TASK2B_RESULT.md`](design/task2/TASK2B_RESULT.md)
 - [`design/task2/TASK2C_RESULT.md`](design/task2/TASK2C_RESULT.md)
 - [`design/task2/TASK2D_RESULT.md`](design/task2/TASK2D_RESULT.md)
+- [`design/task2/TASK2E_RESULT.md`](design/task2/TASK2E_RESULT.md)
+- [`design/task2/TASK2F_RESULT.md`](design/task2/TASK2F_RESULT.md)
 - [`design/task2/task2_manifest.yaml`](design/task2/task2_manifest.yaml)
 - `design/task2/audit_task2a_removed_key.py`
 - `design/task2/audit_task2b_gpio_trrs.py`
 - `design/task2/audit_task2c_kivipallur_connector.py`
 - `design/task2/audit_task2d_pcb_net_contract.py`
+- `design/task2/audit_task2e_firmware_ownership.py`
+- `design/task2/audit_task2f_interface_freeze.py`
 - `.github/workflows/klor-task2a-electrical-audit.yml`
 - `.github/workflows/klor-task2b-gpio-trrs-audit.yml`
 - `.github/workflows/klor-task2c-kivipallur-connector-audit.yml`
 - `.github/workflows/klor-task2d-pcb-net-contract-audit.yml`
+- `.github/workflows/klor-task2e-firmware-ownership-audit.yml`
+- `.github/workflows/klor-task2f-interface-freeze.yml`
 
 The overall keyboard is **not fabrication-locked**. PCB, switchplate, case, firmware, and final integrated validation remain.
 
@@ -163,7 +174,9 @@ If the locked XY placement ever changes, rerun Task 1A–1G and update together:
 - `design/konrad_trackball_geometry.yaml`
 - `docs/KONRAD_TRACKBALL_HANDOFF.md`
 
-### Task 2 — Lock the electrical and firmware interface — IN PROGRESS
+### Task 2 — Lock the electrical and firmware interface — COMPLETE
+
+For the complete Task 2 narrative and final handoff, start with **[`design/task2/README.md`](design/task2/README.md)**.
 
 Task 2 converts the current electrical proposal into one source-backed implementation contract before production PCB editing begins.
 
@@ -301,40 +314,110 @@ Task 3 must still implement all Task 2B dispositions: J1.3 physical isolation fo
 
 **Gate: passed.** See [`design/task2/TASK2D_RESULT.md`](design/task2/TASK2D_RESULT.md).
 
-#### Task 2E — Freeze firmware ownership
+#### Task 2E — Freeze firmware ownership — COMPLETE
 
-Verify the trackball firmware variant against the stock QMK configuration.
+The trackball firmware must be a separate derivative of the stock KLOR QMK source.
 
-Revision 1 should retain:
+Locked revision-1 GPIO ownership:
 
-- GP1 = half-duplex split serial
-- GP0 = RGB
-- GP5/6/7/8 = matrix rows
-- GP20/21/22/23/26/27 = matrix columns
-- GP28/29 = encoder
+| GPIO | Firmware owner |
+| --- | --- |
+| GP0 | WS2812 / RGB matrix |
+| GP1 | half-duplex split serial |
+| GP2 | PMW3360 SCK |
+| GP3 | PMW3360 MOSI |
+| GP4 | PMW3360 MISO |
+| GP5/6/7/8 | matrix rows |
+| GP9 | PMW3360 CS |
+| GP20/21/22/23/26/27 | matrix columns |
+| GP28/29 | encoder |
 
-Revision 1 disables:
+The QMK trackball path is locked to PMW3360 over SPI0:
 
-- OLED / stock I2C use on GP2/GP3
-- haptic
-- audio on GP9
-- stock PAW3204 path on GP2/GP3
+```text
+POINTING_DEVICE_ENABLE = yes
+POINTING_DEVICE_DRIVER = pmw3360
+SPI_DRIVER = SPID0
+SPI_SCK_PIN = GP2
+SPI_MOSI_PIN = GP3
+SPI_MISO_PIN = GP4
+PMW33XX_CS_PIN = GP9
+SPLIT_POINTING_ENABLE
+POINTING_DEVICE_RIGHT
+EE_HANDS
+```
 
-**Gate:** firmware ownership agrees exactly with the electrical contract and contains no overlapping GPIO use.
+MOTION remains unused, so revision 1 must not define `POINTING_DEVICE_MOTION_PIN`.
 
-#### Task 2F — Freeze the complete interface
+The stock source has several conflicts that the trackball variant must retire:
 
-Produce one authoritative table covering:
+- `I2C1_SDA_PIN GP2` / `I2C1_SCL_PIN GP3`
+- PAW3204 SDIO/SCLK on GP2/GP3
+- optional full-duplex serial TX on GP4
+- `AUDIO_PIN GP9`
+- I2C1 and audio PWM peripheral ownership
 
-`connector pin → breakout signal → PCB net → MCU GPIO → firmware function → stock-circuit change`
+The stock default **and** Vial keymap `rules.mk` files also explicitly re-enable OLED, audio, music, and haptics. Therefore neither rules file may be reused unchanged for the trackball build.
 
-Also record every required stock-circuit deletion, isolation, bypass, and intentionally unpopulated optional feature.
+Revision 1 feature state:
 
-**Task 2 completion gate:** one unambiguous connector/pin/net/firmware contract exists and there is **zero unresolved GPIO or net ownership conflict**.
+- pointing device: enabled
+- RGB matrix: enabled
+- encoder: enabled
+- split serial: enabled, half duplex
+- OLED: disabled
+- haptic: disabled
+- audio/music: disabled
+- stock PAW3204: disabled
+- I2C1: disabled
+- audio PWM4: disabled
 
-Do not begin production PCB routing before Task 2F passes.
+SPI remains enabled with `HAL_USE_SPI TRUE` and `RP_SPI_USE_SPI0 TRUE`. The trackball variant disables unused I2C1 and PWM4 ownership.
 
-### Task 3 — Create the right-hand trackball PCB derivative
+Pointer rotation/inversion, CPI, lift-off distance, scrolling, acceleration, and auto-mouse behavior remain Task 7 bring-up/tuning work. The revision-1 baseline leaves auto-mouse disabled until raw PMW3360 motion is verified.
+
+RGB ownership remains GP0 with the already-locked 20-left / 19-right / 39-total topology; detailed `g_led_config` implementation remains Task 7.
+
+**Gate: passed.** See [`design/task2/TASK2E_RESULT.md`](design/task2/TASK2E_RESULT.md).
+
+#### Task 2F — Freeze the complete interface — COMPLETE
+
+Task 2F rebuilds all Task 2A–2E source audits and cross-checks them as one implementation contract.
+
+Final connector contract:
+
+| KLOR pin | Breakout pin | Signal | Final PCB net | MCU / U1 | Firmware function | Required stock change |
+| ---: | ---: | --- | --- | --- | --- | --- |
+| 1 | 7 | CS | `PMW_CS` | GP9 / U1.12 | PMW3360 CS | disable audio/music + PWM4; BZ1 inactive/DNP |
+| 2 | 6 | MISO | `PMW_MISO` | GP4 / U1.7 | SPI0 MISO | remove verified RX branch to `J1.3`; J1.3 NC |
+| 3 | 5 | MOSI | `PMW_MOSI` | GP3 / U1.6 | SPI0 MOSI | disable I2C1/PAW3204; J2 haptic DNP; jumpers open |
+| 4 | 4 | SCK | `PMW_SCK` | GP2 / U1.5 | SPI0 SCK | disable I2C1/PAW3204; jumpers open |
+| 5 | 3 | MOTION | **NC** | none | unused/polled | leave pad unrouted; no motion GPIO |
+| 6 | 2 | +3V3 | `VCC` | U1.21 | 3.3 V supply | use existing KLOR VCC |
+| 7 | 1 | GND | `GND` | ground rail | ground | use existing KLOR GND |
+
+Non-connector implementation requirements remain locked:
+
+- remove `SW22` and `D22`;
+- preserve `col1` and `row3`; do not bridge them;
+- RGB bypass: `SW13 DOUT -> SW14 DIN`;
+- preserve GP1 `TX -> J1.4` half-duplex split;
+- remove the Task 2B-verified `RX` segment to J1.3;
+- connector is `F.Cu`, pin 1 at negative Y, pin 7 at positive Y, with opposite-facing `N <-> 8-N` mating;
+- create the real breakout pass-through/edge clearance at the Task 1 datum;
+- OLED/haptic/audio/PAW3204 remain disabled/DNP for revision 1;
+- QMK uses PMW3360 on SPI0: GP2 SCK, GP3 MOSI, GP4 MISO, GP9 CS;
+- `SPLIT_POINTING_ENABLE`, `POINTING_DEVICE_RIGHT`, and `EE_HANDS` are retained;
+- MOTION remains unassigned;
+- final RGB topology is 20 left / 19 right / 39 total.
+
+The final audit reports **zero unresolved GPIO conflicts and zero unresolved net conflicts**.
+
+**Gate: passed.** See [`design/task2/TASK2F_RESULT.md`](design/task2/TASK2F_RESULT.md).
+
+**Task 2 is complete. Task 3 production PCB work is now authorized against the frozen Task 2 contract.**
+
+### Task 3 — Create the right-hand trackball PCB derivative — NEXT
 
 Start from stock KLOR 1.4 but create a distinct right-hand trackball derivative.
 
