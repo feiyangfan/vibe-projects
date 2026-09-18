@@ -1,0 +1,31 @@
+# macOS / Windows filesystem metadata
+.DS_Store
+Thumbs.db
+
+# Editor swap / temporary files
+*.swp
+*.swo
+*~
+
+# Python runtime/cache
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Xcode user- and machine-local state
+**/xcuserdata/
+*.xcuserstate
+DerivedData/
+
+# KiCad user-local / backup state
+*.kicad_prl
+*.kicad_pcb-bak
+*.kicad_sch-bak
+*.kicad_pro-bak
+~*.lck
+
+# Reproducible KLOR audit output; CI uploads these as artifacts
+klor-trackball/design/task1/generated/
+klor-trackball/design/task2/generated/

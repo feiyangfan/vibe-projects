@@ -372,14 +372,11 @@ Audit scripts:
 - `audit_task2e_firmware_ownership.py`
 - `audit_task2f_interface_freeze.py`
 
-CI workflows:
+CI workflow:
 
-- `.github/workflows/klor-task2a-electrical-audit.yml`
-- `.github/workflows/klor-task2b-gpio-trrs-audit.yml`
-- `.github/workflows/klor-task2c-kivipallur-connector-audit.yml`
-- `.github/workflows/klor-task2d-pcb-net-contract-audit.yml`
-- `.github/workflows/klor-task2e-firmware-ownership-audit.yml`
 - `.github/workflows/klor-task2f-interface-freeze.yml`
+
+After Task 2 was frozen, the earlier per-subtask 2A–2E workflow files were removed as redundant. Their audit scripts and result documents remain checked in. The final 2F workflow is the regression gate: it rebuilds and runs all six Task 2 audits in dependency order before passing.
 
 The final 2F gate passes only when the source-backed evidence remains mutually consistent.
 
