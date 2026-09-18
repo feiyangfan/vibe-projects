@@ -14,7 +14,7 @@ The **left half remains stock**.
 | --- | --- | --- |
 | Task 1 — mechanical reference assembly | **COMPLETE** | trackball placement mechanically locked |
 | Task 2 — electrical + firmware interface | **COMPLETE** | connector/net/GPIO/firmware contract locked |
-| Task 3 — right-hand trackball PCB derivative | **IN PROGRESS** | 3A complete; 3B schematic contract next |
+| Task 3 — right-hand trackball PCB derivative | **IN PROGRESS** | 3A–3B complete; 3C PCB synchronization next |
 | Task 4 — right Konrad switchplate | pending | — |
 | Task 5 — editable right-case derivative | pending | — |
 | Task 6 — complete mechanical + PCB validation | pending | — |
@@ -209,7 +209,22 @@ The derivative starts from an exact stock KLOR PCB/schematic/library baseline, u
 
 See [`design/task3/TASK3A_RESULT.md`](design/task3/TASK3A_RESULT.md).
 
-**3B — NEXT:** implement the frozen Task 2 electrical contract in the derivative schematic before destructive PCB edits or routing.
+**3B — COMPLETE.**
+
+The derivative schematic now implements the frozen Task 2 contract:
+
+- SW22 and D22 removed logically;
+- direct `SW13 DOUT → SW14 DIN` RGB bypass;
+- U1 ownership renamed to `PMW_SCK` / `PMW_MOSI` / `PMW_MISO` / `PMW_CS`;
+- new J4 1×7 Kivipallur interface with keyboard-side order `CS, MISO, MOSI, SCK, NC, VCC, GND`;
+- J1.3 explicitly NC while J1.4/TX remains the half-duplex split path;
+- J2 haptic, OLED1, and BZ1 marked DNP for revision 1.
+
+The derivative PCB is intentionally still byte-identical to stock at the end of 3B.
+
+See [`design/task3/TASK3B_RESULT.md`](design/task3/TASK3B_RESULT.md).
+
+**3C — NEXT:** synchronize the schematic contract onto the PCB and perform the authorized destructive physical edits.
 
 Task 3 must continue to preserve the locked Task 1 mechanical placement and Task 2 electrical/firmware interface.
 
