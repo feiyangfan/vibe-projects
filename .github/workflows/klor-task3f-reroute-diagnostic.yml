@@ -1,0 +1,70 @@
+name: KLOR Task 3F reroute diagnostic
+
+on:
+  push:
+    branches:
+      - klor-trackball/task-3f-preservation-drc
+    paths:
+      - "klor-trackball/design/task3/route_task3f_drc_cleanup.py"
+      - ".github/workflows/klor-task3f-reroute-diagnostic.yml"
+
+jobs:
+  route:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install KiCad 10 stable
+        shell: bash
+        run: |
+          sudo add-apt-repository --yes ppa:kicad/kicad-10.0-releases
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends kicad
+          kicad-cli version
+
+      - name: Generate DRC-aware route from Task 3D
+        shell: bash
+        run: |
+          mkdir -p klor-trackball/design/task3/generated
+          git checkout 57eca64b31ed46b43c3112a20a4270e6bc127206 -- klor-trackball/PCB/konrad_trackball/konrad_trackball.kicad_pcb
+          python3 klor-trackball/design/task3/route_task3f_drc_cleanup.py             | tee klor-trackball/design/task3/generated/task3f-reroute.log
+
+      - name: Run KiCad DRC on candidate
+        shell: bash
+        run: |
+          set +e
+          kicad-cli pcb drc             --refill-zones             --schematic-parity             --all-track-errors             --severity-all             --format json             --output klor-trackball/design/task3/generated/task3f-reroute-drc.json             klor-trackball/PCB/konrad_trackball/konrad_trackball.kicad_pcb
+          code=$?
+          echo "kicad-cli exit code: $code"
+          python3 - <<'PY'
+          import json
+          from collections import Counter
+          p="klor-trackball/design/task3/generated/task3f-reroute-drc.json"
+          data=json.load(open(p))
+          for key in ("schematic_parity","unconnected_items","violations"):
+              rows=data.get(key,[])
+              print(key, len(rows), Counter(x.get("severity") for x in rows), Counter(x.get("type") for x in rows))
+          errors=[x for key in ("unconnected_items","violations") for x in data.get(key,[]) if x.get("severity")=="error"]
+          pmw=[x for x in errors if any("PMW_" in i.get("description","") for i in x.get("items",[]))]
+          print("TOTAL_ERRORS", len(errors))
+          print("PMW_ERRORS", len(pmw))
+          for x in pmw:
+              print("PMW_ERROR", x.get("type"), x.get("description"))
+              for i in x.get("items",[]):
+                  print(" ", i.get("description"), i.get("uuid"), i.get("pos"))
+          PY
+          exit 0
+
+      - name: Upload candidate evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: klor-task3f-reroute-diagnostic
+          path: klor-trackball/design/task3/generated/
+          if-no-files-found: error
