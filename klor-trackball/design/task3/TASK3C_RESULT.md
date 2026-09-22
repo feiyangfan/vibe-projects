@@ -29,7 +29,7 @@ klor1.4/PCB/klor1_4/
 Task 3C PCB blob:
 
 ```text
-9e34c771ed27f5f87d79cd7cc78e41c8ec1bbb74
+c3fefdb583d653a836d2ab99a9d94126ea331a3b
 ```
 
 Task 3B schematic blob retained exactly:
@@ -199,7 +199,7 @@ The physical PCB transformation removes 65 stock copper segments and 5 stock via
 
 ## Reproducible transformation
 
-Because the KiCad PCB is approximately 8.3 MB and cannot reliably be replaced through the repository connector in one API request, Task 3C includes:
+Task 3C retains the deterministic transformation script:
 
 ```text
 design/task3/apply_task3c_pcb_sync.py
@@ -270,3 +270,8 @@ Therefore Task 3C does not claim final DRC or fabrication readiness.
 **Task 3C: COMPLETE.**
 
 Next: **Task 3D — place J4 at the locked mechanical interface and create the manufacturable breakout pass-through/edge clearance.**
+
+
+## Representation normalization
+
+Task 3C was reworked onto the normalized Task 3B PCB baseline. Only regenerable KiCad `filled_polygon` cache data is omitted; the Task 3C physical/electrical edits are unchanged. The normalized Task 3C PCB blob is `c3fefdb583d653a836d2ab99a9d94126ea331a3b`.
