@@ -1,0 +1,49 @@
+name: KLOR Task 3F KiCad diagnostic
+
+on:
+  push:
+    branches:
+      - klor-trackball/task-3f-preservation-drc
+    paths:
+      - "klor-trackball/PCB/konrad_trackball/**"
+      - ".github/workflows/klor-task3f-kicad-diagnostic.yml"
+
+jobs:
+  drc:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install KiCad 10 stable
+        shell: bash
+        run: |
+          sudo add-apt-repository --yes ppa:kicad/kicad-10.0-releases
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends kicad
+          kicad-cli version
+
+      - name: Run integrated PCB DRC
+        id: drc
+        shell: bash
+        run: |
+          set +e
+          mkdir -p klor-trackball/design/task3/generated
+          kicad-cli pcb drc             --refill-zones             --schematic-parity             --all-track-errors             --severity-all             --format json             --output klor-trackball/design/task3/generated/task3f-kicad-drc.json             klor-trackball/PCB/konrad_trackball/konrad_trackball.kicad_pcb
+          code=$?
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          echo "kicad-cli exit code: $code"
+          if [ -f klor-trackball/design/task3/generated/task3f-kicad-drc.json ]; then
+            cat klor-trackball/design/task3/generated/task3f-kicad-drc.json
+          fi
+          exit 0
+
+      - name: Upload diagnostic evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: klor-task3f-kicad-diagnostic
+          path: klor-trackball/design/task3/generated/
+          if-no-files-found: error
+
+      - name: Record diagnostic exit code
+        run: echo "KiCad DRC diagnostic exit code = ${{ steps.drc.outputs.exit_code }}"
