@@ -218,6 +218,10 @@ A short authoritative requirements document exists, and any geometry-dependent p
 
 ## Task 2 — Reconstruct the complete KLOR/Konrad geometry in Ergogen
 
+**Status: IN PROGRESS**
+
+Task 2 begins with a minimal-change study before full reconstruction. The selected implementation baseline is to remove R34/SW22/D22 only, retain R32/R33 and the right encoder, preserve all structural interfaces, and keep PCB/plate/case changes local to the trackball region. See `ergogen/task2/MINIMAL_CHANGE_STUDY.md`.
+
 Build the actual canonical geometric model.
 
 Before freezing the final right-half geometry, compare the right-thumb/trackball trade-space. At minimum include the historical R34-only + right-encoder baseline and alternatives that remove additional thumb controls and/or the right encoder if they materially improve trackball reach, clearance, or serviceability.
@@ -508,6 +512,6 @@ Generated output should never become the only place where design intent exists.
 
 ## Current work
 
-**Task 2 — Reconstruct the complete KLOR/Konrad geometry in Ergogen.**
+**Task 2B — Reconstruct preserved stock KLOR/Konrad geometry in Ergogen.**
 
-Task 1 is complete. The authoritative product contract is [`REQUIREMENTS.md`](REQUIREMENTS.md), with the audit record in `ergogen/TASK1_RESULT.md`.
+Task 2A's minimal-change study is complete. The implementation baseline and preserve/change boundary are in `ergogen/task2/`.
