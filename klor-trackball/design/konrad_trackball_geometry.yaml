@@ -381,14 +381,15 @@ fabrication_gate:
   task_2_electrical_firmware_interface_locked: true
   task_3_authorized: true
   remaining:
-    - task_3_right_hand_trackball_pcb_derivative_and_drc
+    - task_3f_preservation_and_drc
+    - task_3g_pcb_derivative_freeze
     - task_4_final_konrad_right_switchplate_cad_modification
     - task_5_final_konrad_right_case_cad_modification_with_local_shell_relief
     - task_6_complete_modified_assembly_validation
     - task_7_qmk_trackball_variant
     - fabrication_output_review_and_hardware_bringup
 
-canonical_handoff: docs/KONRAD_TRACKBALL_HANDOFF.md
+canonical_project_readme: README.md
 canonical_task_1_result: design/task1/TASK1_RESULT.md
 canonical_task_1_manifest: design/task1/reference_assembly_manifest.yaml
 canonical_task_2_result: design/task2/TASK2F_RESULT.md

@@ -382,13 +382,8 @@ The final 2F gate passes only when the source-backed evidence remains mutually c
 
 ---
 
-## Next task
+## Downstream status
 
-**Task 3 — create the right-hand trackball PCB derivative.**
+Task 2 is closed and remains a locked input to later work. Task 3 has since progressed through **3E**; current project status and the next active subtask are maintained in the [project README](../../README.md) and [Task 3 README](../task3/README.md).
 
-Treat both of these as locked inputs:
-
-- Task 1 mechanical reference placement;
-- Task 2 electrical/firmware interface.
-
-Reopen Task 1 or Task 2 only if implementation uncovers a hard constraint that invalidates a verified assumption.
+Reopen Task 1 or Task 2 only if later implementation uncovers a hard constraint that invalidates a verified assumption.

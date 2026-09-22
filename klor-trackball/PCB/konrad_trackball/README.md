@@ -63,7 +63,7 @@ Task 3D is complete.
 - The board has an actual open 2 mm edge notch matching the locked 2×22 mm service envelope.
 - A local +X tongue supports the J4 through-holes.
 - VCC and the RGB bypass are locally rerouted only where required by the notch/header.
-- J4-to-U1 PMW routing remains intentionally incomplete until Task 3E.
+- At the end of Task 3D, J4-to-U1 PMW routing was intentionally incomplete; Task 3E completes it below.
 
 See `../../design/task3/TASK3D_RESULT.md`.
 

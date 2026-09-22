@@ -207,5 +207,5 @@ rules:
   - The locked fabrication datums above are the baseline for Tasks 2-8.
   - Do not move the trackball merely to avoid the stock-case shell relief documented here.
   - Preserve all eight verified structural case/switchplate mounting axes.
-  - If the locked XY placement changes, update this manifest, ../konrad_trackball_geometry.yaml, and ../../docs/KONRAD_TRACKBALL_HANDOFF.md in the same commit and rerun Task 1A-1G.
+  - If the locked XY placement changes, update this manifest, ../konrad_trackball_geometry.yaml, and ../../README.md in the same commit and rerun Task 1A-1G.
   - Task 1 does not edit production PCB, firmware, switchplate, or case geometry.

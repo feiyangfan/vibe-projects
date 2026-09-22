@@ -168,7 +168,7 @@ Final Task 3D geometry:
 - J4 row midpoint: `(147.724665, 134.747997)`;
 - header-row offset from the guide: `+4.613622 mm` X;
 - local support tongue: right edge `X=150.0`, bottom edge `Y=144.25`;
-- PMW signal routing remains deferred to 3E.
+- PMW signal routing was deferred to 3E.
 
 The pass-through intersects stock/3C VCC copper and the staged RGB bypass region. Task 3D therefore performs only the required local VCC/RGB reroutes to keep the fabricated opening copper-free.
 
@@ -260,7 +260,7 @@ Create one canonical Task 3 result containing:
 - DRC result;
 - intentional exceptions, if any.
 
-Update the project README, canonical geometry state, and engineering handoff together.
+Update the project README, Task 3 result/manifest, and canonical geometry state together.
 
 **Gate:**
 
@@ -306,6 +306,6 @@ Do not treat the board as fabrication-ready until downstream mechanical integrat
 
 ## PCB representation normalization
 
-The stock PCB uses normalized blob `3dea93bc4266541e9ca85eebc70e4b8c851afc11`; the Task 3C derivative uses normalized blob `c3fefdb583d653a836d2ab99a9d94126ea331a3b` (~1.44 MB). Only KiCad's generated `filled_polygon` cache is omitted. Zone definitions and all physical/electrical PCB geometry remain committed.
+The stock PCB uses normalized blob `3dea93bc4266541e9ca85eebc70e4b8c851afc11`. Historical Task 3 milestones are: 3C `c3fefdb583d653a836d2ab99a9d94126ea331a3b`, 3D `4272f9c3895fd46c0688b3eb530fc7299b540727`, and the current Task 3E PCB `cdc63c3081881861bdcba8f0c6bc03a5b242baed`. Only KiCad's generated `filled_polygon` cache is omitted; zone definitions and all physical/electrical PCB geometry remain committed.
 
 Refill zones before DRC/fabrication and strip the cache again before committing.

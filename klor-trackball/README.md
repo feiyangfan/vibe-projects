@@ -28,10 +28,11 @@ The project is **not fabrication-locked yet**. Tasks 1 and 2 provide the verifie
 - **Task 1:** [`design/task1/README.md`](design/task1/README.md)
 - **Task 2:** [`design/task2/README.md`](design/task2/README.md)
 - **Task 3:** [`design/task3/README.md`](design/task3/README.md)
-- Engineering handoff: [`docs/KONRAD_TRACKBALL_HANDOFF.md`](docs/KONRAD_TRACKBALL_HANDOFF.md)
 - Machine-readable geometry/electrical state: [`design/konrad_trackball_geometry.yaml`](design/konrad_trackball_geometry.yaml)
 
-Task-specific result files, audit scripts, manifests, and CI workflows live under `design/task1/`, `design/task2/`, and `.github/workflows/`.
+Task-specific result files, audit scripts, and manifests live under `design/task1/`, `design/task2/`, and `design/task3/`; active CI workflows live under `.github/workflows/`.
+
+Current project status is defined by this README, the task READMEs, and `design/konrad_trackball_geometry.yaml`. `TASK*_RESULT.md` files are retained as historical audit evidence rather than as current-status documents. Upstream/reference documentation under `klor1.4/`, `klorball35/`, and the downloaded trackball-case source is preserved for provenance.
 
 ---
 
@@ -244,7 +245,7 @@ See [`design/task3/TASK3C_RESULT.md`](design/task3/TASK3C_RESULT.md).
 
 J4 is final-placed on `F.Cu` at KiCad `(147.724665,142.367997)` with rotation 0°. Its row midpoint is `(147.724665,134.747997)`, preserving the proven +4.613622 mm X offset from the locked breakout datum.
 
-The PCB now has a fabricated open 2×22 mm breakout service notch plus a local +X support tongue for J4. Only copper intersecting that mechanical interface was rerouted: VCC wraps around the notch, one VCC via is relocated, and the RGB bypass is shortened on B.Cu. PMW signal routing remains untouched.
+The PCB now has a fabricated open 2×22 mm breakout service notch plus a local +X support tongue for J4. Only copper intersecting that mechanical interface was rerouted: VCC wraps around the notch, one VCC via is relocated, and the RGB bypass is shortened on B.Cu. At the end of 3D, PMW signal routing was still untouched; 3E completes it below.
 
 See [`design/task3/TASK3D_RESULT.md`](design/task3/TASK3D_RESULT.md).
 
@@ -292,7 +293,7 @@ Task 1 locks the **mechanical reference placement**.
 
 Task 2 locks the **electrical/firmware interface**.
 
-Task 3 is the next implementation step.
+Task 3F — preservation and integrated KiCad DRC audit — is the next implementation step.
 
 ## KiCad source-size policy
 
