@@ -30,6 +30,8 @@ jobs:
         run: |
           set +e
           mkdir -p klor-trackball/design/task3/generated
+          git checkout 57eca64b31ed46b43c3112a20a4270e6bc127206 -- \
+            klor-trackball/PCB/konrad_trackball/konrad_trackball.kicad_pcb
           python3 klor-trackball/design/task3/apply_task3e_pmw_routing.py \
             > klor-trackball/design/task3/generated/task3e-routing-generator.log 2>&1
           code=$?
