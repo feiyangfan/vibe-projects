@@ -9,6 +9,7 @@ inputs:
   canonical_state: ../konrad_trackball_geometry.yaml
   stock_project: ../../klor1.4/PCB/klor1_4
   derivative_project: ../../PCB/konrad_trackball
+  normalized_stock_pcb_object: 3dea93bc4266541e9ca85eebc70e4b8c851afc11
 
 subtasks:
   3a:
@@ -90,7 +91,7 @@ task3b:
 
 task3c:
   pcb: ../../PCB/konrad_trackball/konrad_trackball.kicad_pcb
-  pcb_blob: 9e34c771ed27f5f87d79cd7cc78e41c8ec1bbb74
+  pcb_blob: c3fefdb583d653a836d2ab99a9d94126ea331a3b
   task3b_schematic_blob_preserved: 4239dd2f139be30e24ee7109800a5ae9f179aee3
   removed_footprints: [SW22, D22]
   retired_nets: [RX, Net-(D22-A), Net-(SW14B-DIN)]
@@ -119,8 +120,14 @@ task3c:
   pmw_j4_to_u1_routing: deferred-to-3E
   next_subtask: 3D
 
+representation_policy:
+  committed_zone_fill_cache: stripped
+  cached_filled_polygon_blocks: 0
+  refill_before_drc_or_fabrication: true
+  normalization_tool: ../strip_kicad_zone_fill_cache.py
+
 rules:
-  - Stock KLOR source under klor1.4/ remains reference-only.
+  - Stock KLOR source under klor1.4/ remains reference-only except for the documented representation-only zone-fill-cache normalization.
   - Task 3 implementation occurs only under PCB/konrad_trackball and design/task3.
   - Do not copy stock Gerbers into the derivative.
   - Keep the project schematic-driven; PCB-only electrical edits are not authoritative.
