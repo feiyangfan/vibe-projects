@@ -279,3 +279,15 @@ Task 1 locks the **mechanical reference placement**.
 Task 2 locks the **electrical/firmware interface**.
 
 Task 3 is the next implementation step.
+
+## KiCad source-size policy
+
+Committed KLOR PCB sources omit KiCad's regenerable `filled_polygon` zone-fill cache so the PCB remains readable through repository tooling. Zone definitions, outlines, rules, footprints, tracks, vias, and board geometry remain committed.
+
+Before DRC or fabrication output, refill zones in KiCad. Before committing a PCB, run:
+
+```bash
+python klor-trackball/design/strip_kicad_zone_fill_cache.py <board.kicad_pcb>
+```
+
+Use `--check` when validating that a committed PCB is normalized.
