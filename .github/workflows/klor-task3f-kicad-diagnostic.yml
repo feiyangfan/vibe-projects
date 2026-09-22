@@ -22,6 +22,25 @@ jobs:
           sudo apt-get install --yes --no-install-recommends kicad
           kicad-cli version
 
+      - name: Run stock baseline DRC
+        id: stock_drc
+        shell: bash
+        run: |
+          set +e
+          mkdir -p klor-trackball/design/task3/generated
+          kicad-cli pcb drc \
+            --refill-zones \
+            --schematic-parity \
+            --all-track-errors \
+            --severity-all \
+            --format json \
+            --output klor-trackball/design/task3/generated/task3f-stock-kicad-drc.json \
+            klor-trackball/klor1.4/PCB/klor1_4/klor1_4.kicad_pcb
+          code=$?
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          echo "stock kicad-cli exit code: $code"
+          exit 0
+
       - name: Run integrated PCB DRC
         id: drc
         shell: bash
@@ -32,10 +51,23 @@ jobs:
           code=$?
           echo "exit_code=$code" >> "$GITHUB_OUTPUT"
           echo "kicad-cli exit code: $code"
-          if [ -f klor-trackball/design/task3/generated/task3f-kicad-drc.json ]; then
-            cat klor-trackball/design/task3/generated/task3f-kicad-drc.json
-          fi
           exit 0
+
+      - name: Summarize DRC reports
+        shell: python
+        run: |
+          import json
+          from collections import Counter
+          from pathlib import Path
+          for label, path in [
+              ("stock", Path("klor-trackball/design/task3/generated/task3f-stock-kicad-drc.json")),
+              ("derivative", Path("klor-trackball/design/task3/generated/task3f-kicad-drc.json")),
+          ]:
+              data=json.loads(path.read_text())
+              print(f"=== {label} ===")
+              for key in ("schematic_parity","unconnected_items","violations"):
+                  rows=data.get(key,[])
+                  print(key, len(rows), Counter(x.get("severity") for x in rows), Counter(x.get("type") for x in rows))
 
       - name: Upload diagnostic evidence
         if: always()
@@ -46,4 +78,6 @@ jobs:
           if-no-files-found: error
 
       - name: Record diagnostic exit code
-        run: echo "KiCad DRC diagnostic exit code = ${{ steps.drc.outputs.exit_code }}"
+        run: |
+          echo "Stock DRC diagnostic exit code = ${{ steps.stock_drc.outputs.exit_code }}"
+          echo "Derivative DRC diagnostic exit code = ${{ steps.drc.outputs.exit_code }}"
