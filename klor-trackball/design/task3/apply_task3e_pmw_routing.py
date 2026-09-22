@@ -333,6 +333,52 @@ def make_router(text: str):
     vias = [v for v in all_vias if X0-margin <= v.p[0] <= X1+margin and Y0-margin <= v.p[1] <= Y1+margin]
     pads = [p for p in all_pads if X0-margin <= p.p[0] <= X1+margin and Y0-margin <= p.p[1] <= Y1+margin]
 
+    # Spatially index static obstacles. The original implementation scanned
+    # every retained track/pad/via for every A* node; this index preserves the
+    # exact same clearance tests while reducing each node to nearby objects.
+    BUCKET = 4.0
+    segment_index: dict[tuple[str,int,int], list[Segment]] = {}
+    via_index: dict[tuple[int,int], list[Via]] = {}
+    pad_index: dict[tuple[int,int], list[Pad]] = {}
+
+    def bucket_span(lo: float, hi: float):
+        return range(math.floor(lo / BUCKET), math.floor(hi / BUCKET) + 1)
+
+    for seg in segments:
+        expand = 1.0
+        for bx in bucket_span(min(seg.a[0],seg.b[0])-expand, max(seg.a[0],seg.b[0])+expand):
+            for by in bucket_span(min(seg.a[1],seg.b[1])-expand, max(seg.a[1],seg.b[1])+expand):
+                segment_index.setdefault((seg.layer,bx,by), []).append(seg)
+
+    for via in vias:
+        expand = via.drill/2 + HOLE_HOLE_CLEAR + 0.3
+        for bx in bucket_span(via.p[0]-expand, via.p[0]+expand):
+            for by in bucket_span(via.p[1]-expand, via.p[1]+expand):
+                via_index.setdefault((bx,by), []).append(via)
+
+    for pad in pads:
+        expand_x = pad.size[0]/2 + 1.0
+        expand_y = pad.size[1]/2 + 1.0
+        if pad.drill:
+            expand_x = max(expand_x, pad.drill/2 + HOLE_HOLE_CLEAR + 0.3)
+            expand_y = max(expand_y, pad.drill/2 + HOLE_HOLE_CLEAR + 0.3)
+        for bx in bucket_span(pad.p[0]-expand_x, pad.p[0]+expand_x):
+            for by in bucket_span(pad.p[1]-expand_y, pad.p[1]+expand_y):
+                pad_index.setdefault((bx,by), []).append(pad)
+
+    def cell(p):
+        return (math.floor(p[0]/BUCKET), math.floor(p[1]/BUCKET))
+
+    def segment_candidates(p, layer):
+        bx,by = cell(p)
+        return segment_index.get((layer,bx,by), ())
+
+    def via_candidates(p):
+        return via_index.get(cell(p), ())
+
+    def pad_candidates(p):
+        return pad_index.get(cell(p), ())
+
     loops = sampled_edge_loops(text)
     if not loops:
         raise ValueError("no Edge.Cuts loop")
@@ -354,16 +400,15 @@ def make_router(text: str):
         edge_need = EDGE_TRACK_CLEAR + width/2
         if any(point_segment_distance(p,a,b) < edge_need for a,b in edges):
             return False
-        for s in segments:
-            if s.layer == layer and s.net != net:
-                if point_segment_distance(p,s.a,s.b) < width/2 + s.width/2 + TRACK_CLEAR:
-                    return False
-        for v in vias:
+        for s in segment_candidates(p,layer):
+            if s.net != net and point_segment_distance(p,s.a,s.b) < width/2 + s.width/2 + TRACK_CLEAR:
+                return False
+        for v in via_candidates(p):
             if v.net != net:
                 need = v.drill/2 + TRACK_PTH_HOLE_CLEAR + width/2
                 if math.dist(p,v.p) < need:
                     return False
-        for pad in pads:
+        for pad in pad_candidates(p):
             if pad.net == net:
                 continue
             if rotated_rect_distance(p,pad) < TRACK_PAD_CLEAR + width/2:
@@ -388,14 +433,14 @@ def make_router(text: str):
             return False
         if any(point_segment_distance(p,a,b) < EDGE_TRACK_CLEAR + new.size/2 for a,b in edges):
             return False
-        for s in segments:
-            if s.net != net:
-                if point_segment_distance(p,s.a,s.b) < new.drill/2 + TRACK_PTH_HOLE_CLEAR + s.width/2:
+        for layer in LAYERS:
+            for s in segment_candidates(p,layer):
+                if s.net != net and point_segment_distance(p,s.a,s.b) < new.drill/2 + TRACK_PTH_HOLE_CLEAR + s.width/2:
                     return False
-        for v in vias:
+        for v in via_candidates(p):
             if v.net != net and math.dist(p,v.p) < new.drill/2 + v.drill/2 + HOLE_HOLE_CLEAR:
                 return False
-        for pad in pads:
+        for pad in pad_candidates(p):
             if pad.net == net:
                 continue
             if rotated_rect_distance(p,pad) < TRACK_PAD_CLEAR + new.size/2:
