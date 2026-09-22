@@ -2,7 +2,7 @@
 
 ## Status
 
-**FROZEN FOR REV 1**
+**BASELINE FROZEN FOR REV 1 — RIGHT-THUMB ARCHITECTURE TO BE LOCKED IN TASK 2**
 
 This document is the authoritative product-requirements freeze for Tasks 2–4.
 
@@ -40,14 +40,23 @@ The design must be reproducible from upstream source and must not depend on repe
 | Base | KLOR 1.4 MX |
 | Layout | Fixed **Konrad** only |
 | Switch family | Full-height MX |
-| Key count | **39 total: 20 left / 19 right** |
-| Removed key | **R34 / SW22 / D22** |
-| Retained right thumb keys | **R32 and R33** |
+| Left key count | **20** |
+| Right key count | **To be locked in Task 2** |
+| Right thumb keys | **R32 / R33 / R34 are geometry candidates; exact retained/removed set is not yet frozen** |
+| Historical baseline | **39 total: remove R34 / SW22 / D22, retain R32 / R33** |
 | Key geometry | Preserve stock Konrad key centers and rotations except where explicitly modified for the trackball interface |
 | Alternative KLOR layouts | Not supported in Rev 1 |
 | Break-off / multi-layout PCB geometry | Not supported in Rev 1 |
 
-The trackball replaces the R34 region; it must not force deletion of R32 or R33.
+The historical derivative removed R34/SW22/D22, but this is now a **candidate**, not a product requirement.
+
+Task 2 must optimize the right-thumb architecture before Task 3 begins. The decision priority is:
+
+1. trackball reach, usability, mechanical clearance, and serviceability;
+2. preserve useful right-thumb keys where they do not materially compromise the trackball;
+3. retain the right encoder only if it does not materially compromise the first two priorities.
+
+At minimum, Task 2 must compare the historical R34-only solution with alternatives that sacrifice additional right-thumb controls and/or the right encoder to allow a more favorable trackball position.
 
 ### PCB architecture
 
@@ -76,9 +85,11 @@ Required:
 
 ### Encoders
 
-Retain the stock rotary-encoder function on both halves.
+The **left encoder is retained**.
 
-The **right EC11-class encoder is non-negotiable** and must remain mechanically clear of the trackball assembly.
+The **right EC11-class encoder is optional pending Task 2 geometry evaluation**. It may be retained, relocated, or removed if doing so materially improves trackball placement, thumb reach, housing clearance, or serviceability.
+
+Task 2 must explicitly lock the right-encoder decision before Task 3.
 
 ### RGB
 
@@ -88,9 +99,10 @@ Required:
 - **SK6812 Mini-E** production reference;
 - south-facing LED orientation;
 - one RGB device per retained key;
-- **20 LEDs left + 19 LEDs right = 39 total**.
+- **20 LEDs on the left**;
+- right-side RGB count derived from the final Task-2 retained-key set.
 
-There is no RGB device at the removed R34/SW22 position.
+There must be no RGB device at any right-thumb position removed by the final Task-2 geometry.
 
 ### Controller
 
@@ -167,7 +179,8 @@ Required:
 - nominal housing screw-pair spacing: **16 mm**;
 - breakout/service opening reference envelope: **2 x 22 mm**;
 - breakout/service path must remain accessible after assembly;
-- trackball position must preserve R32, R33, the right encoder, controller clearance, TRRS clearance, and retained structural mounting axes.
+- trackball position must preserve controller clearance, TRRS clearance, and retained structural mounting axes;
+- R32/R33/R34 and the right encoder are explicitly available as Task-2 trade-space rather than protected geometry.
 
 The prior validated placement is a regression reference, not an immutable absolute-coordinate requirement. Task 2 should re-express the relationship parametrically.
 
@@ -190,10 +203,10 @@ Primary target: **QMK on RP2040**.
 
 Required firmware capabilities:
 
-- 39-key matrix;
+- final matrix produced by the Task-2 retained-key set;
 - split keyboard operation;
-- both encoders;
-- 39-key RGB matrix;
+- left encoder plus the right encoder only if retained by Task 2;
+- RGB matrix count matching the final retained-key set;
 - PMW3360 on the right half;
 - QMK split-pointing transport when the pointing side is not the USB master.
 
@@ -220,7 +233,7 @@ The following are tuning/configuration tasks, not hardware requirements:
 - MX hotswap switches;
 - matrix diodes;
 - per-key SK6812 Mini-E RGB;
-- left and right rotary encoders;
+- left rotary encoder;
 - RP2040 Pro Micro-compatible controllers;
 - TRRS split connection;
 - reset capability / normal controller bootloader access;
@@ -274,7 +287,7 @@ The previous validated derivative demonstrated the following conflict-free alloc
 - PMW CS: GP9;
 - matrix rows: GP5, GP6, GP7, GP8;
 - matrix columns: GP27, GP26, GP22, GP20, GP23, GP21;
-- encoder: GP28, GP29.
+- encoder baseline: GP28, GP29 when the corresponding encoder is retained.
 
 This is a **preferred engineering baseline**, not a product-level requirement. Task 3 may alter the exact allocation if required by the selected RP2040 controller or SPI implementation, but it may not sacrifice any Required feature or reintroduce a Removed feature merely to preserve historical pin numbers.
 
@@ -299,10 +312,11 @@ Rev 1 is not intended to:
 
 Tasks 2–4 may choose implementation details, but they must not silently change this product contract.
 
+**Exception for Task 2:** the exact right-thumb retained-key set, final total key count, and right-encoder retention are intentionally delegated to Task 2 because they depend on comparative trackball geometry. Once Task 2 locks that architecture, those decisions become part of this Rev-1 contract.
+
 In particular, the following require an explicit requirements revision:
 
-- changing the 39-key layout;
-- removing R32, R33, or the right encoder;
+- changing the final Task-2 frozen right-thumb/key-count decision after Task 2 is complete;
 - changing ball diameter;
 - changing sensor family;
 - replacing the breakout/housing architecture;

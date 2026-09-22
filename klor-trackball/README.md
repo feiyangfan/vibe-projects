@@ -11,9 +11,9 @@ The intended product direction is:
 - sensor: **PMW3360**;
 - breakout architecture: **Kivipallur-style PMW3360 breakout**;
 - housing reference: **Keyball 25 mm Trackball Case Type C**;
-- right rotary encoder retained;
-- one right-thumb key removed to make room for the trackball;
-- previous reference target: **39 keys total — 20 left / 19 right**;
+- left rotary encoder retained;
+- right-thumb key retention and right-encoder retention to be decided by comparative Task-2 geometry;
+- historical comparison baseline: **39 keys total — 20 left / 19 right**, removing R34;
 - complete deliverable: **PCB + switchplate + case + firmware + fabrication outputs**.
 
 Those details are now frozen for Rev 1 in [`REQUIREMENTS.md`](REQUIREMENTS.md). Task 1 explicitly classified stock KLOR features as required, optional/deferred, or intentionally removed.
@@ -195,8 +195,9 @@ Explicitly classify stock functionality as:
 
 This includes:
 
-- key count and exact removed thumb key;
-- right rotary encoder;
+- fixed versus geometry-dependent product decisions;
+- right-thumb/trackball decision criteria;
+- right rotary encoder trade-space;
 - controller;
 - TRRS/split transport;
 - RGB;
@@ -211,13 +212,17 @@ This includes:
 
 **Completion gate**
 
-A short authoritative requirements document exists and contains no unresolved product-level decisions required by Tasks 2–4.
+A short authoritative requirements document exists, and any geometry-dependent product decision is explicitly bounded and assigned to Task 2 before Task 3 may begin.
 
 ---
 
 ## Task 2 — Reconstruct the complete KLOR/Konrad geometry in Ergogen
 
 Build the actual canonical geometric model.
+
+Before freezing the final right-half geometry, compare the right-thumb/trackball trade-space. At minimum include the historical R34-only + right-encoder baseline and alternatives that remove additional thumb controls and/or the right encoder if they materially improve trackball reach, clearance, or serviceability.
+
+Task 2 must lock the final retained subset of R32/R33/R34, total key count, and right-encoder decision before Task 3.
 
 Model:
 
@@ -253,7 +258,7 @@ over separately maintained absolute coordinates.
 
 **Completion gate**
 
-The generated canonical geometry numerically reproduces all intentionally preserved KLOR/Konrad geometry and expresses the trackball system parametrically.
+The generated canonical geometry numerically reproduces all intentionally preserved KLOR/Konrad geometry, expresses the trackball system parametrically, and freezes the final right-thumb key set / key count / right-encoder architecture for Task 3.
 
 ---
 

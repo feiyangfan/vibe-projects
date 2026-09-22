@@ -37,11 +37,11 @@ The audit freezes Rev 1 as:
 - KLOR 1.4 MX;
 - fixed Konrad;
 - separate left/right PCBs;
-- 39 keys: 20 left / 19 right;
-- R34/SW22/D22 removed;
-- R32/R33 retained;
-- stock encoder function retained on both halves;
-- right encoder explicitly protected from trackball interference;
+- 20 left keys fixed;
+- right-thumb R32/R33/R34 occupancy intentionally delegated to Task 2;
+- historical 39-key / R34-only removal retained as a comparison baseline, not a requirement;
+- left encoder retained;
+- right encoder intentionally delegated to Task 2 and may be retained, relocated, or removed;
 - 25 mm PMW3360 on the right;
 - Kivipallur breakout;
 - Type-C housing;
@@ -74,8 +74,6 @@ These are not “DNP for now” features. They are outside the Rev-1 hardware co
 Task 2 can now model geometry without waiting on decisions about:
 
 - layout variant;
-- key count;
-- removed thumb key;
 - trackball family;
 - housing family;
 - case family;
@@ -83,19 +81,32 @@ Task 2 can now model geometry without waiting on decisions about:
 - structural interfaces;
 - connector class.
 
-Task 3 can implement the electrical board without waiting on decisions about:
+Task 3 can implement the electrical board **after Task 2 locks the right-thumb architecture**. It will not need to revisit decisions about:
 
 - controller class;
 - wired vs wireless;
 - QMK vs ZMK primary target;
-- RGB population;
-- encoder retention;
 - trackball signal set;
 - obsolete optional peripherals.
 
 Task 4 can design the routing pipeline around a fixed hardware feature set.
 
-There are therefore no unresolved **product-level** decisions blocking Tasks 2–4.
+There are no unresolved product-level decisions blocking **Task 2**. Task 2 deliberately owns one bounded product decision: the final right-thumb key set / total key count / right-encoder retention. That geometry decision must be frozen before Task 3.
+
+## Right-thumb decision deliberately deferred to Task 2
+
+The original Task-1 draft over-froze the retired implementation.
+
+The recheck confirmed:
+
+- stock mapping: R32 = SW20, R33 = SW21, R34 = SW22;
+- the historical derivative removed R34/SW22/D22;
+- its validated assembly reported only about **3.44 mm** conservative XY gap to retained SW21/R33 and about **2.65 mm** to SW15;
+- the right encoder had about **27.77 mm** conservative XY gap in that historical placement.
+
+Therefore R34-only is mechanically feasible, but it is not automatically the best ergonomic architecture, and the right encoder was not a necessary constraint in the old placement.
+
+Task 2 must compare right-thumb/encoder alternatives and lock the final architecture before electrical generation.
 
 ## Implementation details intentionally deferred
 
@@ -104,6 +115,8 @@ The following remain valid downstream engineering decisions rather than product 
 - exact RP2040 Pro Micro-compatible controller model;
 - final GPIO assignment after Task-3 validation;
 - exact trackball absolute coordinates, to be re-derived parametrically in Task 2;
+- final retained subset of R32/R33/R34 and resulting total key count;
+- right encoder retained / relocated / removed;
 - route topology;
 - zones;
 - detailed right-case relief shape;
