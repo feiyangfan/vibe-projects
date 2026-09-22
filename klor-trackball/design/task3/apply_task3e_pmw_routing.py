@@ -31,7 +31,7 @@ HOLE_HOLE_CLEAR = 0.500
 EDGE_TRACK_CLEAR = 0.300
 
 GRID = 1.0
-X0, X1 = 104.0, 150.5
+X0, X1 = 104.0, 175.0
 Y0, Y1 = 61.0, 144.0
 LAYERS = ("F.Cu", "B.Cu")
 
@@ -51,7 +51,7 @@ POWER = {
 
 # Start with the three upper SPI pads, then CS. This order preserves the
 # narrowest U1 escape channels first.
-SIGNAL_ORDER = (85, 84, 83, 82)
+SIGNAL_ORDER = (83, 84, 85, 82)
 
 
 @dataclass(frozen=True)
