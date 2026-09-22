@@ -51,7 +51,7 @@ POWER = {
 
 # Start with the three upper SPI pads, then CS. This order preserves the
 # narrowest U1 escape channels first.
-SIGNAL_ORDER = (83, 84, 85, 82)
+SIGNAL_ORDER = (83, 82, 84, 85)
 
 
 @dataclass(frozen=True)
@@ -670,7 +670,7 @@ def make_router(text: str):
 
             if cached_via_clear(a):
                 nxt = ident(i,j,1-l)
-                ng = g[current] + 8.0
+                ng = g[current] + 30.0
                 if ng < g[nxt]:
                     g[nxt] = ng
                     previous[nxt] = current
