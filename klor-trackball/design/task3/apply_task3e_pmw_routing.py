@@ -22,6 +22,7 @@ REPO = ROOT.parent
 PCB = ROOT / "PCB/konrad_trackball/konrad_trackball.kicad_pcb"
 
 BASELINE_BLOB = "4272f9c3895fd46c0688b3eb530fc7299b540727"
+RESULT_BLOB = "cdc63c3081881861bdcba8f0c6bc03a5b242baed"
 
 # Custom-rule minima from konrad_trackball.kicad_dru.
 TRACK_CLEAR = 0.127
@@ -51,7 +52,7 @@ POWER = {
 
 # Start with the three upper SPI pads, then CS. This order preserves the
 # narrowest U1 escape channels first.
-SIGNAL_ORDER = (83, 82, 84, 85)
+SIGNAL_ORDER = (83, 84, 85, 82)
 
 
 @dataclass(frozen=True)
@@ -670,7 +671,7 @@ def make_router(text: str):
 
             if cached_via_clear(a):
                 nxt = ident(i,j,1-l)
-                ng = g[current] + 30.0
+                ng = g[current] + 8.0
                 if ng < g[nxt]:
                     g[nxt] = ng
                     previous[nxt] = current
@@ -803,8 +804,11 @@ def main() -> int:
     text = text[:pos] + "\n\t" + "\n\t".join(additions) + text[pos:]
     PCB.write_text(text,encoding="utf-8")
 
+    actual = git_blob(PCB)
+    if actual != RESULT_BLOB:
+        raise SystemExit(f"Task 3E output blob mismatch: {actual}")
     print(f"Task 3E inserted {sum(len(r.segments) for r in routes)} segments and {sum(len(r.vias) for r in routes)} vias")
-    print(f"PCB blob: {git_blob(PCB)}")
+    print(f"PCB blob: {actual}")
     return 0
 
 
