@@ -253,7 +253,12 @@ def parse_copper_graphic_polygons(text: str) -> list[tuple[str,list[tuple[float,
                 continue
             pts = [(float(x), float(y)) for x,y in re.findall(r"\(xy\s+([-\d.]+)\s+([-\d.]+)\)", b)]
             if len(pts) >= 3:
-                result.append((lm.group(1), pts))
+                # Exact imported graphics can contain hundreds of points.
+                # A bounding rectangle is conservative for route search and
+                # dramatically cheaper; exact KiCad DRC remains authoritative.
+                xs=[p[0] for p in pts]; ys=[p[1] for p in pts]
+                box=[(min(xs),min(ys)),(max(xs),min(ys)),(max(xs),max(ys)),(min(xs),max(ys))]
+                result.append((lm.group(1), box))
     return result
 
 
