@@ -33,3 +33,9 @@ If you only want to check the traces or see what is connected to which pin you c
 ## TAKE A DEEPER LOOK OR MODIFY 
 
 You can download the project if you need to take a deeper look or modify something. You need the Open Source software [KiCad](https://www.kicad.org/) to open it.
+
+## Repository-size normalization
+
+The committed `klor1_4.kicad_pcb` intentionally omits generated `filled_polygon` zone-fill cache data. The zone definitions themselves remain in the board and KiCad can regenerate the fills. This keeps the editable source small enough for repository connectors without changing the intended PCB layout.
+
+Refill zones before DRC/Gerber generation; strip the cache again before committing with `design/strip_kicad_zone_fill_cache.py`.
