@@ -22,7 +22,7 @@ Canonical Task 1 evidence:
 
 **Task 2 — electrical and firmware interface: COMPLETE.** Task 2F passed with zero unresolved GPIO/net conflicts.
 
-**Task 3 — right-hand trackball PCB derivative: IN PROGRESS. Tasks 3A–3D are COMPLETE.** J4 is final-placed and the fabricated breakout edge notch/support tongue is implemented with only the required local VCC/RGB accommodation. **Next: Task 3E — route the PMW3360 interface.**
+**Task 3 — right-hand trackball PCB derivative: IN PROGRESS. Tasks 3A–3E are COMPLETE.** J4 and the fabricated pass-through are mechanically fixed, and the four PMW signals plus VCC/GND are routed. MOTION remains NC. **Next: Task 3F — preservation and integrated KiCad DRC audit.**
 
 The overall design is **not fabrication-locked** yet. Mechanical placement is locked; PCB/CAD/firmware implementation and final integrated validation remain.
 
@@ -390,7 +390,19 @@ Task 3D then implements the mechanical PCB interface:
 
 The 3D audit confirms an empty pass-through corridor, closed Edge.Cuts topology, local copper clearances, and no PMW routing added prematurely.
 
-**Next: Task 3E — route J4 to U1 and connect VCC/GND; MOTION remains NC.**
+Task 3E routes the frozen interface without changing Task 3D geometry:
+
+- `PMW_CS` / GP9 → J4.1;
+- `PMW_MISO` / GP4 → J4.2;
+- `PMW_MOSI` / GP3 → J4.3;
+- `PMW_SCK` / GP2 → J4.4;
+- J4.5 MOTION remains NC;
+- J4.6 ties into `VCC`;
+- J4.7 ties into `GND`.
+
+The 3E source audit proves the change is additive only and all six required routed nets are connected. Full KiCad DRC and final preservation classification remain Task 3F.
+
+**Next: Task 3F — preservation, zone refill, integrated DRC, and unrouted review.**
 
 Create a distinct right-hand derivative from stock KLOR. Do not convert the stock reversible PCB into a universal trackball board.
 
@@ -508,7 +520,7 @@ Third-party mechanical reference:
 
 ## Next agent: start here
 
-Continue **Task 3E — route the PMW3360 interface** in the derivative project at `PCB/konrad_trackball/`. Treat the Task 3D connector/pass-through geometry as mechanically frozen. Route `PMW_CS`, `PMW_MISO`, `PMW_MOSI`, `PMW_SCK`, `VCC`, and `GND` to J4; keep MOTION/Pin 5 NC.
+Continue **Task 3F — preservation and integrated DRC audit** in the derivative project at `PCB/konrad_trackball/`. Treat the Task 3E PCB as the electrical-routing baseline. Refill zones for validation, run KiCad DRC/unrouted checks, classify intentional exceptions, and prove unrelated stock geometry/circuitry remains preserved.
 
 Treat these as locked inputs:
 
@@ -519,4 +531,4 @@ Do not revisit Task 1 placement or Task 2 connector/net/GPIO/firmware ownership 
 
 ## PCB representation policy
 
-Committed PCB sources omit generated KiCad `filled_polygon` cache data. Refill zones before DRC or fabrication. Normalized stock PCB: `3dea93bc4266541e9ca85eebc70e4b8c851afc11`; Task 3C PCB: `c3fefdb583d653a836d2ab99a9d94126ea331a3b`; Task 3D PCB: `4272f9c3895fd46c0688b3eb530fc7299b540727`.
+Committed PCB sources omit generated KiCad `filled_polygon` cache data. Refill zones before DRC or fabrication. Normalized stock PCB: `3dea93bc4266541e9ca85eebc70e4b8c851afc11`; Task 3C PCB: `c3fefdb583d653a836d2ab99a9d94126ea331a3b`; Task 3D PCB: `4272f9c3895fd46c0688b3eb530fc7299b540727`; Task 3E PCB: `cdc63c3081881861bdcba8f0c6bc03a5b242baed`.

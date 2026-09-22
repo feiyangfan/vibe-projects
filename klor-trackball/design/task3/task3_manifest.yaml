@@ -36,10 +36,13 @@ subtasks:
     audit_script: audit_task3d_connector_pass_through.py
   3e:
     name: pmw-routing
-    status: next
+    status: complete
+    result_document: TASK3E_RESULT.md
+    apply_script: apply_task3e_pmw_routing.py
+    audit_script: audit_task3e_pmw_routing.py
   3f:
     name: preservation-and-drc
-    status: not-started
+    status: next
   3g:
     name: pcb-freeze
     status: not-started
@@ -154,6 +157,22 @@ task3d:
   pmw_j4_to_u1_routing: deferred-to-3E
   next_subtask: 3E
 
+task3e:
+  pcb: ../../PCB/konrad_trackball/konrad_trackball.kicad_pcb
+  pcb_blob: cdc63c3081881861bdcba8f0c6bc03a5b242baed
+  task3d_base_pcb_blob: 4272f9c3895fd46c0688b3eb530fc7299b540727
+  additive_only: true
+  routes:
+    PMW_CS: {segments: 44, vias: 11, length_mm: 167.134304}
+    PMW_MISO: {segments: 27, vias: 2, length_mm: 98.455934}
+    PMW_MOSI: {segments: 37, vias: 4, length_mm: 126.112378}
+    PMW_SCK: {segments: 30, vias: 10, length_mm: 120.279114}
+    VCC: {segments: 1, vias: 0, length_mm: 2.525834}
+    GND: {segments: 5, vias: 0, length_mm: 10.679194}
+  motion: NC
+  full_kicad_drc: deferred-to-3F
+  next_subtask: 3F
+
 representation_policy:
   committed_zone_fill_cache: stripped
   cached_filled_polygon_blocks: 0
@@ -165,5 +184,5 @@ rules:
   - Task 3 implementation occurs only under PCB/konrad_trackball and design/task3.
   - Do not copy stock Gerbers into the derivative.
   - Keep the project schematic-driven; PCB-only electrical edits are not authoritative.
-  - Tasks 3A-3D are complete; Task 3E owns J4-to-U1 PMW/VCC/GND routing while MOTION remains NC.
+  - Tasks 3A-3E are complete; Task 3F owns integrated preservation, zone refill, KiCad DRC, and unrouted review.
   - Production fabrication outputs remain Task 8.

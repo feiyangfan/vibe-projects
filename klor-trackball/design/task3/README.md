@@ -176,7 +176,7 @@ The pass-through intersects stock/3C VCC copper and the staged RGB bypass region
 
 ---
 
-## 3E — Route the PMW3360 interface
+## 3E — Route the PMW3360 interface — COMPLETE
 
 Route the frozen interface only after connector and pass-through geometry are fixed.
 
@@ -201,7 +201,19 @@ Required invariants:
 - every required PMW signal is fully routed;
 - existing split/RGB/matrix/encoder ownership remains intact.
 
-**Gate:** all seven connector pins have exactly the Task 2F-defined electrical state and no PMW net is unrouted.
+Implemented routing:
+
+- `PMW_CS` → J4.1;
+- `PMW_MISO` → J4.2;
+- `PMW_MOSI` → J4.3;
+- `PMW_SCK` → J4.4;
+- J4.5 MOTION remains NC;
+- J4.6 is tied to the existing `VCC` rail;
+- J4.7 is tied to `GND`.
+
+The routing is deterministic from the exact Task 3D PCB and is additive only. Existing Task 3D copper, geometry, footprints, zones, and schematic state are not rewritten.
+
+**Gate:** [`TASK3E_RESULT.md`](TASK3E_RESULT.md) and the Task 3E routing/reproduction audit pass. Full KiCad DRC remains Task 3F.
 
 ---
 

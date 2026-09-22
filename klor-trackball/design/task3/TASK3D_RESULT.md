@@ -81,6 +81,16 @@ The Task 3D audit proves:
 - J4 has no local different-net copper clearance conflict;
 - PMW routing remains deferred to Task 3E.
 
+The passing Task 3D CI audit recorded these minimum local source-geometry clearances:
+
+| Clearance | Minimum |
+| --- | ---: |
+| routed track copper → new Edge.Cuts | **0.407497 mm** |
+| via copper → new Edge.Cuts | **0.988957 mm** |
+| J4 pad copper → new Edge.Cuts | **1.032003 mm** |
+| J4 pad → different-net track copper | **0.497698 mm** |
+| J4 pad → different-net via copper | **1.549777 mm** |
+
 Final PCB Git blob:
 
 ```text
