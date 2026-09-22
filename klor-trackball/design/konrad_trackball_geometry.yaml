@@ -1,6 +1,6 @@
 project: klor-trackball
 variant: klor-1.4-mx-konrad-pmw3360-25mm
-status: task3d-connector-pass-through-complete-overall-not-fabrication-locked
+status: task3e-pmw-routing-complete-overall-not-fabrication-locked
 units: mm
 
 implementation_progress:
@@ -18,7 +18,8 @@ implementation_progress:
   task_3b_schematic_contract: complete
   task_3c_destructive_pcb_edits: complete
   task_3d_connector_and_pass_through: complete
-  next_task: task_3e_pmw_routing
+  task_3e_pmw_routing: complete
+  next_task: task_3f_preservation_and_drc
   task_1_result: task1/TASK1_RESULT.md
   task_1_manifest: task1/reference_assembly_manifest.yaml
   task_2_manifest: task2/task2_manifest.yaml
@@ -30,10 +31,11 @@ implementation_progress:
   task_3b_result: task3/TASK3B_RESULT.md
   task_3c_result: task3/TASK3C_RESULT.md
   task_3d_result: task3/TASK3D_RESULT.md
+  task_3e_result: task3/TASK3E_RESULT.md
 
 
 pcb_derivative:
-  status: task_3d_connector_and_pass_through_final
+  status: task_3e_pmw_interface_routed
   project_directory: PCB/konrad_trackball
   project_basename: konrad_trackball
   schematic_driven: true
@@ -96,7 +98,15 @@ pcb_derivative:
       start_kicad: [151.129969, 128.715031]
       end_kicad: [151.705, 130.22]
     pmw_routing_to_j4: deferred-to-task-3e
-  next_edit: task_3e_pmw_routing
+  task_3e_pcb:
+    blob: cdc63c3081881861bdcba8f0c6bc03a5b242baed
+    additive_only: true
+    routed: [PMW_CS, PMW_MISO, PMW_MOSI, PMW_SCK, VCC, GND]
+    motion: NC
+    new_segments: 144
+    new_vias: 27
+    full_kicad_drc: deferred-to-task-3f
+  next_edit: task_3f_preservation_and_drc
 
 keyboard:
   base_pcb: klor1.4/PCB/klor1_4/klor1_4.kicad_pcb
@@ -389,3 +399,4 @@ representation_policy:
   normalized_stock_pcb_blob: 3dea93bc4266541e9ca85eebc70e4b8c851afc11
   task3c_pcb_blob: c3fefdb583d653a836d2ab99a9d94126ea331a3b
   task3d_pcb_blob: 4272f9c3895fd46c0688b3eb530fc7299b540727
+  task3e_pcb_blob: cdc63c3081881861bdcba8f0c6bc03a5b242baed
