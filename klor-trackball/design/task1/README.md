@@ -180,7 +180,7 @@ If the placement is ever changed, rerun Task 1A–1G and update together:
 
 - `reference_assembly_manifest.yaml`
 - `../konrad_trackball_geometry.yaml`
-- `../../docs/KONRAD_TRACKBALL_HANDOFF.md`
+- `../../README.md`
 
 ## Reproducing the audit
 
