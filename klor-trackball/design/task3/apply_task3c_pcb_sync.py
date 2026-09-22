@@ -2,8 +2,8 @@
 """Apply Task 3C to the KLOR trackball derivative PCB.
 
 This is a deterministic one-shot transformation of the Task 3B PCB baseline.
-It exists because the board is large enough that the repository connector cannot
-reliably replace the full KiCad file in one API request.
+It is retained as reproducibility evidence. The normalized PCB is small enough
+for direct repository-connector reads and writes.
 
 Task 3C intentionally does NOT final-place J4, cut the breakout pass-through,
 or route J4 to U1. Those belong to Tasks 3D and 3E.
@@ -20,7 +20,7 @@ ROOT = Path(__file__).resolve().parents[2]
 REPO = ROOT.parent
 PCB = ROOT / "PCB/konrad_trackball/konrad_trackball.kicad_pcb"
 
-EXPECTED_BASELINE_BLOB = "d16dc2e1e8730500f7844146e7c437db3b8d7b44"
+EXPECTED_BASELINE_BLOB = "3dea93bc4266541e9ca85eebc70e4b8c851afc11"
 
 PMW_NETS = {
     82: "PMW_CS",
