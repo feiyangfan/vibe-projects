@@ -21,10 +21,10 @@ STOCK_SCH = STOCK_DIR / "klor1_4.kicad_sch"
 DERIV_PCB = DERIV_DIR / "konrad_trackball.kicad_pcb"
 DERIV_SCH = DERIV_DIR / "konrad_trackball.kicad_sch"
 
-STOCK_PCB_BLOB = "d16dc2e1e8730500f7844146e7c437db3b8d7b44"
+STOCK_PCB_BLOB = "3dea93bc4266541e9ca85eebc70e4b8c851afc11"
 STOCK_SCH_BLOB = "4f68892c9d13ffe4200587708eeb4c43ee2b652b"
 TASK3B_SCH_BLOB = "4239dd2f139be30e24ee7109800a5ae9f179aee3"
-TASK3C_PCB_BLOB = "9e34c771ed27f5f87d79cd7cc78e41c8ec1bbb74"
+TASK3C_PCB_BLOB = "c3fefdb583d653a836d2ab99a9d94126ea331a3b"
 
 J4_UUID = "3c3c0004-0000-4000-8000-000000000001"
 RGB_BRIDGE_UUID = "3c3c0005-0000-4000-8000-000000000001"
@@ -564,6 +564,8 @@ def main() -> int:
         "stock_schematic_blob_locked": git_blob(STOCK_SCH) == STOCK_SCH_BLOB,
         "task3b_schematic_unchanged": git_blob(DERIV_SCH) == TASK3B_SCH_BLOB,
         "task3c_pcb_blob_locked": git_blob(DERIV_PCB) == TASK3C_PCB_BLOB,
+        "stock_pcb_zone_fill_cache_stripped": "(filled_polygon" not in stock,
+        "task3c_pcb_zone_fill_cache_stripped": "(filled_polygon" not in deriv,
         "pcb_parentheses_balanced": deriv[balanced_block(deriv, 0)[1]:].strip() == "",
         "footprint_reference_set_exact": deriv_refs == retained_refs | {"J4"},
         "sw22_removed": "SW22" not in dfp,
