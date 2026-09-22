@@ -1,0 +1,32 @@
+name: KLOR Task 3F preservation diagnostic
+
+on:
+  push:
+    branches:
+      - klor-trackball/task-3f-preservation-drc
+    paths:
+      - "klor-trackball/design/task3/audit_task3f_preservation.py"
+      - ".github/workflows/klor-task3f-preservation-diagnostic.yml"
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Run Task 3F preservation audit
+        run: |
+          mkdir -p klor-trackball/design/task3/generated
+          python3 klor-trackball/design/task3/audit_task3f_preservation.py \
+            --json-output klor-trackball/design/task3/generated/task3f-preservation.json
+      - name: Upload preservation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: klor-task3f-preservation-diagnostic
+          path: klor-trackball/design/task3/generated/
+          if-no-files-found: error
