@@ -57,3 +57,7 @@ The stock Edge.Cuts remain unchanged. J4-to-U1 PMW routing remains intentionally
 See `../../design/task3/TASK3C_RESULT.md`.
 
 **Next: Task 3D — final connector placement and fabricated breakout pass-through.**
+
+## Zone-fill cache policy
+
+Generated `filled_polygon` cache data is not committed. The Task 3C board is ~1.44 MB and remains directly accessible through repository tooling. Refill zones in KiCad before DRC/fabrication, then strip cached fills again before committing.
