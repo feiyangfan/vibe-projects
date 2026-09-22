@@ -16,7 +16,7 @@ The intended product direction is:
 - previous reference target: **39 keys total — 20 left / 19 right**;
 - complete deliverable: **PCB + switchplate + case + firmware + fabrication outputs**.
 
-Those details are current reference requirements. Task 1 will explicitly re-confirm which stock KLOR features are required, optional, or intentionally removed before they become final product requirements.
+Those details are now frozen for Rev 1 in [`REQUIREMENTS.md`](REQUIREMENTS.md). Task 1 explicitly classified stock KLOR features as required, optional/deferred, or intentionally removed.
 
 ## Engineering goal
 
@@ -173,6 +173,8 @@ Task 0 proves the **workflow**, not the final production geometry.
 ---
 
 ## Task 1 — Freeze product requirements
+
+**Status: COMPLETE**
 
 Define the finished keyboard independently of decisions made only to accommodate the old patched PCB.
 
@@ -501,6 +503,6 @@ Generated output should never become the only place where design intent exists.
 
 ## Current work
 
-**Task 1 — Freeze product requirements.**
+**Task 2 — Reconstruct the complete KLOR/Konrad geometry in Ergogen.**
 
-Task 0 is complete. Its validation record is in `ergogen/TASK0_RESULT.md`.
+Task 1 is complete. The authoritative product contract is [`REQUIREMENTS.md`](REQUIREMENTS.md), with the audit record in `ergogen/TASK1_RESULT.md`.
