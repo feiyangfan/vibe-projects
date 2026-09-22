@@ -28,10 +28,11 @@ The project is **not fabrication-locked yet**. Tasks 1 and 2 provide the verifie
 - **Task 1:** [`design/task1/README.md`](design/task1/README.md)
 - **Task 2:** [`design/task2/README.md`](design/task2/README.md)
 - **Task 3:** [`design/task3/README.md`](design/task3/README.md)
-- Engineering handoff: [`docs/KONRAD_TRACKBALL_HANDOFF.md`](docs/KONRAD_TRACKBALL_HANDOFF.md)
 - Machine-readable geometry/electrical state: [`design/konrad_trackball_geometry.yaml`](design/konrad_trackball_geometry.yaml)
 
-Task-specific result files, audit scripts, manifests, and CI workflows live under `design/task1/`, `design/task2/`, and `.github/workflows/`.
+Task-specific result files, audit scripts, and manifests live under `design/task1/`, `design/task2/`, and `design/task3/`; active CI workflows live under `.github/workflows/`.
+
+Current project status is defined by this README, the task READMEs, and `design/konrad_trackball_geometry.yaml`. `TASK*_RESULT.md` files are retained as historical audit evidence rather than as current-status documents. Upstream/reference documentation under `klor1.4/`, `klorball35/`, and the downloaded trackball-case source is preserved for provenance.
 
 ---
 
@@ -292,7 +293,7 @@ Task 1 locks the **mechanical reference placement**.
 
 Task 2 locks the **electrical/firmware interface**.
 
-Task 3 is the next implementation step.
+Task 3F — preservation and integrated KiCad DRC audit — is the next implementation step.
 
 ## KiCad source-size policy
 
