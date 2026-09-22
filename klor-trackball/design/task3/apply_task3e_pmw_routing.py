@@ -579,7 +579,8 @@ def make_router(text: str):
         start, target, width = spec["start"], spec["end"], spec["width"]
         si,sj = snap(start)
         ti,tj = snap(target)
-        if not (0 <= si < nx and 0 <= sj < ny and 0 <= ti < nx and 0 <= tj < ny):
+        if not (X0 <= start[0] <= X1 and Y0 <= start[1] <= Y1
+                and X0 <= target[0] <= X1 and Y0 <= target[1] <= Y1):
             raise ValueError("route endpoint outside search window")
 
         via_cache: dict[tuple[float,float], bool] = {}
@@ -608,12 +609,31 @@ def make_router(text: str):
         heap = []
 
         def heuristic(i,j):
-            return math.hypot(i-ti,j-tj)
+            return math.dist(coord(i,j),target) / GRID
 
+        # The electrical endpoints are exact through-hole pad centers and do
+        # not generally lie on the routing raster. Seed every nearby grid node
+        # that has an exact legal segment from the pad center.
+        seeded = 0
         for layer_index in range(2):
-            u = ident(si,sj,layer_index)
-            g[u] = 0.0
-            heapq.heappush(heap,(heuristic(si,sj),u))
+            for di in range(-2,3):
+                for dj in range(-2,3):
+                    i,j = si+di,sj+dj
+                    if not (0 <= i < nx and 0 <= j < ny):
+                        continue
+                    p = coord(i,j)
+                    if math.dist(start,p) > 1.75*GRID:
+                        continue
+                    if not track_segment_clear(start,p,LAYERS[layer_index],net,width,reserved):
+                        continue
+                    u = ident(i,j,layer_index)
+                    cost = math.dist(start,p) / GRID
+                    if cost < g[u]:
+                        g[u] = cost
+                        heapq.heappush(heap,(cost+heuristic(i,j),u))
+                        seeded += 1
+        if seeded == 0:
+            raise RuntimeError(f"{spec['name']}: no legal raster escape from exact start pad")
 
         directions = ((1,0),(-1,0),(0,1),(0,-1),(1,1),(1,-1),(-1,1),(-1,-1))
         end = -1
@@ -626,11 +646,14 @@ def make_router(text: str):
             closed[current] = 1
             visited += 1
             i,j,l = decode(current)
-            if (i,j) == (ti,tj):
+            a = coord(i,j)
+            # Finish through an exact legal segment to the J4/power anchor.
+            # The destination pad is through-hole, so either copper layer is
+            # valid and no extra via is required at the endpoint.
+            if math.dist(a,target) <= 1.75*GRID and \
+               track_segment_clear(a,target,LAYERS[l],net,width,reserved):
                 end = current
                 break
-
-            a = coord(i,j)
             for di,dj in directions:
                 ni,nj = i+di,j+dj
                 if not (0 <= ni < nx and 0 <= nj < ny):
@@ -663,8 +686,14 @@ def make_router(text: str):
             states.append((coord(i,j),l))
             current = previous[current]
         states.reverse()
-        states[0] = (start,states[0][1])
-        states[-1] = (target,states[-1][1])
+        if math.dist(states[0][0],start) > 1e-6:
+            states.insert(0,(start,states[0][1]))
+        else:
+            states[0] = (start,states[0][1])
+        if math.dist(states[-1][0],target) > 1e-6:
+            states.append((target,states[-1][1]))
+        else:
+            states[-1] = (target,states[-1][1])
 
         result = Route(net,spec["name"],width,[],[])
         run_start = states[0][0]
