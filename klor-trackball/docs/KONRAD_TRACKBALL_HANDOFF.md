@@ -506,3 +506,7 @@ Treat these as locked inputs:
 - Task 2 electrical/firmware interface, summarized in [`../design/task2/README.md`](../design/task2/README.md) and frozen in `../design/task2/TASK2F_RESULT.md`.
 
 Do not revisit Task 1 placement or Task 2 connector/net/GPIO/firmware ownership unless implementation uncovers a hard constraint that invalidates one of their verified assumptions.
+
+## PCB representation policy
+
+Committed PCB sources omit generated KiCad `filled_polygon` cache data. Refill zones before DRC or fabrication. Normalized stock PCB: `3dea93bc4266541e9ca85eebc70e4b8c851afc11`; normalized Task 3C PCB: `c3fefdb583d653a836d2ab99a9d94126ea331a3b`.
