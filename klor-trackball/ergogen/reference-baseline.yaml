@@ -1,0 +1,61 @@
+status: reference_only
+purpose: >-
+  Carry forward useful evidence from the retired KiCad-patching implementation
+  while the Ergogen model is reconstructed from source. None of these values is
+  automatically authoritative in the new design.
+
+historical_source:
+  commit: 432ea630584c22dff2e9f5a596138dcc7602013f
+  task3e_pcb_blob: cdc63c3081881861bdcba8f0c6bc03a5b242baed
+  note: Complete pre-migration implementation is recoverable from Git history.
+
+target_reference:
+  base_keyboard: KLOR 1.4 MX
+  layout: Konrad
+  left_half: stock_reference
+  previous_target_key_count:
+    left: 20
+    right: 19
+    total: 39
+  previous_removed_position:
+    logical: R34
+    pcb_switch: SW22
+    diode: D22
+  previous_retained_items:
+    - R32
+    - R33
+    - right_rotary_encoder
+
+trackball_reference:
+  ball_diameter_mm: 25
+  sensor: PMW3360DM-T2QU
+  breakout: Kivipallur PMW3360
+  housing: Keyball 25mm Trackball Case Type C
+  previous_fabrication_frame_datums_mm:
+    ball_center: [162.323, -134.748]
+    housing_screw_midpoint: [156.111, -134.748]
+    housing_screws:
+      - [156.111, -126.768]
+      - [156.111, -142.728]
+    breakout_slot_center: [143.111, -134.748]
+    deleted_sw22_center: [143.025, -128.770]
+  breakout_reference_slot_mm: [2.0, 22.0]
+
+previous_electrical_contract:
+  connector_order_keyboard_side:
+    1: {signal: CS, net: PMW_CS, gpio: GP9}
+    2: {signal: MISO, net: PMW_MISO, gpio: GP4}
+    3: {signal: MOSI, net: PMW_MOSI, gpio: GP3}
+    4: {signal: SCK, net: PMW_SCK, gpio: GP2}
+    5: {signal: MOTION, net: NC}
+    6: {signal: 3V3, net: VCC}
+    7: {signal: GND, net: GND}
+  split_serial: {gpio: GP1, mode: half_duplex}
+  rgb: {gpio: GP0, previous_left_count: 20, previous_right_count: 19}
+  encoder: [GP28, GP29]
+
+migration_instruction:
+  - Re-derive KLOR/Konrad points and outlines from stock source geometry.
+  - Use the previous values above as numerical regression references only.
+  - Do not reproduce UUID-based KiCad mutation as the new architecture.
+  - Prefer parameter changes followed by regeneration and validation.

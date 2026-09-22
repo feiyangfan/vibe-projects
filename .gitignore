@@ -14,6 +14,10 @@ __pycache__/
 .venv/
 venv/
 
+# Node / Ergogen local state
+node_modules/
+klor-trackball/ergogen/generated/
+
 # Xcode user- and machine-local state
 **/xcuserdata/
 *.xcuserstate
@@ -25,7 +29,3 @@ DerivedData/
 *.kicad_sch-bak
 *.kicad_pro-bak
 ~*.lck
-
-# Reproducible KLOR audit output; CI uploads these as artifacts
-klor-trackball/design/task1/generated/
-klor-trackball/design/task2/generated/

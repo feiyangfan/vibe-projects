@@ -1,0 +1,15 @@
+meta:
+  author: feiyangfan
+  version: 1
+  # Bootstrap against the same Ergogen engine declared by the checked-in
+  # Klorball35 reference. Task 0 may deliberately re-pin this after validation.
+  engine: 4.2.1
+
+units:
+  # Canonical MX pitch. Task 0 will replace/add derived units only when they are
+  # verified against the stock KLOR/Konrad geometry.
+  U: 19.05
+
+# Task 0 intentionally starts here.
+# Add points -> outlines -> pcbs incrementally and validate each generated datum
+# against the stock/reference sources before expanding the model.

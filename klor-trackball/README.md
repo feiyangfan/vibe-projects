@@ -1,308 +1,106 @@
-# KLOR Trackball
+# KLOR Trackball — Ergogen Migration
 
 ## Goal
 
-Modify the **right half** of **KLOR 1.4 MX** using the **Konrad** layout so it gains a **25 mm PMW3360 trackball** based on the Klorball35 / Kivipallur architecture, while preserving the stock KLOR design everywhere that does not conflict with the trackball.
+Build a KLOR 1.4 MX / Konrad trackball variant in which **design intent lives upstream of KiCad**.
 
-The **left half remains stock**.
-
----
-
-## Project status
-
-| Task | Status | Result |
-| --- | --- | --- |
-| Task 1 — mechanical reference assembly | **COMPLETE** | trackball placement mechanically locked |
-| Task 2 — electrical + firmware interface | **COMPLETE** | connector/net/GPIO/firmware contract locked |
-| Task 3 — right-hand trackball PCB derivative | **IN PROGRESS** | 3A–3E complete; 3F preservation + DRC next |
-| Task 4 — right Konrad switchplate | pending | — |
-| Task 5 — editable right-case derivative | pending | — |
-| Task 6 — complete mechanical + PCB validation | pending | — |
-| Task 7 — QMK trackball variant | pending | — |
-| Task 8 — fabrication + hardware bring-up | pending | — |
-
-The project is **not fabrication-locked yet**. Tasks 1 and 2 provide the verified inputs for Task 3.
-
-### Canonical documents
-
-- **Task 1:** [`design/task1/README.md`](design/task1/README.md)
-- **Task 2:** [`design/task2/README.md`](design/task2/README.md)
-- **Task 3:** [`design/task3/README.md`](design/task3/README.md)
-- Machine-readable geometry/electrical state: [`design/konrad_trackball_geometry.yaml`](design/konrad_trackball_geometry.yaml)
-
-Task-specific result files, audit scripts, and manifests live under `design/task1/`, `design/task2/`, and `design/task3/`; active CI workflows live under `.github/workflows/`.
-
-Current project status is defined by this README, the task READMEs, and `design/konrad_trackball_geometry.yaml`. `TASK*_RESULT.md` files are retained as historical audit evidence rather than as current-status documents. Upstream/reference documentation under `klor1.4/`, `klorball35/`, and the downloaded trackball-case source is preserved for provenance.
-
----
-
-## Implementation baseline
-
-All new implementation work starts from **`main`**.
-
-Reference sources remain unchanged:
-
-- `klor1.4/` — stock KLOR 1.4 source/reference
-- `klorball35/` — working trackball/reference architecture
-
-Modified PCB, CAD, and firmware artifacts must be **trackball-specific derivatives** rather than silent replacements of the stock source files.
-
-The historical branch `klor-trackball/konrad-trackball-implementation` is not part of the baseline.
-
----
-
-## Locked design direction
-
-### Keyboard
-
-- Base: **KLOR 1.4 MX**
-- Layout: **Konrad**
-- Left half: stock
-- Final key count: **39**
-  - left: 20
-  - right: 19
-- Keep right rotary encoder
-- Keep R32 and R33
-- Remove logical key **R34**
-  - PCB footprint: `SW22`
-  - diode: `D22`
-  - firmware matrix position: `[7,1]`
-- Preserve all unaffected MX and south-facing SK6812 Mini-E positions
-
-`R34` is a logical Konrad key position, not a KiCad resistor reference.
-
-### Trackball stack
-
-- Ball: **25 mm**
-- Sensor: **PixArt PMW3360DM-T2QU**
-- Breakout: **Kivipallur PMW3360**
-- Housing: **kepeo Keyball 25mm Trackball Case Type C**, Thingiverse 6719828
-
-The Type-C housing screws are a **housing-to-switchplate interface**, not main-PCB mounting holes.
-
----
-
-## Task 1 locked mechanical inputs
-
-Task 1 validated and froze the trackball reference assembly.
-
-Canonical fabrication frame: **KLOR Gerber/Excellon XY**, millimetres.
-
-| Datum | X | Y |
-| --- | ---: | ---: |
-| Ball center | **162.323** | **-134.748** |
-| Housing screw midpoint | **156.111** | **-134.748** |
-| Housing screw 1 | **156.111** | **-126.768** |
-| Housing screw 2 | **156.111** | **-142.728** |
-| PMW3360 breakout/pass-through center | **143.111** | **-134.748** |
-| Deleted SW22 center | **143.025** | **-128.770** |
-
-Important mechanical results:
-
-- Type-C mounting plane = installed switchplate top
-- 25 mm ball top = case `Z ≈ 38.2 mm`
-- housing rim = case `Z ≈ 38.9 mm`
-- all eight structural mounting axes remain clear
-- retained switches, right encoder, MCU, and TRRS remain clear
-- breakout insertion/service corridor is valid
-- the stock right-case shell **does intersect the Type-C housing locally**
-
-That case interference is an expected Task 5 shell-relief requirement. Do **not** move the locked trackball placement merely to avoid it.
-
-For the complete mechanical audit, transforms, clearances, and source hashes, see [`design/task1/README.md`](design/task1/README.md).
-
----
-
-## Task 2 locked electrical/firmware inputs
-
-Task 2 audited the actual KiCad and QMK sources and froze the complete interface with **zero unresolved GPIO conflicts and zero unresolved net conflicts**.
-
-For the complete 2A–2F narrative, evidence, and Task 3 handoff, see:
-
-**[`design/task2/README.md`](design/task2/README.md)**
-
-### Final PMW3360 connector contract
-
-The KLOR keyboard-side connector is deliberately reversed relative to the opposite-facing Kivipallur breakout.
-
-| KLOR pin | Kivipallur pin | Signal | Final PCB net | MCU |
-| ---: | ---: | --- | --- | --- |
-| 1 | 7 | CS | `PMW_CS` | GP9 |
-| 2 | 6 | MISO | `PMW_MISO` | GP4 |
-| 3 | 5 | MOSI | `PMW_MOSI` | GP3 |
-| 4 | 4 | SCK | `PMW_SCK` | GP2 |
-| 5 | 3 | MOTION | **NC** | — |
-| 6 | 2 | +3V3 | `VCC` | U1.21 |
-| 7 | 1 | GND | `GND` | ground |
-
-Key locked requirements:
-
-- remove `SW22` and `D22`
-- preserve `col1` and `row3`; do not bridge them
-- RGB bypass: `SW13 DOUT → SW14 DIN`
-- preserve GP1 `TX → J1.4` half-duplex split transport
-- physically isolate GP4 from TRRS `J1.3` using the Task 2B-verified copper edit
-- GP2 = PMW3360 SCK
-- GP3 = PMW3360 MOSI
-- GP4 = PMW3360 MISO
-- GP9 = PMW3360 CS
-- Kivipallur `+3V3` connects to existing KLOR `VCC`
-- MOTION remains unconnected for revision 1
-- right OLED/haptic/audio/stock PAW3204 paths remain disabled/DNP for revision 1
-- final RGB topology = **20 left / 19 right / 39 total**
-
-### Firmware ownership
-
-The later Task 7 firmware derivative is locked to:
+The target architecture is:
 
 ```text
-PMW3360 over SPI0
-
-SCK  = GP2
-MOSI = GP3
-MISO = GP4
-CS   = GP9
-
-split serial = GP1, half-duplex
-RGB          = GP0
-handedness   = EE_HANDS
-pointing side = right
-MOTION       = unused
+Ergogen source
+  ├─ key/component points
+  ├─ PCB/plate outlines
+  ├─ mounting geometry
+  ├─ trackball + breakout geometry
+  └─ PCB footprint/net placement
+        ↓
+generated KiCad / mechanical geometry
+        ↓
+routing + validation
+        ↓
+fabrication outputs
 ```
 
-Detailed firmware configuration and disabled stock-feature ownership are documented in [`design/task2/README.md`](design/task2/README.md).
+Generated KiCad geometry is a derivative, not the source of truth. Do not reintroduce scripts that patch KiCad S-expressions by UUID or hard-coded object identity unless no upstream representation is possible.
 
----
+## Migration reset
 
-## Task 3 — create the right-hand trackball PCB derivative — IN PROGRESS
+The previous implementation reached a routed Task 3E KiCad derivative, but it depended on direct KiCad mutation and preservation scripts. That implementation is intentionally retired from the active working tree for the Ergogen migration.
 
-The detailed Task 3 plan is in **[`design/task3/README.md`](design/task3/README.md)**.
+Nothing is lost: the complete pre-migration state is preserved in Git at commit:
 
-Task 3 is split into:
+`432ea630584c22dff2e9f5a596138dcc7602013f`
 
-```text
-3A derivative project
- ↓
-3B schematic contract
- ↓
-3C destructive PCB edits
- ↓
-3D connector + fabricated pass-through
- ↓
-3E PMW3360 routing
- ↓
-3F preservation + DRC audit
- ↓
-3G PCB freeze
-```
+The previously routed derivative PCB blob was:
 
-### Current status
+`cdc63c3081881861bdcba8f0c6bc03a5b242baed`
 
-**3A — COMPLETE.**
+See `ergogen/reference-baseline.yaml` for the useful design facts carried forward as **reference evidence**, not as immutable implementation constraints.
 
-A distinct schematic-driven derivative now exists at:
+## Active sources
 
-```text
-PCB/konrad_trackball/
-```
+- `ergogen/` — new active design workspace and future geometric source of truth.
+- `klor1.4/` — stock KLOR 1.4 reference. Do not edit it to implement the trackball variant.
+- `klorball35/` — Ergogen/Klorball/Kivipallur reference material.
+- `Keyball 25mm Trackball Case Type C - 6719828/` — Type-C trackball housing source geometry.
 
-The derivative starts from an exact stock KLOR PCB/schematic/library baseline, uses the project basename `konrad_trackball`, and intentionally excludes stock Gerbers. The stock project under `klor1.4/PCB/klor1_4/` remains unchanged.
+Generated Klorball35 outputs, duplicate archives, the retired `PCB/konrad_trackball/` derivative, and the old task-specific mutation/audit framework are not part of the new active design.
 
-See [`design/task3/TASK3A_RESULT.md`](design/task3/TASK3A_RESULT.md).
+## New roadmap
 
-**3B — COMPLETE.**
+### Task 0 — Ergogen feasibility gate
 
-The derivative schematic now implements the frozen Task 2 contract:
+Create the smallest validated KLOR-shaped Ergogen prototype:
 
-- SW22 and D22 removed logically;
-- direct `SW13 DOUT → SW14 DIN` RGB bypass;
-- U1 ownership renamed to `PMW_SCK` / `PMW_MOSI` / `PMW_MISO` / `PMW_CS`;
-- new J4 1×7 Kivipallur interface with keyboard-side order `CS, MISO, MOSI, SCK, NC, VCC, GND`;
-- J1.3 explicitly NC while J1.4/TX remains the half-duplex split path;
-- J2 haptic, OLED1, and BZ1 marked DNP for revision 1.
+- several exact Konrad key positions;
+- one stock mounting pattern;
+- MCU/TRRS/encoder reference points;
+- one MX + RGB footprint;
+- trackball and breakout reference geometry;
+- generated KiCad PCB and plate outline.
 
-The derivative PCB is intentionally still byte-identical to stock at the end of 3B.
+**Gate:** regeneration is deterministic and the generated geometry can be compared numerically with the stock/reference KLOR sources.
 
-See [`design/task3/TASK3B_RESULT.md`](design/task3/TASK3B_RESULT.md).
+### Task 1 — Requirements and reference reconstruction
 
-**3C — COMPLETE.**
+Re-audit the stock KLOR, Klorball35/Kivipallur, Type-C housing, and firmware sources. Separate actual requirements from decisions that existed only because the old KiCad board was being patched.
 
-The derivative PCB now implements the authorized physical synchronization:
+### Task 2 — Canonical Ergogen geometry
 
-- SW22 and D22 removed;
-- obsolete R34 matrix branches and local D22 net removed without merging `col1` and `row3`;
-- GP4/RX path to J1.3 removed and J1.3 made no-net;
-- J1.4/TX split path preserved;
-- U1 pads reassigned to the four semantic PMW nets;
-- permanent `SW13 DOUT → SW14 DIN` B.Cu bypass implemented;
-- J4 introduced with the frozen electrical pin order.
+Express the complete Konrad layout, structural holes, board outline, component datums, trackball assembly, breakout/service opening, connector placement, and plate geometry in Ergogen-controlled parameters.
 
-The 3C preservation audit confirms stock Edge.Cuts and all unrelated retained footprint/trace/via geometry are unchanged.
+### Task 3 — Generated electrical PCB
 
-See [`design/task3/TASK3C_RESULT.md`](design/task3/TASK3C_RESULT.md).
+Generate the intended keyboard/trackball PCB structure: footprints, nets, matrix/RGB ownership, controller, encoder, split interface, PMW3360 connector, and power mapping.
 
-**3D — COMPLETE.**
+### Task 4 — Routing pipeline
 
-J4 is final-placed on `F.Cu` at KiCad `(147.724665,142.367997)` with rotation 0°. Its row midpoint is `(147.724665,134.747997)`, preserving the proven +4.613622 mm X offset from the locked breakout datum.
+Choose and implement a regeneration-safe routing strategy. Manual KiCad work is acceptable only if it survives regeneration cleanly or is reproducibly replayed.
 
-The PCB now has a fabricated open 2×22 mm breakout service notch plus a local +X support tongue for J4. Only copper intersecting that mechanical interface was rerouted: VCC wraps around the notch, one VCC via is relocated, and the RGB bypass is shortened on B.Cu. At the end of 3D, PMW signal routing was still untouched; 3E completes it below.
+### Task 5 — Parametric switchplate and case
 
-See [`design/task3/TASK3D_RESULT.md`](design/task3/TASK3D_RESULT.md).
+Drive the switchplate and case modification from the same canonical geometry. Ergogen owns 2D datums; a parametric CAD layer may own 3D solids.
 
-**3E — COMPLETE.**
+### Task 6 — Integrated validation
 
-The four PMW signal nets are routed end-to-end between U1 and J4. J4.6 is tied into the existing VCC rail and J4.7 into GND. J4.5 / MOTION remains NC with no routed copper.
+Validate generated PCB, plate, case, housing, breakout, retained keys, encoder, structural mounts, clearances, and KiCad DRC.
 
-Task 3E is additive only: Task 3D geometry, footprints, existing traces/vias, zones, split/RGB/matrix/encoder ownership, and the schematic remain unchanged.
+### Task 7 — Firmware
 
-See [`design/task3/TASK3E_RESULT.md`](design/task3/TASK3E_RESULT.md).
+Build the trackball-specific QMK variant from the final electrical contract.
 
-**3F — NEXT:** perform the full preservation audit, refill zones, run integrated KiCad DRC, and classify any remaining unrouted/DRC findings.
+### Task 8 — Fabrication and bring-up
 
-Task 3 must continue to preserve the locked Task 1 mechanical placement and Task 2 electrical/firmware interface.
+Generate fabrication outputs, perform independent review, fabricate revision 1, and complete hardware bring-up.
 
-## Remaining roadmap
+## Rules for the migration
 
-### Task 4 — right Konrad switchplate
+1. **One geometric authority.** Coordinates that affect PCB, plate, or case should be derived from the Ergogen model rather than copied manually between files.
+2. **Reference is not authority.** Stock KLOR and the retired Task-3E derivative are comparison targets and evidence.
+3. **Generated output is disposable.** A clean checkout must be able to reproduce generated geometry.
+4. **No hidden manual geometry.** Any unavoidable downstream manual step must be documented and reproducible.
+5. **Validate numerically.** Visual similarity is not sufficient for preserved KLOR geometry, mounting axes, or trackball interfaces.
 
-Use the STEP source of truth. Add the Type-C housing mounting points, local housing relief, R34-region changes, and breakout pass-through while preserving unaffected openings and all verified structural mounting axes.
+## Current next step
 
-### Task 5 — editable right-case derivative
-
-Establish a reproducible editable workflow from the stock right-case STL and provide the local shell relief proven necessary by Task 1.
-
-### Task 6 — complete modified-assembly validation
-
-Validate the actual modified PCB + switchplate + housing + breakout + retained keys + encoder + case as one assembly.
-
-### Task 7 — QMK trackball variant
-
-Implement the 39-key trackball-specific firmware, asymmetric RGB map, PMW3360 SPI interface, right-only pointing device, retained split/encoder, and disabled conflicting optional stock features.
-
-### Task 8 — fabrication + hardware bring-up
-
-Generate and independently review fabrication outputs, prepare assembly notes, fabricate the first revision, perform continuity/power checks, and bring up keyboard functions before PMW3360 motion.
-
----
-
-## Fabrication gate
-
-Do **not** order the modified PCB or treat final printed parts as production-ready until Tasks 3–7 pass their completion gates.
-
-Task 1 locks the **mechanical reference placement**.
-
-Task 2 locks the **electrical/firmware interface**.
-
-Task 3F — preservation and integrated KiCad DRC audit — is the next implementation step.
-
-## KiCad source-size policy
-
-Committed KLOR PCB sources omit KiCad's regenerable `filled_polygon` zone-fill cache so the PCB remains readable through repository tooling. Zone definitions, outlines, rules, footprints, tracks, vias, and board geometry remain committed.
-
-Before DRC or fabrication output, refill zones in KiCad. Before committing a PCB, run:
-
-```bash
-python klor-trackball/design/strip_kicad_zone_fill_cache.py <board.kicad_pcb>
-```
-
-Use `--check` when validating that a committed PCB is normalized.
+**Task 0 — Ergogen feasibility gate.**
