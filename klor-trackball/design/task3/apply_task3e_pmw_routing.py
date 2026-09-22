@@ -536,12 +536,15 @@ def make_router(text: str):
                 if not (0 <= ni < nx and 0 <= nj < ny):
                     continue
                 b = coord(ni,nj)
-                # A current node has already been validated. Check only the
-                # destination and half-grid midpoint, memoized for this route.
-                mid = ((a[0]+b[0])/2, (a[1]+b[1])/2)
-                if (ni,nj) != (ti,tj) and not (
-                    cached_track_clear(b,l) and cached_track_clear(mid,l)
-                ):
+                # Sample every raster move at <=0.25 mm. This catches rotated
+                # pad corners that can sit between 1 mm grid endpoints.
+                samples = (
+                    (a[0]+0.25*(b[0]-a[0]), a[1]+0.25*(b[1]-a[1])),
+                    (a[0]+0.50*(b[0]-a[0]), a[1]+0.50*(b[1]-a[1])),
+                    (a[0]+0.75*(b[0]-a[0]), a[1]+0.75*(b[1]-a[1])),
+                    b,
+                )
+                if not all(cached_track_clear(p,l) for p in samples):
                     continue
                 nxt = ident(ni,nj,l)
                 ng = g[current] + math.hypot(di,dj)
