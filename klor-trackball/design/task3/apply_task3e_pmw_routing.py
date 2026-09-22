@@ -303,6 +303,62 @@ def point_segment_distance(p, a, b):
     return math.dist(p, q)
 
 
+def orientation(a, b, c):
+    return (b[0]-a[0])*(c[1]-a[1]) - (b[1]-a[1])*(c[0]-a[0])
+
+
+def segments_intersect(a, b, c, d):
+    eps = 1e-9
+    o1,o2,o3,o4 = orientation(a,b,c), orientation(a,b,d), orientation(c,d,a), orientation(c,d,b)
+    if (o1 > eps and o2 < -eps or o1 < -eps and o2 > eps) and \
+       (o3 > eps and o4 < -eps or o3 < -eps and o4 > eps):
+        return True
+    # Collinear/touching cases matter for copper clearance.
+    def on(p, q, r):
+        return min(p[0],r[0])-eps <= q[0] <= max(p[0],r[0])+eps and \
+               min(p[1],r[1])-eps <= q[1] <= max(p[1],r[1])+eps
+    if abs(o1) <= eps and on(a,c,b): return True
+    if abs(o2) <= eps and on(a,d,b): return True
+    if abs(o3) <= eps and on(c,a,d): return True
+    if abs(o4) <= eps and on(c,b,d): return True
+    return False
+
+
+def segment_segment_distance(a, b, c, d):
+    if segments_intersect(a,b,c,d):
+        return 0.0
+    return min(
+        point_segment_distance(a,c,d),
+        point_segment_distance(b,c,d),
+        point_segment_distance(c,a,b),
+        point_segment_distance(d,a,b),
+    )
+
+
+def segment_hits_inflated_pad(a, b, pad: Pad, inflate: float) -> bool:
+    # Transform route segment into the pad's local frame, then test against
+    # an axis-aligned rectangle expanded by the required copper clearance.
+    theta = math.radians(-pad.angle)
+    def local(p):
+        dx,dy = p[0]-pad.p[0], p[1]-pad.p[1]
+        return (
+            dx*math.cos(theta) - dy*math.sin(theta),
+            dx*math.sin(theta) + dy*math.cos(theta),
+        )
+    aa,bb = local(a),local(b)
+    hx = pad.size[0]/2 + inflate
+    hy = pad.size[1]/2 + inflate
+    if abs(aa[0]) <= hx and abs(aa[1]) <= hy:
+        return True
+    if abs(bb[0]) <= hx and abs(bb[1]) <= hy:
+        return True
+    corners = [(-hx,-hy),(hx,-hy),(hx,hy),(-hx,hy)]
+    return any(
+        segments_intersect(aa,bb,corners[i],corners[(i+1)%4])
+        for i in range(4)
+    )
+
+
 def rotated_rect_distance(p, pad: Pad) -> float:
     # Conservative rectangular envelope of the copper pad.
     theta = math.radians(-pad.angle)
@@ -394,6 +450,57 @@ def make_router(text: str):
     def snap(p):
         return (round((p[0]-X0)/GRID), round((p[1]-Y0)/GRID))
 
+    def path_segment_candidates(a, b, layer):
+        found = set()
+        for bx in bucket_span(min(a[0],b[0])-1.0, max(a[0],b[0])+1.0):
+            for by in bucket_span(min(a[1],b[1])-1.0, max(a[1],b[1])+1.0):
+                found.update(segment_index.get((layer,bx,by), ()))
+        return found
+
+    def path_via_candidates(a, b):
+        found = set()
+        for bx in bucket_span(min(a[0],b[0])-1.0, max(a[0],b[0])+1.0):
+            for by in bucket_span(min(a[1],b[1])-1.0, max(a[1],b[1])+1.0):
+                found.update(via_index.get((bx,by), ()))
+        return found
+
+    def path_pad_candidates(a, b):
+        found = set()
+        for bx in bucket_span(min(a[0],b[0])-2.5, max(a[0],b[0])+2.5):
+            for by in bucket_span(min(a[1],b[1])-2.5, max(a[1],b[1])+2.5):
+                found.update(pad_index.get((bx,by), ()))
+        return found
+
+    def track_segment_clear(a, b, layer, net, width, reserved):
+        if not inside_polygon(a,outer) or not inside_polygon(b,outer):
+            return False
+        edge_need = EDGE_TRACK_CLEAR + width/2
+        if any(segment_segment_distance(a,b,c,d) < edge_need for c,d in edges):
+            return False
+        for seg in path_segment_candidates(a,b,layer):
+            if seg.net != net and segment_segment_distance(a,b,seg.a,seg.b) < width/2 + seg.width/2 + TRACK_CLEAR:
+                return False
+        for via in path_via_candidates(a,b):
+            if via.net != net and point_segment_distance(via.p,a,b) < via.drill/2 + TRACK_PTH_HOLE_CLEAR + width/2:
+                return False
+        for pad in path_pad_candidates(a,b):
+            if pad.net == net:
+                continue
+            if segment_hits_inflated_pad(a,b,pad,TRACK_PAD_CLEAR + width/2):
+                return False
+            if pad.drill and point_segment_distance(pad.p,a,b) < pad.drill/2 + TRACK_PTH_HOLE_CLEAR + width/2:
+                return False
+        for route in reserved:
+            if route.net == net:
+                continue
+            for seg in route.segments:
+                if seg.layer == layer and segment_segment_distance(a,b,seg.a,seg.b) < width/2 + seg.width/2 + TRACK_CLEAR:
+                    return False
+            for via in route.vias:
+                if point_segment_distance(via.p,a,b) < via.drill/2 + TRACK_PTH_HOLE_CLEAR + width/2:
+                    return False
+        return True
+
     def track_point_clear(p, layer, net, width, reserved):
         if not inside_polygon(p, outer):
             return False
@@ -475,14 +582,7 @@ def make_router(text: str):
         if not (0 <= si < nx and 0 <= sj < ny and 0 <= ti < nx and 0 <= tj < ny):
             raise ValueError("route endpoint outside search window")
 
-        track_cache: dict[tuple[float,float,int], bool] = {}
         via_cache: dict[tuple[float,float], bool] = {}
-
-        def cached_track_clear(p, layer_index):
-            k = (round(p[0],3), round(p[1],3), layer_index)
-            if k not in track_cache:
-                track_cache[k] = track_point_clear(p,LAYERS[layer_index],net,width,reserved)
-            return track_cache[k]
 
         def cached_via_clear(p):
             k = (round(p[0],3), round(p[1],3))
@@ -536,15 +636,7 @@ def make_router(text: str):
                 if not (0 <= ni < nx and 0 <= nj < ny):
                     continue
                 b = coord(ni,nj)
-                # Sample every raster move at <=0.25 mm. This catches rotated
-                # pad corners that can sit between 1 mm grid endpoints.
-                samples = (
-                    (a[0]+0.25*(b[0]-a[0]), a[1]+0.25*(b[1]-a[1])),
-                    (a[0]+0.50*(b[0]-a[0]), a[1]+0.50*(b[1]-a[1])),
-                    (a[0]+0.75*(b[0]-a[0]), a[1]+0.75*(b[1]-a[1])),
-                    b,
-                )
-                if not all(cached_track_clear(p,l) for p in samples):
+                if not track_segment_clear(a,b,LAYERS[l],net,width,reserved):
                     continue
                 nxt = ident(ni,nj,l)
                 ng = g[current] + math.hypot(di,dj)
@@ -600,19 +692,14 @@ def make_router(text: str):
         if math.dist(run_start,states[-1][0]) > 1e-6:
             result.segments.append(Segment(run_start,states[-1][0],width,LAYERS[layer],net))
 
-        # Fine-grained post-check: sample each simplified trace at 0.25 mm
-        # or finer. The search raster is only a path-finding accelerator; this
-        # check is what accepts or rejects the resulting physical geometry.
+        # Exact post-check on every simplified segment. This also catches
+        # any long collinear merge that would cross an obstacle even though its
+        # individual raster steps were legal.
         for seg in result.segments:
-            length = math.dist(seg.a,seg.b)
-            steps = max(1,math.ceil(length/0.25))
-            for i in range(steps+1):
-                t = i/steps
-                p = (seg.a[0]+t*(seg.b[0]-seg.a[0]), seg.a[1]+t*(seg.b[1]-seg.a[1]))
-                if not track_point_clear(p,seg.layer,net,width,reserved):
-                    raise RuntimeError(
-                        f"{spec['name']}: fine clearance failure at {p} on {seg}"
-                    )
+            if not track_segment_clear(seg.a,seg.b,seg.layer,net,width,reserved):
+                raise RuntimeError(
+                    f"{spec['name']}: exact clearance failure on {seg}"
+                )
         print(f"{spec['name']}: {len(result.segments)} segments, {len(result.vias)} vias, {route_length(result):.3f} mm")
         return result
 
