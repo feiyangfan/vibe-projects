@@ -30,7 +30,7 @@ TRACK_PTH_HOLE_CLEAR = 0.330
 HOLE_HOLE_CLEAR = 0.500
 EDGE_TRACK_CLEAR = 0.300
 
-GRID = 0.5
+GRID = 1.0
 X0, X1 = 104.0, 150.5
 Y0, Y1 = 61.0, 144.0
 LAYERS = ("F.Cu", "B.Cu")
@@ -597,11 +597,19 @@ def make_router(text: str):
         if math.dist(run_start,states[-1][0]) > 1e-6:
             result.segments.append(Segment(run_start,states[-1][0],width,LAYERS[layer],net))
 
-        # Exact final segments can differ slightly from raster endpoints.
+        # Fine-grained post-check: sample each simplified trace at 0.25 mm
+        # or finer. The search raster is only a path-finding accelerator; this
+        # check is what accepts or rejects the resulting physical geometry.
         for seg in result.segments:
-            midpoint = ((seg.a[0]+seg.b[0])/2,(seg.a[1]+seg.b[1])/2)
-            if not track_point_clear(midpoint,seg.layer,net,width,reserved):
-                raise RuntimeError(f"{spec['name']}: simplified segment midpoint violates clearance: {seg}")
+            length = math.dist(seg.a,seg.b)
+            steps = max(1,math.ceil(length/0.25))
+            for i in range(steps+1):
+                t = i/steps
+                p = (seg.a[0]+t*(seg.b[0]-seg.a[0]), seg.a[1]+t*(seg.b[1]-seg.a[1]))
+                if not track_point_clear(p,seg.layer,net,width,reserved):
+                    raise RuntimeError(
+                        f"{spec['name']}: fine clearance failure at {p} on {seg}"
+                    )
         print(f"{spec['name']}: {len(result.segments)} segments, {len(result.vias)} vias, {route_length(result):.3f} mm")
         return result
 
