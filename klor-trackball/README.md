@@ -245,7 +245,7 @@ See [`design/task3/TASK3C_RESULT.md`](design/task3/TASK3C_RESULT.md).
 
 J4 is final-placed on `F.Cu` at KiCad `(147.724665,142.367997)` with rotation 0°. Its row midpoint is `(147.724665,134.747997)`, preserving the proven +4.613622 mm X offset from the locked breakout datum.
 
-The PCB now has a fabricated open 2×22 mm breakout service notch plus a local +X support tongue for J4. Only copper intersecting that mechanical interface was rerouted: VCC wraps around the notch, one VCC via is relocated, and the RGB bypass is shortened on B.Cu. PMW signal routing remains untouched.
+The PCB now has a fabricated open 2×22 mm breakout service notch plus a local +X support tongue for J4. Only copper intersecting that mechanical interface was rerouted: VCC wraps around the notch, one VCC via is relocated, and the RGB bypass is shortened on B.Cu. At the end of 3D, PMW signal routing was still untouched; 3E completes it below.
 
 See [`design/task3/TASK3D_RESULT.md`](design/task3/TASK3D_RESULT.md).
 
