@@ -54,7 +54,7 @@ pcb_derivative:
     revision1_dnp: [J2, OLED1, BZ1]
     derivative_pcb_still_stock_baseline: true
   task_3c_pcb:
-    blob: 9e34c771ed27f5f87d79cd7cc78e41c8ec1bbb74
+    blob: c3fefdb583d653a836d2ab99a9d94126ea331a3b
     schematic_blob_preserved: 4239dd2f139be30e24ee7109800a5ae9f179aee3
     removed_footprints: [SW22, D22]
     retired_nets: [RX, Net-(D22-A), Net-(SW14B-DIN)]
@@ -360,3 +360,8 @@ canonical_task_1_result: design/task1/TASK1_RESULT.md
 canonical_task_1_manifest: design/task1/reference_assembly_manifest.yaml
 canonical_task_2_result: design/task2/TASK2F_RESULT.md
 canonical_task_2_manifest: design/task2/task2_manifest.yaml
+
+representation_policy:
+  committed_zone_fill_cache: stripped
+  normalized_stock_pcb_blob: 3dea93bc4266541e9ca85eebc70e4b8c851afc11
+  task3c_pcb_blob: c3fefdb583d653a836d2ab99a9d94126ea331a3b
