@@ -4,6 +4,8 @@ This directory is the active geometric workspace for the KLOR trackball migratio
 
 ## Task 0 prototype
 
+**Status: COMPLETE**
+
 Task 0 proves the generation architecture before the complete keyboard is modeled.
 
 `config.yaml` currently contains a **sparse regression slice**:
@@ -43,6 +45,8 @@ Task 0 passes when CI proves all of the following:
 6. a plate DXF and visual reference preview are emitted.
 
 This gate proves the workflow. It does **not** claim the prototype outline or built-in MX/RGB footprints are final production geometry.
+
+The gate passed in GitHub Actions run `35710074021`. See `TASK0_RESULT.md` for the permanent result record.
 
 ## Reference policy
 

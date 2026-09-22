@@ -140,7 +140,7 @@ Task 9  fabrication + hardware bring-up
 
 ## Task 0 — Prove the generation architecture
 
-**Status: IN PROGRESS**
+**Status: COMPLETE**
 
 Before rebuilding the complete keyboard, prove that the toolchain works end to end on a small, real slice of the design.
 
@@ -501,6 +501,6 @@ Generated output should never become the only place where design intent exists.
 
 ## Current work
 
-**Task 0 — Prove the generation architecture.**
+**Task 1 — Freeze product requirements.**
 
-Do not begin full geometry reconstruction until the Task 0 generation and regression gate passes.
+Task 0 is complete. Its validation record is in `ergogen/TASK0_RESULT.md`.
