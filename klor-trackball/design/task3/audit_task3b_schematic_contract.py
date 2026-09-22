@@ -20,7 +20,7 @@ DERIV = ROOT / "PCB/konrad_trackball"
 TASK2F = ROOT / "design/task2/TASK2F_RESULT.md"
 
 STOCK_SCH_OBJECT = "4f68892c9d13ffe4200587708eeb4c43ee2b652b"
-STOCK_PCB_OBJECT = "d16dc2e1e8730500f7844146e7c437db3b8d7b44"
+STOCK_PCB_OBJECT = "3dea93bc4266541e9ca85eebc70e4b8c851afc11"
 
 REMOVED_WIRE_UUIDS = {
     # removed-key matrix branches
@@ -186,6 +186,8 @@ def main() -> int:
     stock_pcb = STOCK / "klor1_4.kicad_pcb"
 
     sch = sch_path.read_text(encoding="utf-8")
+    pcb_text = pcb_path.read_text(encoding="utf-8", errors="ignore")
+    stock_pcb_text = stock_pcb.read_text(encoding="utf-8", errors="ignore")
     stock_sch_text = stock_sch.read_text(encoding="utf-8")
     task2f = TASK2F.read_text(encoding="utf-8")
 
@@ -205,6 +207,8 @@ def main() -> int:
         "stock_pcb_object_locked": git_object(stock_pcb) == STOCK_PCB_OBJECT,
         "derivative_schematic_changed_from_stock": sch != stock_sch_text,
         "derivative_pcb_still_exact_stock": pcb_path.read_bytes() == stock_pcb.read_bytes(),
+        "stock_pcb_zone_fill_cache_stripped": "(filled_polygon" not in stock_pcb_text,
+        "derivative_pcb_zone_fill_cache_stripped": "(filled_polygon" not in pcb_text,
         "sw22_removed_from_schematic": len(ref_block(sch, "SW22")) == 0,
         "d22_removed_from_schematic": len(ref_block(sch, "D22")) == 0,
         "col1_label_preserved": label_counts.get("col1", 0) >= 1,
@@ -233,7 +237,7 @@ def main() -> int:
             token in task2f
             for token in ("PMW_CS", "PMW_MISO", "PMW_MOSI", "PMW_SCK", "MOTION", "VCC", "GND")
         ),
-        "pcb_j4_not_yet_present_before_3c": 'Reference" "J4"' not in pcb_path.read_text(encoding="utf-8", errors="ignore"),
+        "pcb_j4_not_yet_present_before_3c": 'Reference" "J4"' not in pcb_text,
     }
 
     result = {

@@ -37,3 +37,7 @@ The PCB remains the stock baseline intentionally. Do not interpret the still-pre
 **Next: Task 3C** synchronizes this schematic contract onto the PCB and performs the authorized destructive physical edits.
 
 See `../../design/task3/TASK3B_RESULT.md`.
+
+## Zone-fill cache policy
+
+This derivative follows the repository-wide PCB normalization policy: generated `filled_polygon` cache data is not committed. Refill zones in KiCad before DRC or fabrication, then strip cached fills again before committing.

@@ -97,3 +97,7 @@ Task 3A passes when the audit proves:
 **Task 3A: COMPLETE.**
 
 Next: **Task 3B — implement the schematic contract.**
+
+## Post-completion representation normalization
+
+The PCB baseline was later normalized for repository-tool access by removing only KiCad's regenerable cached `filled_polygon` data. This does not reopen the completed electrical/mechanical decisions. The normalized stock/derivative PCB blob is `3dea93bc4266541e9ca85eebc70e4b8c851afc11`; subsequent Task 3 work uses that representation.

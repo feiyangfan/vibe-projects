@@ -158,3 +158,7 @@ The audit also checks balanced KiCad s-expression structure. Full board/schemati
 **Task 3B: COMPLETE.**
 
 Next: **Task 3C — apply the destructive stock-PCB edits and synchronize the schematic contract onto the board.**
+
+## Post-completion representation normalization
+
+The PCB baseline was later normalized for repository-tool access by removing only KiCad's regenerable cached `filled_polygon` data. This does not reopen the completed electrical/mechanical decisions. The normalized stock/derivative PCB blob is `3dea93bc4266541e9ca85eebc70e4b8c851afc11`; subsequent Task 3 work uses that representation.

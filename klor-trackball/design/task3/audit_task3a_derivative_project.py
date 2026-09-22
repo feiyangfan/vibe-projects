@@ -14,7 +14,7 @@ STOCK = ROOT / "klor1.4/PCB/klor1_4"
 DERIV = ROOT / "PCB/konrad_trackball"
 
 EXPECTED_STOCK_GIT_OBJECTS = {
-    "klor1_4.kicad_pcb": "d16dc2e1e8730500f7844146e7c437db3b8d7b44",
+    "klor1_4.kicad_pcb": "3dea93bc4266541e9ca85eebc70e4b8c851afc11",
     "klor1_4.kicad_sch": "4f68892c9d13ffe4200587708eeb4c43ee2b652b",
     "klor1_4.kicad_dru": "c42eb3c41e311ef8d41bba80710107bf6b5786f1",
     "klor1_4.kicad_pro": "a48391de09297c3afd7d18e588ff6de2b5c0ce88",
