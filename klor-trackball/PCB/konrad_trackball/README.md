@@ -67,8 +67,20 @@ Task 3D is complete.
 
 See `../../design/task3/TASK3D_RESULT.md`.
 
-**Next: Task 3E — PMW3360 routing.**
+## Task 3E PMW3360 routing
+
+Task 3E is complete.
+
+- `PMW_CS`, `PMW_MISO`, `PMW_MOSI`, and `PMW_SCK` are routed from U1 to J4.
+- J4.6 connects to the existing `VCC` rail.
+- J4.7 connects to `GND`.
+- J4.5 / MOTION remains NC.
+- The routing is additive; Task 3D connector/pass-through geometry and all pre-existing copper are preserved.
+
+See `../../design/task3/TASK3E_RESULT.md`.
+
+**Next: Task 3F — preservation and integrated DRC audit.**
 
 ## Zone-fill cache policy
 
-Generated `filled_polygon` cache data is not committed. The Task 3D board remains directly accessible through repository tooling. Refill zones in KiCad before DRC/fabrication, then strip cached fills again before committing.
+Generated `filled_polygon` cache data is not committed. The Task 3E board remains directly accessible through repository tooling. Refill zones in KiCad before DRC/fabrication, then strip cached fills again before committing.
