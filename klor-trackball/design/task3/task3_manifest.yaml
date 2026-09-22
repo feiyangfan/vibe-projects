@@ -30,10 +30,13 @@ subtasks:
     audit_script: audit_task3c_pcb_sync.py
   3d:
     name: connector-and-pass-through
-    status: next
+    status: complete
+    result_document: TASK3D_RESULT.md
+    apply_script: apply_task3d_connector_pass_through.py
+    audit_script: audit_task3d_connector_pass_through.py
   3e:
     name: pmw-routing
-    status: not-started
+    status: next
   3f:
     name: preservation-and-drc
     status: not-started
@@ -120,6 +123,37 @@ task3c:
   pmw_j4_to_u1_routing: deferred-to-3E
   next_subtask: 3D
 
+task3d:
+  pcb: ../../PCB/konrad_trackball/konrad_trackball.kicad_pcb
+  pcb_blob: 4272f9c3895fd46c0688b3eb530fc7299b540727
+  task3c_base_commit: fa2c2895e7ac3b2712dde4d7dc912dba50a22c98
+  task3c_base_pcb_blob: c3fefdb583d653a836d2ab99a9d94126ea331a3b
+  slot:
+    gerber_center: [143.111, -134.748]
+    kicad_center: [143.111043, 134.747997]
+    nominal_service_envelope_mm: [2.0, 22.0]
+    fabricated_as: open-edge-notch
+    service_direction: negative-X
+  connector:
+    reference: J4
+    side: F.Cu
+    at_kicad_pin1: [147.724665, 142.367997]
+    rotation_deg: 0
+    row_midpoint_kicad: [147.724665, 134.747997]
+    guide_offset_x_mm: 4.613622
+    pin_order: {1: PMW_CS, 2: PMW_MISO, 3: PMW_MOSI, 4: PMW_SCK, 5: NC, 6: VCC, 7: GND}
+  support_tongue:
+    right_x: 150.0
+    bottom_y: 144.25
+  local_copper_accommodation:
+    vcc_wrap: true
+    relocated_vcc_via_kicad: [145.3, 133.81]
+    rgb_bridge_layer: B.Cu
+    rgb_bridge_start: [151.129969, 128.715031]
+    rgb_bridge_end: [151.705, 130.22]
+  pmw_j4_to_u1_routing: deferred-to-3E
+  next_subtask: 3E
+
 representation_policy:
   committed_zone_fill_cache: stripped
   cached_filled_polygon_blocks: 0
@@ -131,5 +165,5 @@ rules:
   - Task 3 implementation occurs only under PCB/konrad_trackball and design/task3.
   - Do not copy stock Gerbers into the derivative.
   - Keep the project schematic-driven; PCB-only electrical edits are not authoritative.
-  - Tasks 3A-3C are complete; Task 3D owns final J4 placement and manufacturable breakout/pass-through geometry.
+  - Tasks 3A-3D are complete; Task 3E owns J4-to-U1 PMW/VCC/GND routing while MOTION remains NC.
   - Production fabrication outputs remain Task 8.

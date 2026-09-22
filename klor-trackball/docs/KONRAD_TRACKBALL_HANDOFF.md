@@ -22,7 +22,7 @@ Canonical Task 1 evidence:
 
 **Task 2 — electrical and firmware interface: COMPLETE.** Task 2F passed with zero unresolved GPIO/net conflicts.
 
-**Task 3 — right-hand trackball PCB derivative: IN PROGRESS. Tasks 3A, 3B, and 3C are COMPLETE.** The derivative PCB now implements the authorized destructive electrical synchronization while preserving stock Edge.Cuts and unrelated geometry. **Next: Task 3D — final-place J4 and create the manufacturable breakout pass-through/edge clearance.**
+**Task 3 — right-hand trackball PCB derivative: IN PROGRESS. Tasks 3A–3D are COMPLETE.** J4 is final-placed and the fabricated breakout edge notch/support tongue is implemented with only the required local VCC/RGB accommodation. **Next: Task 3E — route the PMW3360 interface.**
 
 The overall design is **not fabrication-locked** yet. Mechanical placement is locked; PCB/CAD/firmware implementation and final integrated validation remain.
 
@@ -376,11 +376,21 @@ Task 3C synchronized that contract onto the PCB:
 - permanent B.Cu `SW13 DOUT → SW14 DIN` bypass implemented;
 - J4 added with the frozen pin contract.
 
-J4 is temporarily staged off-board at KiCad `(60,70)` on `F.Cu`; that coordinate is not production geometry. Task 3D owns final J4 XY/rotation and the actual fabricated pass-through. Task 3E owns J4-to-U1 PMW routing.
-
 The Task 3C audit proves stock Edge.Cuts and all unrelated retained footprint/trace/via geometry remain unchanged.
 
-**Next: Task 3D — final connector placement and fabricated breakout pass-through.**
+Task 3D then implements the mechanical PCB interface:
+
+- locked pass-through center: Gerber `(143.111,-134.748)`, KiCad `(143.111043,134.747997)`;
+- J4 pin-1/anchor: KiCad `(147.724665,142.367997)`, rotation 0°, `F.Cu`;
+- J4 row midpoint: `(147.724665,134.747997)`, preserving the proven +4.613622 mm X guide offset;
+- fabricated opening: open 2 mm edge notch following the 2×22 mm Klorball service envelope;
+- local +X support tongue: right edge X=150.0, bottom edge Y=144.25;
+- VCC wraps around the notch and one VCC via moves to `(145.3,133.81)`;
+- RGB bypass is shortened on B.Cu to `(151.129969,128.715031) → (151.705,130.22)`.
+
+The 3D audit confirms an empty pass-through corridor, closed Edge.Cuts topology, local copper clearances, and no PMW routing added prematurely.
+
+**Next: Task 3E — route J4 to U1 and connect VCC/GND; MOTION remains NC.**
 
 Create a distinct right-hand derivative from stock KLOR. Do not convert the stock reversible PCB into a universal trackball board.
 
@@ -498,7 +508,7 @@ Third-party mechanical reference:
 
 ## Next agent: start here
 
-Continue **Task 3D — place the connector and create the fabricated breakout pass-through** in the derivative project at `PCB/konrad_trackball/`. Treat the Task 3C board as the electrical baseline. Move J4 from its off-board staging position to a mechanically validated final location, but do not change its side, handedness, or pin contract.
+Continue **Task 3E — route the PMW3360 interface** in the derivative project at `PCB/konrad_trackball/`. Treat the Task 3D connector/pass-through geometry as mechanically frozen. Route `PMW_CS`, `PMW_MISO`, `PMW_MOSI`, `PMW_SCK`, `VCC`, and `GND` to J4; keep MOTION/Pin 5 NC.
 
 Treat these as locked inputs:
 
@@ -509,4 +519,4 @@ Do not revisit Task 1 placement or Task 2 connector/net/GPIO/firmware ownership 
 
 ## PCB representation policy
 
-Committed PCB sources omit generated KiCad `filled_polygon` cache data. Refill zones before DRC or fabrication. Normalized stock PCB: `3dea93bc4266541e9ca85eebc70e4b8c851afc11`; normalized Task 3C PCB: `c3fefdb583d653a836d2ab99a9d94126ea331a3b`.
+Committed PCB sources omit generated KiCad `filled_polygon` cache data. Refill zones before DRC or fabrication. Normalized stock PCB: `3dea93bc4266541e9ca85eebc70e4b8c851afc11`; Task 3C PCB: `c3fefdb583d653a836d2ab99a9d94126ea331a3b`; Task 3D PCB: `4272f9c3895fd46c0688b3eb530fc7299b540727`.
