@@ -1,0 +1,53 @@
+name: KLOR Task 0 - Ergogen feasibility
+
+on:
+  pull_request:
+    paths:
+      - "klor-trackball/ergogen/**"
+      - ".github/workflows/klor-ergogen-task0.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  generate-and-validate:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: klor-trackball/ergogen
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install validator dependency
+        run: python -m pip install "PyYAML==6.0.2"
+
+      - name: Generate pass A
+        run: npx --yes ergogen@4.2.1 . --output generated-a --clean --svg --debug
+
+      - name: Generate pass B
+        run: npx --yes ergogen@4.2.1 . --output generated-b --clean --svg --debug
+
+      - name: Prove deterministic regeneration
+        run: diff -rq generated-a generated-b
+
+      - name: Validate against stock KLOR geometry
+        run: python scripts/validate_task0.py --generated generated-a
+
+      - name: Upload Task 0 generated prototype
+        uses: actions/upload-artifact@v4
+        with:
+          name: klor-task0-ergogen-prototype
+          path: klor-trackball/ergogen/generated-a/
+          if-no-files-found: error

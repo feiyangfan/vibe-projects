@@ -1,0 +1,147 @@
+meta:
+  author: feiyangfan
+  version: 1
+  engine: 4.2.1
+
+units:
+  U: 19.05
+  mx_cutout: 14
+  m3_hole: 3.2
+  ball_r: 12.5
+
+# Task 0 uses SW13 as a local Cartesian origin.
+# X matches stock KiCad X. Y is reflected so positive Y points "up".
+# Rotations are reflected with the Y axis as well.
+#
+# These points are deliberately a sparse regression slice, not the final KLOR
+# layout model. Task 2 will replace the independent anchors with the canonical
+# parametric Konrad construction once this generation pipeline is proven.
+points:
+  zones:
+    sw13:
+      anchor:
+        shift: [0, 0]
+    sw14:
+      anchor:
+        shift: [19.05, 9]
+    sw15:
+      anchor:
+        shift: [38.223601, -1.372143]
+        rotate: 4
+    sw21:
+      anchor:
+        shift: [-18.146399, -24.892143]
+        rotate: -15
+    sw22:
+      anchor:
+        shift: [2.963601, -22.022143]
+
+    mcu_ref:
+      anchor:
+        shift: [-42.461399, 35.137857]
+    trrs_ref:
+      anchor:
+        shift: [-59.161399, -20.627143]
+        rotate: -90
+    encoder_ref:
+      anchor:
+        shift: [-44.471399, -7.202143]
+
+    mh5:
+      anchor:
+        shift: [27.238601, 18.697857]
+    mh7:
+      anchor:
+        shift: [29.888601, -14.962143]
+    mh8:
+      anchor:
+        shift: [41.498601, -15.722143]
+
+    trackball_ref:
+      anchor:
+        shift: [22.261644, -28.000147]
+    breakout_ref:
+      anchor:
+        shift: [3.049644, -28.000140]
+
+outlines:
+  prototype_board:
+    - what: rectangle
+      where: sw13
+      size: [120, 75]
+      fillet: 2
+      adjust:
+        shift: [-9, 3.5]
+
+  switch_cutouts:
+    - what: rectangle
+      where: /^(sw13|sw14|sw15|sw21|sw22)$/
+      size: [mx_cutout, mx_cutout]
+
+  mounting_holes:
+    - what: circle
+      where: /^(mh5|mh7|mh8)$/
+      radius: m3_hole / 2
+
+  trackball_reference:
+    - what: circle
+      where: trackball_ref
+      radius: ball_r
+
+  breakout_reference:
+    - what: rectangle
+      where: breakout_ref
+      size: [2, 22]
+
+  prototype_plate:
+    - name: prototype_board
+    - name: switch_cutouts
+      operation: subtract
+    - name: mounting_holes
+      operation: subtract
+
+  preview:
+    - name: prototype_board
+    - name: switch_cutouts
+      operation: stack
+    - name: mounting_holes
+      operation: stack
+    - name: trackball_reference
+      operation: stack
+    - name: breakout_reference
+      operation: stack
+
+pcbs:
+  task0_prototype:
+    template: kicad8
+    outlines:
+      main:
+        outline: prototype_board
+        layer: Edge.Cuts
+      switch_refs:
+        outline: switch_cutouts
+        layer: Cmts.User
+      mount_refs:
+        outline: mounting_holes
+        layer: Cmts.User
+      trackball_ref:
+        outline: trackball_reference
+        layer: Cmts.User
+      breakout_ref:
+        outline: breakout_reference
+        layer: Cmts.User
+    footprints:
+      mx_sw13:
+        what: mx
+        where: sw13
+        params:
+          from: SW13_FROM
+          to: SW13_TO
+      rgb_sw13:
+        what: rgb
+        where: sw13
+        params:
+          din: RGB_IN
+          dout: RGB_OUT
+          VCC: VCC
+          GND: GND
