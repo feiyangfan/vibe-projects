@@ -14,7 +14,7 @@ The **left half remains stock**.
 | --- | --- | --- |
 | Task 1 — mechanical reference assembly | **COMPLETE** | trackball placement mechanically locked |
 | Task 2 — electrical + firmware interface | **COMPLETE** | connector/net/GPIO/firmware contract locked |
-| Task 3 — right-hand trackball PCB derivative | **IN PROGRESS** | 3A–3D complete; 3E PMW routing next |
+| Task 3 — right-hand trackball PCB derivative | **IN PROGRESS** | 3A–3E complete; 3F preservation + DRC next |
 | Task 4 — right Konrad switchplate | pending | — |
 | Task 5 — editable right-case derivative | pending | — |
 | Task 6 — complete mechanical + PCB validation | pending | — |
@@ -248,7 +248,15 @@ The PCB now has a fabricated open 2×22 mm breakout service notch plus a local +
 
 See [`design/task3/TASK3D_RESULT.md`](design/task3/TASK3D_RESULT.md).
 
-**3E — NEXT:** route the frozen PMW3360 interface between U1 and J4, connect VCC/GND, and leave MOTION NC.
+**3E — COMPLETE.**
+
+The four PMW signal nets are routed end-to-end between U1 and J4. J4.6 is tied into the existing VCC rail and J4.7 into GND. J4.5 / MOTION remains NC with no routed copper.
+
+Task 3E is additive only: Task 3D geometry, footprints, existing traces/vias, zones, split/RGB/matrix/encoder ownership, and the schematic remain unchanged.
+
+See [`design/task3/TASK3E_RESULT.md`](design/task3/TASK3E_RESULT.md).
+
+**3F — NEXT:** perform the full preservation audit, refill zones, run integrated KiCad DRC, and classify any remaining unrouted/DRC findings.
 
 Task 3 must continue to preserve the locked Task 1 mechanical placement and Task 2 electrical/firmware interface.
 
