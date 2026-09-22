@@ -278,3 +278,9 @@ Task 3 may not change without reopening Task 1 or Task 2:
 Task 3 freezes the PCB design itself. Production Gerbers and independent manufacturing review remain Task 8 work.
 
 Do not treat the board as fabrication-ready until downstream mechanical integration and firmware tasks also pass.
+
+## PCB representation normalization
+
+After Task 3B, the stock and derivative PCB files were representation-normalized by removing only KiCad's generated `filled_polygon` zone-fill cache. This reduced each committed board from about 8.37 MB to about 1.47 MB while retaining the zone definitions and all footprints, tracks, vias, and board geometry.
+
+The normalized stock PCB Git object is `3dea93bc4266541e9ca85eebc70e4b8c851afc11`. Task 3C and later work must use this normalized baseline. Refill zones before DRC/fabrication and strip the cache again before committing.
