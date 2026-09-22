@@ -116,30 +116,33 @@ The retired 3A workflow is no longer an active CI gate because its purpose was t
 
 ---
 
-## 3C — Apply destructive stock-PCB edits — NEXT
+## 3C — Apply destructive stock-PCB edits — COMPLETE
 
-Update/synchronize the PCB from the derivative schematic and perform the already-authorized destructive changes:
+Task 3C synchronized the Task 3B contract onto the derivative PCB.
 
-- remove `SW22`;
-- remove `D22`;
-- delete obsolete local `Net-(D22-A)` copper;
-- preserve the `col1` and `row3` trunks;
-- never bridge `col1` and `row3`;
-- remove the exact GP4/`RX` branch to `J1.3` identified in Task 2B;
-- preserve GP1 → `TX` → `J1.4`;
-- add the permanent RGB bypass:
+Implemented:
 
-```text
-SW13 DOUT → SW14 DIN
-```
+- removed `SW22` and `D22`;
+- removed the complete local `Net-(D22-A)` circuit;
+- removed only the `col1` and `row3` branches that served the deleted key;
+- preserved the retained matrix trunks as distinct nets;
+- retired PCB net `RX` and made J1.3 physically no-net;
+- preserved GP1 / `TX` / J1.4;
+- reassigned the physical U1 pads to `PMW_SCK`, `PMW_MOSI`, `PMW_MISO`, and `PMW_CS`;
+- merged SW14 DIN into the retained SW13 DOUT net and added a permanent B.Cu bypass splice;
+- introduced J4 with the frozen 1×7 electrical contract.
 
-Prune obsolete local AUDIO/I2C/haptic/PAW branches only where necessary and only within the Task 2 contract.
+J4 is deliberately staged off-board at KiCad `(60, 70)` on `F.Cu`. This is **not** its production placement. Task 3D owns final connector XY/rotation and the fabricated breakout clearance.
 
-**Gate:** connectivity audit proves the intended deletions/bypass/isolation and no unauthorized retained-circuit changes.
+No Edge.Cuts were changed in 3C. PMW signal routing from U1 to J4 is also deliberately deferred to 3E.
+
+The Task 3C preservation audit proves exact authorized trace/via deletions, unchanged retained footprint placement, unchanged retained trace/via geometry, exact stock Edge.Cuts, correct J1/RGB/matrix state, and the frozen J4 pin contract.
+
+**Gate:** [`TASK3C_RESULT.md`](TASK3C_RESULT.md) and the Task 3C PCB synchronization audit pass.
 
 ---
 
-## 3D — Place connector and create fabricated breakout pass-through
+## 3D — Place connector and create fabricated breakout pass-through — NEXT
 
 Implement the mechanical PCB interface using the locked Task 1/2 frame.
 
@@ -281,6 +284,6 @@ Do not treat the board as fabrication-ready until downstream mechanical integrat
 
 ## PCB representation normalization
 
-After Task 3B, the stock and derivative PCB files were representation-normalized by removing only KiCad's generated `filled_polygon` zone-fill cache. This reduced each committed board from about 8.37 MB to about 1.47 MB while retaining the zone definitions and all footprints, tracks, vias, and board geometry.
+The stock PCB uses normalized blob `3dea93bc4266541e9ca85eebc70e4b8c851afc11`; the Task 3C derivative uses normalized blob `c3fefdb583d653a836d2ab99a9d94126ea331a3b` (~1.44 MB). Only KiCad's generated `filled_polygon` cache is omitted. Zone definitions and all physical/electrical PCB geometry remain committed.
 
-The normalized stock PCB Git object is `3dea93bc4266541e9ca85eebc70e4b8c851afc11`. Task 3C and later work must use this normalized baseline. Refill zones before DRC/fabrication and strip the cache again before committing.
+Refill zones before DRC/fabrication and strip the cache again before committing.

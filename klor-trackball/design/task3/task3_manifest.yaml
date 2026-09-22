@@ -24,10 +24,13 @@ subtasks:
     audit_script: audit_task3b_schematic_contract.py
   3c:
     name: destructive-pcb-edits
-    status: next
+    status: complete
+    result_document: TASK3C_RESULT.md
+    apply_script: apply_task3c_pcb_sync.py
+    audit_script: audit_task3c_pcb_sync.py
   3d:
     name: connector-and-pass-through
-    status: not-started
+    status: next
   3e:
     name: pmw-routing
     status: not-started
@@ -86,6 +89,37 @@ task3b:
   motion: NC
   next_subtask: 3C
 
+task3c:
+  pcb: ../../PCB/konrad_trackball/konrad_trackball.kicad_pcb
+  pcb_blob: c3fefdb583d653a836d2ab99a9d94126ea331a3b
+  task3b_schematic_blob_preserved: 4239dd2f139be30e24ee7109800a5ae9f179aee3
+  removed_footprints: [SW22, D22]
+  retired_nets: [RX, Net-(D22-A), Net-(SW14B-DIN)]
+  pmw_nets:
+    PMW_CS: 82
+    PMW_MISO: 83
+    PMW_MOSI: 84
+    PMW_SCK: 85
+  trrs:
+    J1_3: no-net
+    J1_4: TX-GP1-preserved
+  rgb:
+    net: Net-(SW13B-DOUT)
+    net_id: 76
+    bridge_layer: B.Cu
+    bridge_start: [148.115, 131.730]
+    bridge_end: [148.109492, 133.815508]
+  connector:
+    reference: J4
+    side: F.Cu
+    staging_xy_kicad: [60.0, 70.0]
+    staging_only: true
+    final_placement_owner: 3D
+    pin_order: {1: PMW_CS, 2: PMW_MISO, 3: PMW_MOSI, 4: PMW_SCK, 5: NC, 6: VCC, 7: GND}
+  edge_cuts_changed: false
+  pmw_j4_to_u1_routing: deferred-to-3E
+  next_subtask: 3D
+
 representation_policy:
   committed_zone_fill_cache: stripped
   cached_filled_polygon_blocks: 0
@@ -97,5 +131,5 @@ rules:
   - Task 3 implementation occurs only under PCB/konrad_trackball and design/task3.
   - Do not copy stock Gerbers into the derivative.
   - Keep the project schematic-driven; PCB-only electrical edits are not authoritative.
-  - Task 3B is complete; Task 3C must synchronize the locked schematic contract onto the derivative PCB before connector placement or PMW routing.
+  - Tasks 3A-3C are complete; Task 3D owns final J4 placement and manufacturable breakout/pass-through geometry.
   - Production fabrication outputs remain Task 8.

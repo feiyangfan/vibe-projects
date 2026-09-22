@@ -22,7 +22,7 @@ Canonical Task 1 evidence:
 
 **Task 2 — electrical and firmware interface: COMPLETE.** Task 2F passed with zero unresolved GPIO/net conflicts.
 
-**Task 3 — right-hand trackball PCB derivative: IN PROGRESS. Tasks 3A and 3B are COMPLETE.** The schematic-driven derivative project exists at `PCB/konrad_trackball/`, and its schematic now implements the frozen Task 2 interface. **Next: Task 3C — synchronize the schematic contract onto the PCB and perform the authorized destructive PCB edits.**
+**Task 3 — right-hand trackball PCB derivative: IN PROGRESS. Tasks 3A, 3B, and 3C are COMPLETE.** The derivative PCB now implements the authorized destructive electrical synchronization while preserving stock Edge.Cuts and unrelated geometry. **Next: Task 3D — final-place J4 and create the manufacturable breakout pass-through/edge clearance.**
 
 The overall design is **not fabrication-locked** yet. Mechanical placement is locked; PCB/CAD/firmware implementation and final integrated validation remain.
 
@@ -364,9 +364,23 @@ Task 3B implemented the frozen Task 2 contract in `konrad_trackball.kicad_sch`:
 - J1.3 explicitly NC; J1.4/TX preserved;
 - J2, OLED1, and BZ1 marked DNP for revision 1.
 
-The derivative PCB intentionally remains the stock baseline through 3B.
+The derivative PCB intentionally remained the stock baseline through 3B.
 
-**Next: Task 3C — synchronize the schematic contract onto the PCB and apply the authorized physical deletions/bypass/TRRS isolation.**
+Task 3C synchronized that contract onto the PCB:
+
+- SW22 and D22 physically removed;
+- deleted-key matrix branches and local D22 net removed while `col1` and `row3` remain distinct;
+- `RX` retired and J1.3 made no-net;
+- J1.4/TX preserved;
+- U1 pads reassigned to `PMW_SCK`, `PMW_MOSI`, `PMW_MISO`, and `PMW_CS`;
+- permanent B.Cu `SW13 DOUT → SW14 DIN` bypass implemented;
+- J4 added with the frozen pin contract.
+
+J4 is temporarily staged off-board at KiCad `(60,70)` on `F.Cu`; that coordinate is not production geometry. Task 3D owns final J4 XY/rotation and the actual fabricated pass-through. Task 3E owns J4-to-U1 PMW routing.
+
+The Task 3C audit proves stock Edge.Cuts and all unrelated retained footprint/trace/via geometry remain unchanged.
+
+**Next: Task 3D — final connector placement and fabricated breakout pass-through.**
 
 Create a distinct right-hand derivative from stock KLOR. Do not convert the stock reversible PCB into a universal trackball board.
 
@@ -484,7 +498,7 @@ Third-party mechanical reference:
 
 ## Next agent: start here
 
-Continue **Task 3C — apply the destructive PCB edits** in the derivative project at `PCB/konrad_trackball/`. The 3B schematic is now authoritative; synchronize it onto the board without changing the frozen Task 2 interface.
+Continue **Task 3D — place the connector and create the fabricated breakout pass-through** in the derivative project at `PCB/konrad_trackball/`. Treat the Task 3C board as the electrical baseline. Move J4 from its off-board staging position to a mechanically validated final location, but do not change its side, handedness, or pin contract.
 
 Treat these as locked inputs:
 
@@ -492,3 +506,7 @@ Treat these as locked inputs:
 - Task 2 electrical/firmware interface, summarized in [`../design/task2/README.md`](../design/task2/README.md) and frozen in `../design/task2/TASK2F_RESULT.md`.
 
 Do not revisit Task 1 placement or Task 2 connector/net/GPIO/firmware ownership unless implementation uncovers a hard constraint that invalidates one of their verified assumptions.
+
+## PCB representation policy
+
+Committed PCB sources omit generated KiCad `filled_polygon` cache data. Refill zones before DRC or fabrication. Normalized stock PCB: `3dea93bc4266541e9ca85eebc70e4b8c851afc11`; normalized Task 3C PCB: `c3fefdb583d653a836d2ab99a9d94126ea331a3b`.
