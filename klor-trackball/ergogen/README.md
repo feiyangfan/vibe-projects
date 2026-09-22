@@ -1,32 +1,49 @@
 # Ergogen Workspace
 
-This directory is the active workspace for the KLOR trackball migration.
+This directory is the active geometric workspace for the KLOR trackball migration.
 
-## Intent
+## Task 0 prototype
 
-Ergogen will become the canonical owner of 2D design geometry and PCB placement intent. The migration is deliberately restarting from reference sources rather than translating the retired KiCad mutation scripts line-by-line.
+Task 0 proves the generation architecture before the complete keyboard is modeled.
 
-Expected long-term structure:
+`config.yaml` currently contains a **sparse regression slice**:
 
-```text
-ergogen/
-  config.yaml                 # canonical Ergogen model
-  footprints/                 # project-specific Ergogen footprints/plugins
-  scripts/                    # deterministic generation/validation helpers
-  reference-baseline.yaml     # pre-migration evidence only
-  generated/                  # ignored/reproducible outputs
+- stock KLOR switch centers SW13, SW14, SW15, SW21 and SW22;
+- stock U1, TRRS/ J1 and right encoder reference points;
+- stock right-side mounting references MH5, MH7 and MH8;
+- the historical validated trackball center and breakout center;
+- an Ergogen-generated prototype board and plate;
+- one built-in Ergogen MX footprint and one RGB footprint on SW13.
+
+SW13 is the temporary Task 0 origin. Stock KiCad +Y is reflected into a conventional Cartesian +Y-up Ergogen frame. Task 2 will replace these independent anchors with the full parametric Konrad layout.
+
+## Generation
+
+From this directory:
+
+```bash
+npx --yes ergogen@4.2.1 . --output generated --clean --svg
+python -m pip install PyYAML==6.0.2
+python scripts/validate_task0.py --generated generated
 ```
 
-Only `config.yaml` and source helpers should become authoritative. `generated/` must remain reproducible.
+The validator does **not** trust copied coordinates. It parses the checked-in stock KLOR KiCad PCB, derives the Task 0 reference frame from SW13, and compares the generated Ergogen points numerically. Trackball/breakout points are compared with the historical reference datums in `reference-baseline.yaml`.
 
-## Bootstrap config
+CI generates the project twice and diffs both output trees before running the geometry regression. Generated output remains disposable and ignored.
 
-`config.yaml` is intentionally minimal. It establishes the source location and the Ergogen engine family already used by the checked-in Klorball35 reference. Task 0 will add the first validated KLOR points, outlines, and PCB output.
+## Task 0 gate
 
-Do not copy the existing Klorball35 layout wholesale. It is a useful Ergogen example and trackball reference, but the target keyboard is KLOR 1.4 MX / Konrad.
+Task 0 passes when CI proves all of the following:
+
+1. Ergogen 4.2.1 can generate this repository directly from `config.yaml`.
+2. two clean generation passes are byte-for-byte equivalent;
+3. selected stock switch/component/mount points match numerically;
+4. trackball and breakout reference points match the prior validated datums;
+5. a KiCad 8 PCB is emitted with MX and RGB prototype footprints/nets;
+6. a plate DXF and visual reference preview are emitted.
+
+This gate proves the workflow. It does **not** claim the prototype outline or built-in MX/RGB footprints are final production geometry.
 
 ## Reference policy
 
-`reference-baseline.yaml` records the useful facts from the retired implementation. These values are **comparison targets**, not automatically locked requirements. Task 0/1 may retain, derive differently, or reject them based on the actual stock/reference geometry.
-
-The complete old implementation remains available at Git commit `432ea630584c22dff2e9f5a596138dcc7602013f`.
+`reference-baseline.yaml` is regression evidence, not the new design authority. The complete retired implementation remains available at Git commit `432ea630584c22dff2e9f5a596138dcc7602013f`.

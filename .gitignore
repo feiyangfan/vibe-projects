@@ -16,7 +16,7 @@ venv/
 
 # Node / Ergogen local state
 node_modules/
-klor-trackball/ergogen/generated/
+klor-trackball/ergogen/generated*/
 
 # Xcode user- and machine-local state
 **/xcuserdata/

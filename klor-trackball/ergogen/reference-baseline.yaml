@@ -31,6 +31,14 @@ trackball_reference:
   sensor: PMW3360DM-T2QU
   breakout: Kivipallur PMW3360
   housing: Keyball 25mm Trackball Case Type C
+
+  # Exact historical Task-3E KiCad-frame regression datums. Task 0 uses these
+  # only to prove that Ergogen can represent the previously validated trackball
+  # reference placement in the same canonical frame as stock KLOR geometry.
+  previous_kicad_frame_datums_mm:
+    ball_center: [162.323043, 134.748004]
+    breakout_slot_center: [143.111043, 134.747997]
+
   previous_fabrication_frame_datums_mm:
     ball_center: [162.323, -134.748]
     housing_screw_midpoint: [156.111, -134.748]
