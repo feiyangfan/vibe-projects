@@ -1,106 +1,506 @@
-# KLOR Trackball — Ergogen Migration
+# KLOR Trackball — Parametric Ergogen Migration
 
-## Goal
+## Product goal
 
-Build a KLOR 1.4 MX / Konrad trackball variant in which **design intent lives upstream of KiCad**.
+Build a **fabrication-ready KLOR 1.4 MX / Konrad split keyboard variant with a 25 mm PMW3360 trackball integrated into the right thumb area**, while preserving the KLOR characteristics we intentionally keep and making the modified design reproducible and easy to adjust.
+
+The intended product direction is:
+
+- base keyboard: **KLOR 1.4, MX/full-height, Konrad layout**;
+- trackball: **25 mm**, on the right half;
+- sensor: **PMW3360**;
+- breakout architecture: **Kivipallur-style PMW3360 breakout**;
+- housing reference: **Keyball 25 mm Trackball Case Type C**;
+- right rotary encoder retained;
+- one right-thumb key removed to make room for the trackball;
+- previous reference target: **39 keys total — 20 left / 19 right**;
+- complete deliverable: **PCB + switchplate + case + firmware + fabrication outputs**.
+
+Those details are current reference requirements. Task 1 will explicitly re-confirm which stock KLOR features are required, optional, or intentionally removed before they become final product requirements.
+
+## Engineering goal
+
+Ergogen is not the product goal. It is the mechanism used to prevent the project from becoming a collection of difficult manual KiCad and CAD edits.
+
+A meaningful design change should primarily be:
+
+```text
+change parameters
+    ↓
+regenerate
+    ↓
+validate
+```
+
+rather than:
+
+```text
+edit KiCad objects
+    ↓
+repair traces / outlines / UUID-dependent scripts
+    ↓
+manually synchronize CAD
+    ↓
+audit unrelated geometry
+```
 
 The target architecture is:
 
 ```text
-Ergogen source
-  ├─ key/component points
-  ├─ PCB/plate outlines
-  ├─ mounting geometry
-  ├─ trackball + breakout geometry
-  └─ PCB footprint/net placement
-        ↓
-generated KiCad / mechanical geometry
-        ↓
-routing + validation
-        ↓
-fabrication outputs
+canonical design parameters
+          ↓
+       Ergogen
+          ↓
+ shared 2D geometry + PCB placement intent
+   ┌──────────┼──────────────┐
+   ↓          ↓              ↓
+  PCB      switchplate    CAD inputs
+   ↓          ↓              ↓
+ KiCad      DXF/STEP     parametric case
+   └──────────┼──────────────┘
+              ↓
+         validation
+              ↓
+         fabrication
 ```
 
-Generated KiCad geometry is a derivative, not the source of truth. Do not reintroduce scripts that patch KiCad S-expressions by UUID or hard-coded object identity unless no upstream representation is possible.
+Generated KiCad geometry is a derivative, not the primary geometric source of truth. Avoid UUID-based or object-identity-based KiCad mutation unless an upstream representation is genuinely impossible.
 
-## Migration reset
+## Core project principles
 
-The previous implementation reached a routed Task 3E KiCad derivative, but it depended on direct KiCad mutation and preservation scripts. That implementation is intentionally retired from the active working tree for the Ergogen migration.
+1. **One geometric authority.** Geometry shared by PCB, switchplate, case, and trackball interfaces should be derived from the same upstream model.
+2. **Parameters over copied coordinates.** Relationships such as trackball position, housing screw pattern, breakout offset, and key geometry should be expressed parametrically wherever practical.
+3. **Generated output is disposable.** A clean checkout should be able to reproduce generated geometry.
+4. **Reference is not authority.** Stock KLOR, Klorball35, and the retired Task-3E board are evidence and comparison targets, not implementation constraints.
+5. **No hidden manual geometry.** Any unavoidable downstream manual operation must be documented and reproducible.
+6. **Validate numerically.** Visual similarity is not sufficient for preserved layout geometry, mounting axes, PCB interfaces, or mechanical clearances.
+7. **A working file is not enough.** A task is complete only when its result can be reproduced from upstream source without substantial repeated manual work.
 
-Nothing is lost: the complete pre-migration state is preserved in Git at commit:
+---
 
-`432ea630584c22dff2e9f5a596138dcc7602013f`
+## Reference sources
 
-The previously routed derivative PCB blob was:
+### KLOR 1.4
 
-`cdc63c3081881861bdcba8f0c6bc03a5b242baed`
+`klor1.4/` is the stock KLOR 1.4 reference and should remain unmodified as upstream evidence.
 
-See `ergogen/reference-baseline.yaml` for the useful design facts carried forward as **reference evidence**, not as immutable implementation constraints.
+It provides the reference MX/Konrad PCB, firmware, case, switchplate, fabrication constraints, component placement, and structural interfaces.
 
-## Active sources
+### Klorball35 / Kivipallur
 
-- `ergogen/` — new active design workspace and future geometric source of truth.
-- `klor1.4/` — stock KLOR 1.4 reference. Do not edit it to implement the trackball variant.
-- `klorball35/` — Ergogen/Klorball/Kivipallur reference material.
-- `Keyball 25mm Trackball Case Type C - 6719828/` — Type-C trackball housing source geometry.
+`klorball35/` is a design reference, not the target keyboard.
 
-Generated Klorball35 outputs, duplicate archives, the retired `PCB/konrad_trackball/` derivative, and the old task-specific mutation/audit framework are not part of the new active design.
+It demonstrates an Ergogen-driven split-keyboard workflow plus a PMW3360/Kivipallur trackball architecture, but it uses different key geometry, Choc switches, and a different overall layout.
 
-## New roadmap
+Useful concepts should be reused; its geometry should not be copied wholesale.
 
-### Task 0 — Ergogen feasibility gate
+### Trackball housing
 
-Create the smallest validated KLOR-shaped Ergogen prototype:
+`Keyball 25mm Trackball Case Type C - 6719828/` contains the housing STEP/STL reference used for the 25 mm trackball mechanical interface.
 
-- several exact Konrad key positions;
-- one stock mounting pattern;
+### Retired implementation
+
+The previous implementation reached a routed Task 3E KiCad derivative using direct KiCad mutation and preservation scripts.
+
+That implementation is intentionally retired from the active working tree, but remains recoverable from Git:
+
+- pre-migration commit: `432ea630584c22dff2e9f5a596138dcc7602013f`;
+- previous Task-3E PCB blob: `cdc63c3081881861bdcba8f0c6bc03a5b242baed`;
+- summarized regression evidence: `ergogen/reference-baseline.yaml`.
+
+The old implementation is useful for comparison and recovered engineering evidence. It should not dictate the architecture of the new design.
+
+---
+
+# Sequential roadmap
+
+The dependency order is:
+
+```text
+Task 0  generation feasibility
+   ↓
+Task 1  product requirements
+   ↓
+Task 2  canonical geometry
+   ↓
+Task 3  electrical PCB generation
+   ↓
+Task 4  regeneration-safe routing
+   ↓
+Task 5  parametric switchplate
+   ↓
+Task 6  parametric right case
+   ↓
+Task 7  full digital integration
+   ↓
+Task 8  firmware
+   ↓
+Task 9  fabrication + hardware bring-up
+```
+
+## Task 0 — Prove the generation architecture
+
+**Status: IN PROGRESS**
+
+Before rebuilding the complete keyboard, prove that the toolchain works end to end on a small, real slice of the design.
+
+The feasibility prototype should include:
+
+- several real KLOR/Konrad switch positions;
+- representative stock mounting points;
 - MCU/TRRS/encoder reference points;
-- one MX + RGB footprint;
-- trackball and breakout reference geometry;
-- generated KiCad PCB and plate outline.
+- trackball and breakout reference datums;
+- a generated PCB outline;
+- a generated switchplate outline;
+- at least one real switch footprint;
+- at least one RGB footprint;
+- generated KiCad output.
 
-**Gate:** regeneration is deterministic and the generated geometry can be compared numerically with the stock/reference KLOR sources.
+Validation should compare generated coordinates numerically with the stock KLOR source rather than relying on screenshots or visual alignment.
 
-### Task 1 — Requirements and reference reconstruction
+**Completion gate**
 
-Re-audit the stock KLOR, Klorball35/Kivipallur, Type-C housing, and firmware sources. Separate actual requirements from decisions that existed only because the old KiCad board was being patched.
+- Ergogen runs from a clean checkout.
+- Two clean generation passes are deterministic.
+- Selected stock KLOR positions match numerically.
+- Trackball and breakout reference datums match the intended regression reference.
+- A KiCad PCB is generated.
+- A plate geometry output is generated.
+- The process is simple enough that extending the model is clearly preferable to returning to manual KiCad surgery.
 
-### Task 2 — Canonical Ergogen geometry
+Task 0 proves the **workflow**, not the final production geometry.
 
-Express the complete Konrad layout, structural holes, board outline, component datums, trackball assembly, breakout/service opening, connector placement, and plate geometry in Ergogen-controlled parameters.
+---
 
-### Task 3 — Generated electrical PCB
+## Task 1 — Freeze product requirements
 
-Generate the intended keyboard/trackball PCB structure: footprints, nets, matrix/RGB ownership, controller, encoder, split interface, PMW3360 connector, and power mapping.
+Define the finished keyboard independently of decisions made only to accommodate the old patched PCB.
 
-### Task 4 — Routing pipeline
+Re-audit:
 
-Choose and implement a regeneration-safe routing strategy. Manual KiCad work is acceptable only if it survives regeneration cleanly or is reproducibly replayed.
+- stock KLOR 1.4;
+- Konrad layout;
+- Klorball35/Kivipallur;
+- Type-C trackball housing;
+- stock firmware;
+- fabrication requirements.
 
-### Task 5 — Parametric switchplate and case
+Explicitly classify stock functionality as:
 
-Drive the switchplate and case modification from the same canonical geometry. Ergogen owns 2D datums; a parametric CAD layer may own 3D solids.
+- **required**;
+- **optional**;
+- **intentionally removed**.
 
-### Task 6 — Integrated validation
+This includes:
 
-Validate generated PCB, plate, case, housing, breakout, retained keys, encoder, structural mounts, clearances, and KiCad DRC.
+- key count and exact removed thumb key;
+- right rotary encoder;
+- controller;
+- TRRS/split transport;
+- RGB;
+- OLED;
+- haptic;
+- audio;
+- stock pointing-device support;
+- battery/power-switch support;
+- tenting-puck support;
+- reset switch;
+- other reversible-board features.
 
-### Task 7 — Firmware
+**Completion gate**
 
-Build the trackball-specific QMK variant from the final electrical contract.
+A short authoritative requirements document exists and contains no unresolved product-level decisions required by Tasks 2–4.
 
-### Task 8 — Fabrication and bring-up
+---
 
-Generate fabrication outputs, perform independent review, fabricate revision 1, and complete hardware bring-up.
+## Task 2 — Reconstruct the complete KLOR/Konrad geometry in Ergogen
 
-## Rules for the migration
+Build the actual canonical geometric model.
 
-1. **One geometric authority.** Coordinates that affect PCB, plate, or case should be derived from the Ergogen model rather than copied manually between files.
-2. **Reference is not authority.** Stock KLOR and the retired Task-3E derivative are comparison targets and evidence.
-3. **Generated output is disposable.** A clean checkout must be able to reproduce generated geometry.
-4. **No hidden manual geometry.** Any unavoidable downstream manual step must be documented and reproducible.
-5. **Validate numerically.** Visual similarity is not sufficient for preserved KLOR geometry, mounting axes, or trackball interfaces.
+Model:
 
-## Current next step
+- every retained switch center and rotation;
+- thumb cluster;
+- encoder;
+- MCU;
+- TRRS;
+- structural mounting holes;
+- PCB perimeter;
+- switchplate perimeter;
+- switch cutouts;
+- relevant keepout/envelope geometry;
+- trackball center;
+- trackball housing screw pattern;
+- breakout/service path;
+- trackball connector position.
 
-**Task 0 — Ergogen feasibility gate.**
+First prove that the Ergogen model reproduces the stock KLOR geometry that should remain unchanged.
+
+Then add the trackball modification.
+
+Prefer relationships such as:
+
+```text
+trackball position
+housing screw offsets
+breakout offset
+connector offset
+```
+
+over separately maintained absolute coordinates.
+
+**Completion gate**
+
+The generated canonical geometry numerically reproduces all intentionally preserved KLOR/Konrad geometry and expresses the trackball system parametrically.
+
+---
+
+## Task 3 — Establish production footprints and generate the electrical PCB
+
+Turn the geometric model into a real electrical PCB definition.
+
+Implement or validate production footprints for all retained hardware, including as applicable:
+
+- MX hotswap switches;
+- SK6812 Mini-E RGB;
+- diodes;
+- RP2040 / Pro Micro-compatible controller;
+- TRRS;
+- EC11 encoder;
+- reset/power components;
+- PMW3360 connector;
+- mounting hardware.
+
+Encode the electrical model:
+
+- key matrix;
+- RGB chain;
+- split transport;
+- encoder;
+- PMW3360 SPI;
+- power;
+- removed thumb-key circuit;
+- final GPIO ownership.
+
+**Completion gate**
+
+Ergogen generates a complete, electrically coherent **unrouted production-intent PCB** from source.
+
+---
+
+## Task 4 — Build a regeneration-safe routing pipeline
+
+This task determines whether the migration actually solves the maintenance problem.
+
+Answer:
+
+> What happens to routing after the Ergogen configuration changes?
+
+Prefer, in order:
+
+1. deterministic/generated routing where practical;
+2. replayable routing logic based on nets and geometry;
+3. constrained downstream KiCad routing only where it can survive or be reproduced after regeneration.
+
+Do not recreate the previous architecture of large scripts that search for exact KiCad UUIDs or object identities.
+
+Treat different routing classes independently where appropriate:
+
+- matrix;
+- RGB;
+- power;
+- ground planes;
+- split transport;
+- encoder;
+- PMW3360 SPI;
+- trackball connector.
+
+**Completion gate**
+
+Make at least one meaningful upstream geometric change, regenerate, and restore a valid routed PCB without manually rebuilding the affected routing.
+
+---
+
+## Task 5 — Build the parametric switchplate
+
+The switchplate should consume the same canonical geometry as the PCB.
+
+Generate or parametrically construct:
+
+- MX cutouts;
+- structural mounting holes;
+- trackball housing mounting holes;
+- housing clearance;
+- breakout/service opening;
+- outer plate perimeter.
+
+Ergogen may own the 2D geometry while another CAD tool owns downstream 3D solids.
+
+The critical rule is:
+
+> Trackball and mounting coordinates must not be independently retyped into CAD.
+
+**Completion gate**
+
+PCB and switchplate mounting/trackball interfaces remain aligned automatically when the shared upstream geometry changes.
+
+---
+
+## Task 6 — Build the parametric right case
+
+Create a reproducible editable right-case derivative.
+
+The stock regular right case is a reference, but the new case workflow must be editable and parameter driven.
+
+Preserve or intentionally reproduce:
+
+- KLOR external/interface geometry that matters;
+- structural mounting axes;
+- PCB/plate stack-up;
+- required wall thickness;
+- assembly/service access.
+
+Add:
+
+- trackball housing envelope;
+- local shell relief;
+- breakout access;
+- required connector clearances.
+
+The left case should remain stock unless Task 1 identifies a reason to regenerate it.
+
+**Completion gate**
+
+A change to relevant upstream trackball geometry can propagate into the case without manually relocating the associated relief/interface features.
+
+---
+
+## Task 7 — Full digital integration and validation
+
+Assemble the generated system digitally:
+
+```text
+PCB
++ switches
++ encoder
++ controller
++ switchplate
++ right case
++ trackball housing
++ 25 mm ball
++ Kivipallur breakout
+```
+
+Validate:
+
+- physical collisions;
+- keycap clearances;
+- trackball finger access;
+- housing clearance;
+- mounting screw access;
+- breakout insertion/removal path;
+- connector accessibility;
+- case wall thickness;
+- PCB-to-case clearance;
+- KiCad DRC;
+- unrouted nets;
+- RGB chain continuity;
+- power and grounding assumptions.
+
+**Completion gate**
+
+The complete mechanical/electrical design is fabrication-ready in the digital model.
+
+---
+
+## Task 8 — Firmware
+
+Implement firmware only after the hardware contract is stable.
+
+Implement:
+
+- final key matrix;
+- final RGB count and map;
+- encoder;
+- split transport;
+- PMW3360 SPI;
+- right-half pointing-device ownership;
+- CPI;
+- pointer orientation;
+- scrolling behavior;
+- optional auto-mouse behavior.
+
+Recommended bring-up order:
+
+```text
+matrix
+→ split
+→ encoder
+→ RGB
+→ SPI communication
+→ PMW3360 motion
+→ pointer tuning
+```
+
+**Completion gate**
+
+Firmware ownership and pin assignments exactly match the generated PCB, and the complete configuration builds reproducibly.
+
+---
+
+## Task 9 — Fabrication package and first hardware revision
+
+Generate the complete release package from a clean checkout:
+
+- KiCad PCB;
+- Gerbers and drills;
+- BOM/assembly data where applicable;
+- switchplate DXF/STEP/STL or equivalent fabrication outputs;
+- case STEP/STL;
+- firmware;
+- assembly documentation.
+
+Independently inspect fabrication outputs before ordering.
+
+Recommended physical bring-up order:
+
+```text
+continuity / shorts
+→ power rails
+→ controller
+→ key matrix
+→ split
+→ RGB
+→ encoder
+→ PMW3360
+→ final pointer tuning
+```
+
+**Completion gate**
+
+Revision 1 hardware is fabricated, assembled, electrically validated, and mechanically validated.
+
+---
+
+## Active workspace
+
+`ergogen/` is the active design workspace.
+
+Expected structure:
+
+```text
+ergogen/
+  config.yaml
+  footprints/
+  scripts/
+  reference-baseline.yaml
+  generated/          # reproducible / ignored
+```
+
+Generated output should never become the only place where design intent exists.
+
+## Current work
+
+**Task 0 — Prove the generation architecture.**
+
+Do not begin full geometry reconstruction until the Task 0 generation and regression gate passes.
