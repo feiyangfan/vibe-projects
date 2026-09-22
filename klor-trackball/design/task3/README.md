@@ -168,7 +168,7 @@ Final Task 3D geometry:
 - J4 row midpoint: `(147.724665, 134.747997)`;
 - header-row offset from the guide: `+4.613622 mm` X;
 - local support tongue: right edge `X=150.0`, bottom edge `Y=144.25`;
-- PMW signal routing remains deferred to 3E.
+- PMW signal routing was deferred to 3E.
 
 The pass-through intersects stock/3C VCC copper and the staged RGB bypass region. Task 3D therefore performs only the required local VCC/RGB reroutes to keep the fabricated opening copper-free.
 
