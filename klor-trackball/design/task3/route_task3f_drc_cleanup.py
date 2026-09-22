@@ -445,6 +445,22 @@ def make_router(text: str):
     keepouts = parse_keepout_polygons(text)
     copper_graphics = parse_copper_graphic_polygons(text)
 
+    def poly_box(poly):
+        xs=[p[0] for p in poly]; ys=[p[1] for p in poly]
+        return (min(xs),min(ys),max(xs),max(ys))
+
+    keepout_boxes=[(poly,poly_box(poly)) for poly in keepouts]
+    copper_boxes=[(layer,poly,poly_box(poly)) for layer,poly in copper_graphics]
+
+    def bbox_near_segment(a,b,box,margin):
+        return not (
+            max(a[0],b[0]) < box[0]-margin or min(a[0],b[0]) > box[2]+margin or
+            max(a[1],b[1]) < box[1]-margin or min(a[1],b[1]) > box[3]+margin
+        )
+
+    def bbox_near_point(p,box,margin):
+        return box[0]-margin <= p[0] <= box[2]+margin and box[1]-margin <= p[1] <= box[3]+margin
+
     # Only obstacles near the routing window can matter.
     margin = 5.0
     segments = [
@@ -546,10 +562,12 @@ def make_router(text: str):
         # Stock MX/LED footprints contain local Edge.Cuts surrounded by
         # CUTOUT keepouts. Inflate these by the board-edge rule so a route
         # cannot be legal to the custom search while illegal to KiCad.
-        if any(segment_polygon_distance(a,b,poly) < edge_need for poly in keepouts):
-            return False
-        for poly_layer, poly in copper_graphics:
-            if poly_layer == layer and segment_polygon_distance(a,b,poly) < TRACK_CLEAR + width/2:
+        for poly,box in keepout_boxes:
+            if bbox_near_segment(a,b,box,edge_need) and segment_polygon_distance(a,b,poly) < edge_need:
+                return False
+        copper_need=TRACK_CLEAR + width/2
+        for poly_layer, poly, box in copper_boxes:
+            if poly_layer == layer and bbox_near_segment(a,b,box,copper_need) and segment_polygon_distance(a,b,poly) < copper_need:
                 return False
         for seg in path_segment_candidates(a,b,layer):
             if seg.net != net and segment_segment_distance(a,b,seg.a,seg.b) < width/2 + seg.width/2 + TRACK_CLEAR:
@@ -581,10 +599,12 @@ def make_router(text: str):
         edge_need = EDGE_TRACK_CLEAR + width/2
         if any(point_segment_distance(p,a,b) < edge_need for a,b in edges):
             return False
-        if any(point_polygon_distance(p,poly) < edge_need for poly in keepouts):
-            return False
-        for poly_layer, poly in copper_graphics:
-            if poly_layer == layer and point_polygon_distance(p,poly) < TRACK_CLEAR + width/2:
+        for poly,box in keepout_boxes:
+            if bbox_near_point(p,box,edge_need) and point_polygon_distance(p,poly) < edge_need:
+                return False
+        copper_need=TRACK_CLEAR + width/2
+        for poly_layer, poly, box in copper_boxes:
+            if poly_layer == layer and bbox_near_point(p,box,copper_need) and point_polygon_distance(p,poly) < copper_need:
                 return False
         for s in segment_candidates(p,layer):
             if s.net != net and point_segment_distance(p,s.a,s.b) < width/2 + s.width/2 + TRACK_CLEAR:
@@ -620,10 +640,12 @@ def make_router(text: str):
         edge_need = EDGE_TRACK_CLEAR + new.size/2
         if any(point_segment_distance(p,a,b) < edge_need for a,b in edges):
             return False
-        if any(point_polygon_distance(p,poly) < edge_need for poly in keepouts):
-            return False
-        for poly_layer, poly in copper_graphics:
-            if point_polygon_distance(p,poly) < TRACK_CLEAR + new.size/2:
+        for poly,box in keepout_boxes:
+            if bbox_near_point(p,box,edge_need) and point_polygon_distance(p,poly) < edge_need:
+                return False
+        copper_need=TRACK_CLEAR + new.size/2
+        for poly_layer, poly, box in copper_boxes:
+            if bbox_near_point(p,box,copper_need) and point_polygon_distance(p,poly) < copper_need:
                 return False
         for layer in LAYERS:
             for s in segment_candidates(p,layer):
