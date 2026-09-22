@@ -475,6 +475,21 @@ def make_router(text: str):
         if not (0 <= si < nx and 0 <= sj < ny and 0 <= ti < nx and 0 <= tj < ny):
             raise ValueError("route endpoint outside search window")
 
+        track_cache: dict[tuple[float,float,int], bool] = {}
+        via_cache: dict[tuple[float,float], bool] = {}
+
+        def cached_track_clear(p, layer_index):
+            k = (round(p[0],3), round(p[1],3), layer_index)
+            if k not in track_cache:
+                track_cache[k] = track_point_clear(p,LAYERS[layer_index],net,width,reserved)
+            return track_cache[k]
+
+        def cached_via_clear(p):
+            k = (round(p[0],3), round(p[1],3))
+            if k not in via_cache:
+                via_cache[k] = via_clear(p,net,reserved)
+            return via_cache[k]
+
         def ident(i,j,l):
             return (l*ny+j)*nx+i
 
@@ -521,9 +536,12 @@ def make_router(text: str):
                 if not (0 <= ni < nx and 0 <= nj < ny):
                     continue
                 b = coord(ni,nj)
-                # Exact target is allowed even if the snapped target lies
-                # inside its same-net pad; different-net obstacles still apply.
-                if (ni,nj) != (ti,tj) and not movement_clear(a,b,LAYERS[l],net,width,reserved):
+                # A current node has already been validated. Check only the
+                # destination and half-grid midpoint, memoized for this route.
+                mid = ((a[0]+b[0])/2, (a[1]+b[1])/2)
+                if (ni,nj) != (ti,tj) and not (
+                    cached_track_clear(b,l) and cached_track_clear(mid,l)
+                ):
                     continue
                 nxt = ident(ni,nj,l)
                 ng = g[current] + math.hypot(di,dj)
@@ -532,7 +550,7 @@ def make_router(text: str):
                     previous[nxt] = current
                     heapq.heappush(heap,(ng+heuristic(ni,nj),nxt))
 
-            if via_clear(a,net,reserved):
+            if cached_via_clear(a):
                 nxt = ident(i,j,1-l)
                 ng = g[current] + 8.0
                 if ng < g[nxt]:
