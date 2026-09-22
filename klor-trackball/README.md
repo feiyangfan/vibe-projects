@@ -14,7 +14,7 @@ The **left half remains stock**.
 | --- | --- | --- |
 | Task 1 — mechanical reference assembly | **COMPLETE** | trackball placement mechanically locked |
 | Task 2 — electrical + firmware interface | **COMPLETE** | connector/net/GPIO/firmware contract locked |
-| Task 3 — right-hand trackball PCB derivative | **IN PROGRESS** | 3A–3C complete; 3D connector/pass-through next |
+| Task 3 — right-hand trackball PCB derivative | **IN PROGRESS** | 3A–3D complete; 3E PMW routing next |
 | Task 4 — right Konrad switchplate | pending | — |
 | Task 5 — editable right-case derivative | pending | — |
 | Task 6 — complete mechanical + PCB validation | pending | — |
@@ -236,13 +236,19 @@ The derivative PCB now implements the authorized physical synchronization:
 - permanent `SW13 DOUT → SW14 DIN` B.Cu bypass implemented;
 - J4 introduced with the frozen electrical pin order.
 
-J4 is intentionally staged **off-board** at KiCad `(60,70)`. Its production placement and the breakout/pass-through geometry belong to Task 3D. PMW routing to J4 belongs to Task 3E.
-
 The 3C preservation audit confirms stock Edge.Cuts and all unrelated retained footprint/trace/via geometry are unchanged.
 
 See [`design/task3/TASK3C_RESULT.md`](design/task3/TASK3C_RESULT.md).
 
-**3D — NEXT:** final-place J4 and create the manufacturable breakout pass-through/edge clearance using the locked Task 1/2 orientation.
+**3D — COMPLETE.**
+
+J4 is final-placed on `F.Cu` at KiCad `(147.724665,142.367997)` with rotation 0°. Its row midpoint is `(147.724665,134.747997)`, preserving the proven +4.613622 mm X offset from the locked breakout datum.
+
+The PCB now has a fabricated open 2×22 mm breakout service notch plus a local +X support tongue for J4. Only copper intersecting that mechanical interface was rerouted: VCC wraps around the notch, one VCC via is relocated, and the RGB bypass is shortened on B.Cu. PMW signal routing remains untouched.
+
+See [`design/task3/TASK3D_RESULT.md`](design/task3/TASK3D_RESULT.md).
+
+**3E — NEXT:** route the frozen PMW3360 interface between U1 and J4, connect VCC/GND, and leave MOTION NC.
 
 Task 3 must continue to preserve the locked Task 1 mechanical placement and Task 2 electrical/firmware interface.
 

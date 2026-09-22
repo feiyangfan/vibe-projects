@@ -142,7 +142,7 @@ The Task 3C preservation audit proves exact authorized trace/via deletions, unch
 
 ---
 
-## 3D — Place connector and create fabricated breakout pass-through — NEXT
+## 3D — Place connector and create fabricated breakout pass-through — COMPLETE
 
 Implement the mechanical PCB interface using the locked Task 1/2 frame.
 
@@ -160,9 +160,19 @@ Locked orientation:
 
 The Klorball35 2×22 mm rectangle is only a `Cmts.User` reference guide. 3D must create the actual manufacturable KLOR pass-through/edge clearance.
 
-3D may resolve the exact connector XY and cutout geometry within the locked orientation/service constraints.
+Final Task 3D geometry:
 
-**Gate:** connector handedness, physical insertion, board-edge clearance, and retained-component/structural clearances pass.
+- locked slot center in KiCad: `(143.111043, 134.747997)`;
+- actual pass-through: open 2 mm edge notch following the 2×22 mm service envelope;
+- J4 pin-1/anchor: `(147.724665, 142.367997)`, rotation `0°`, `F.Cu`;
+- J4 row midpoint: `(147.724665, 134.747997)`;
+- header-row offset from the guide: `+4.613622 mm` X;
+- local support tongue: right edge `X=150.0`, bottom edge `Y=144.25`;
+- PMW signal routing remains deferred to 3E.
+
+The pass-through intersects stock/3C VCC copper and the staged RGB bypass region. Task 3D therefore performs only the required local VCC/RGB reroutes to keep the fabricated opening copper-free.
+
+**Gate:** [`TASK3D_RESULT.md`](TASK3D_RESULT.md) and the Task 3D connector/pass-through audit pass.
 
 ---
 

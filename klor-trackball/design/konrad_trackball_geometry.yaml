@@ -1,6 +1,6 @@
 project: klor-trackball
 variant: klor-1.4-mx-konrad-pmw3360-25mm
-status: task3c-destructive-pcb-edits-complete-overall-not-fabrication-locked
+status: task3d-connector-pass-through-complete-overall-not-fabrication-locked
 units: mm
 
 implementation_progress:
@@ -17,7 +17,8 @@ implementation_progress:
   task_3a_derivative_project: complete
   task_3b_schematic_contract: complete
   task_3c_destructive_pcb_edits: complete
-  next_task: task_3d_connector_and_pass_through
+  task_3d_connector_and_pass_through: complete
+  next_task: task_3e_pmw_routing
   task_1_result: task1/TASK1_RESULT.md
   task_1_manifest: task1/reference_assembly_manifest.yaml
   task_2_manifest: task2/task2_manifest.yaml
@@ -28,10 +29,11 @@ implementation_progress:
   task_3a_result: task3/TASK3A_RESULT.md
   task_3b_result: task3/TASK3B_RESULT.md
   task_3c_result: task3/TASK3C_RESULT.md
+  task_3d_result: task3/TASK3D_RESULT.md
 
 
 pcb_derivative:
-  status: task_3c_pcb_synchronized_connector_staged
+  status: task_3d_connector_and_pass_through_final
   project_directory: PCB/konrad_trackball
   project_basename: konrad_trackball
   schematic_driven: true
@@ -73,7 +75,28 @@ pcb_derivative:
       final_placement_owner: task_3d
     edge_cuts_changed: false
     pmw_routing_to_j4: deferred-to-task-3e
-  next_edit: task_3d_connector_and_pass_through
+  task_3d_pcb:
+    blob: 4272f9c3895fd46c0688b3eb530fc7299b540727
+    pass_through:
+      gerber_center: [143.111, -134.748]
+      kicad_center: [143.111043, 134.747997]
+      nominal_service_envelope_mm: [2.0, 22.0]
+      fabricated_as: open-edge-notch
+      service_direction: negative_x
+    connector_j4:
+      side: F.Cu
+      pin1_anchor_kicad: [147.724665, 142.367997]
+      rotation_deg: 0
+      row_midpoint_kicad: [147.724665, 134.747997]
+      guide_offset_x_mm: 4.613622
+    support_tongue: {right_x: 150.0, bottom_y: 144.25}
+    local_vcc_via_kicad: [145.3, 133.81]
+    rgb_bypass:
+      layer: B.Cu
+      start_kicad: [151.129969, 128.715031]
+      end_kicad: [151.705, 130.22]
+    pmw_routing_to_j4: deferred-to-task-3e
+  next_edit: task_3e_pmw_routing
 
 keyboard:
   base_pcb: klor1.4/PCB/klor1_4/klor1_4.kicad_pcb
@@ -365,3 +388,4 @@ representation_policy:
   committed_zone_fill_cache: stripped
   normalized_stock_pcb_blob: 3dea93bc4266541e9ca85eebc70e4b8c851afc11
   task3c_pcb_blob: c3fefdb583d653a836d2ab99a9d94126ea331a3b
+  task3d_pcb_blob: 4272f9c3895fd46c0688b3eb530fc7299b540727

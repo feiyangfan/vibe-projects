@@ -50,14 +50,25 @@ The PCB now matches the authorized destructive portion of the Task 3B contract:
 - SW13 DOUT and SW14 DIN are one PCB net with a permanent B.Cu splice;
 - J4 exists with the frozen 1×7 keyboard-side pin contract.
 
-J4 is currently staged off-board at KiCad `(60,70)` on `F.Cu`. **Do not use this as a production coordinate.** Task 3D owns the final connector XY/rotation and actual breakout/pass-through geometry.
-
-The stock Edge.Cuts remain unchanged. J4-to-U1 PMW routing remains intentionally incomplete until Task 3E.
+Task 3C left J4 staged off-board and kept stock Edge.Cuts unchanged.
 
 See `../../design/task3/TASK3C_RESULT.md`.
 
-**Next: Task 3D — final connector placement and fabricated breakout pass-through.**
+## Task 3D connector and pass-through
+
+Task 3D is complete.
+
+- J4 is final-placed on `F.Cu` at `(147.724665,142.367997)`, rotation 0°.
+- Its row midpoint is `(147.724665,134.747997)`, +4.613622 mm X from the locked breakout guide center.
+- The board has an actual open 2 mm edge notch matching the locked 2×22 mm service envelope.
+- A local +X tongue supports the J4 through-holes.
+- VCC and the RGB bypass are locally rerouted only where required by the notch/header.
+- J4-to-U1 PMW routing remains intentionally incomplete until Task 3E.
+
+See `../../design/task3/TASK3D_RESULT.md`.
+
+**Next: Task 3E — PMW3360 routing.**
 
 ## Zone-fill cache policy
 
-Generated `filled_polygon` cache data is not committed. The Task 3C board is ~1.44 MB and remains directly accessible through repository tooling. Refill zones in KiCad before DRC/fabrication, then strip cached fills again before committing.
+Generated `filled_polygon` cache data is not committed. The Task 3D board remains directly accessible through repository tooling. Refill zones in KiCad before DRC/fabrication, then strip cached fills again before committing.
