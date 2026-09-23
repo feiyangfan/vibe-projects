@@ -43,7 +43,7 @@ Gate:
 
 ### Task 3B — Qualify production footprints
 
-**NEXT**
+**IN PROGRESS**
 
 Validate or implement local production footprints for:
 

@@ -1,0 +1,179 @@
+status: task3b_candidate
+revision: 1
+
+authority:
+  electrical_contract: task3a-electrical-contract.yaml
+  geometry_freeze: ../task2/task2d-freeze.yaml
+  stock_footprints: ../../klor1.4/PCB/klor1_4/KLOR.pretty
+  stock_pcb: ../../klor1.4/PCB/klor1_4/klor1_4.kicad_pcb
+  helios_repository: 0xCB-dev/0xCB-Helios
+  helios_revision: rev1.0
+  helios_commit: e1a25eb5e4b1bcb25e13dcb18bd6e841dcf7be11
+
+policy:
+  architecture: non_reversible_left_and_right_production_pcbs
+  rule: >-
+    Preserve source-qualified component geometry and pad numbering, but remove
+    duplicate reversible-only pads/holes where Rev 1 does not need them.
+  routing: forbidden_until_task4
+
+footprints:
+  key:
+    module: klor_key
+    source: KLOR.pretty/SK6812MINI_and_cherry.kicad_mod
+    device:
+      switch: MX_hotswap_Kailh_compatible
+      rgb: SK6812MINI-E-012
+    supported_sides: [F, B]
+    default_production_side: B
+    electrical_pads:
+      switch_column: 5
+      switch_to_diode: 6
+      rgb_dout: 1
+      rgb_gnd: 2
+      rgb_din: 3
+      rgb_vdd: 4
+    intentional_changes:
+      - remove_opposite_side_hotswap_pads_and_holes
+      - remove_opposite_side_rgb_pads
+      - preserve_reverse_mount_led_edge_cut
+    qualification:
+      stock_pad_centers_and_sizes_preserved_per_selected_side: true
+      stock_center_and_stabilizer_holes_preserved: true
+      only_selected_socket_pin_holes_preserved: true
+      14mm_plate_cutout_is_not_part_of_pcb_footprint: true
+
+  diode:
+    module: klor_diode
+    source: KLOR.pretty/Diode_SOD123.kicad_mod
+    device: 1N4148W_SOD-123
+    supported_sides: [F, B]
+    default_production_side: B
+    electrical_pads:
+      row: 1
+      switch_side: 2
+    pad_centers: [[-1.7, 0], [1.7, 0]]
+    pad_size: [1.8, 1.5]
+    intentional_changes:
+      - convert_reversible_plated_microhole_lands_to_single_side_smd
+      - no_through_drill_in_production_diode_lands
+
+  controller:
+    module: helios_host
+    device: 0xCB_Helios_rev1.0
+    source_commit: e1a25eb5e4b1bcb25e13dcb18bd6e841dcf7be11
+    stock_host_source: KLOR.pretty/ProMicro.kicad_mod
+    host_origin: frozen_U1_origin
+    helios_to_stock_host_offset: [-1.2, -0.8]
+    body_envelope_at_host_origin:
+      min: [-10.4, -18.58]
+      max: [8.0, 14.75]
+    compatible_standard_rows:
+      left_helios_pads: [2,3,4,5,6,7,8,9,10,11,12,13]
+      right_helios_pads: [30,29,28,27,26,25,24,23,22,21,20,19]
+      host_x: [-8.82, 6.42]
+      host_y: [-14.77,-12.23,-9.69,-7.15,-4.61,-2.07,0.47,3.01,5.55,8.09,10.63,13.17]
+    extra_required_contact:
+      helios_pad: 32
+      signal: RGB_DATA_5V
+      helios_local: [-5.075, 11.43]
+      host_local: [-6.275, 10.63]
+      drill: 1.0
+      pad_size: [1.7, 1.7]
+    intentionally_unhosted_helios_pads: [1,31,33,34]
+    fit:
+      frozen_U1_position_unchanged: true
+      nearest_18mm_key_envelope_gap_mm: 6.462031
+      nearest_key: SW6
+      nearest_stock_mount_axis_gap_mm: 3.88
+      note: >-
+        Helios is 18.4 mm wide versus the old 17.78 mm ProMicro silk envelope,
+        but the source-derived body envelope remains clear of retained keys and
+        the frozen U1 position is unchanged.
+
+  trrs:
+    module: klor_trrs
+    source: KLOR.pretty/MJ-4PP-9.kicad_mod
+    device: MJ-4PP-9
+    supported_sides: [F, B]
+    pin_contract:
+      1: RAW_5V
+      2: GND
+      3: NC
+      4: SPLIT_DATA
+    intentional_changes:
+      - instantiate_only_the_mounting_side_used_by_each_non_reversible_board
+
+  encoder:
+    module: klor_ec11
+    source: KLOR.pretty/RotaryEncoder_Alps_EC11E-Switch_Vertical_H20mm-keebio_modified.kicad_mod
+    device: Alps_EC11E_compatible
+    pad_contract: [A,B,C,S1,S2,MP]
+    geometry_change: none
+
+  reset:
+    module: klor_reset
+    source: KLOR.pretty/SW_Push_1P1T-MP_NO_Horizontal_Alps_SKRTLAE010_both_sides.kicad_mod
+    device: Alps_SKRTLAE010
+    supported_sides: [F, B]
+    electrical:
+      pad_1: RESET
+      pad_2: GND
+    intentional_changes:
+      - single_side_smd_only
+      - remove_reversible_microdrills
+
+  pmw_header:
+    module: pmw_header
+    source: frozen_Task2D_physical_contract
+    device: PinHeader_1x07_P2.54mm_Vertical
+    side: F
+    pitch: 2.54
+    drill: 1.0
+    pad_size: [1.7, 1.7]
+    local_pin_y: [-7.62,-5.08,-2.54,0,2.54,5.08,7.62]
+    pin_order:
+      1: PMW_CS
+      2: PMW_MISO
+      3: PMW_MOSI
+      4: PMW_SCK
+      5: NC_MOTION
+      6: V3V3
+      7: GND
+
+  mounting:
+    module: mounting_hole
+    stock_reference:
+      M3: {drill: 3.2, refs: [MH1,MH2,MH3,MH4,MH5,MH6,MH7,MH8]}
+      M2: {drill: 2.2, refs: [MH9]}
+    copper: none
+
+fixture:
+  purpose: generation_and_pad_geometry_regression_only
+  pcb: task3b_footprint_fixture
+  instances:
+    key_B: [200, 0]
+    key_F: [225, 0]
+    diode_B: [245, 0]
+    diode_F: [260, 0]
+    helios: [290, 0]
+    trrs_F: [320, 0]
+    trrs_B: [340, 0]
+    encoder: [365, 0]
+    reset_F: [390, 0]
+    reset_B: [405, 0]
+    pmw_header: [425, 0]
+    m3: [445, 0]
+    m2: [457, 0]
+
+task3c_handoff:
+  qualified_modules:
+    - klor_key
+    - klor_diode
+    - helios_host
+    - klor_trrs
+    - klor_ec11
+    - klor_reset
+    - pmw_header
+    - mounting_hole
+  left_board_must_not_use_builtin_generic_production_footprints: true

@@ -203,6 +203,51 @@ points:
         ref: breakout_center
         shift: [3.9444785, -6.9649485]
 
+    # Task 3B qualification fixture points. These are intentionally isolated
+    # from production geometry and exist only to prove local footprint output.
+    fp_key_b:
+      anchor:
+        shift: [200, 0]
+    fp_key_f:
+      anchor:
+        shift: [225, 0]
+    fp_diode_b:
+      anchor:
+        shift: [245, 0]
+    fp_diode_f:
+      anchor:
+        shift: [260, 0]
+    fp_helios:
+      anchor:
+        shift: [290, 0]
+    fp_trrs_f:
+      anchor:
+        shift: [320, 0]
+    fp_trrs_b:
+      anchor:
+        shift: [340, 0]
+    fp_encoder:
+      anchor:
+        shift: [365, 0]
+    fp_reset_f:
+      anchor:
+        shift: [390, 0]
+    fp_reset_b:
+      anchor:
+        shift: [405, 0]
+    fp_pmw_header:
+      anchor:
+        shift: [425, 0]
+    fp_m3:
+      anchor:
+        shift: [445, 0]
+    fp_m2:
+      anchor:
+        shift: [457, 0]
+    fp_fixture_center:
+      anchor:
+        shift: [328.5, 0]
+
 outlines:
   stock_board_outer:
     - what: path
@@ -811,7 +856,146 @@ outlines:
     - name: stock_case_mount_axes
       operation: stack
 
+  task3b_fixture_outline:
+    - what: rectangle
+      where: fp_fixture_center
+      size: [275, 45]
+
 pcbs:
+  task3b_footprint_fixture:
+    template: kicad8
+    outlines:
+      main:
+        outline: task3b_fixture_outline
+        layer: Edge.Cuts
+    footprints:
+      key_b:
+        what: klor_key
+        where: fp_key_b
+        params:
+          side: B
+          col: COL_TEST
+          diode: KEY_TO_DIODE
+          dout: RGB_OUT
+          gnd: GND
+          din: RGB_IN
+          vdd: RAW_5V
+      key_f:
+        what: klor_key
+        where: fp_key_f
+        params:
+          side: F
+          col: COL_TEST
+          diode: KEY_TO_DIODE
+          dout: RGB_OUT
+          gnd: GND
+          din: RGB_IN
+          vdd: RAW_5V
+      diode_b:
+        what: klor_diode
+        where: fp_diode_b
+        params:
+          side: B
+          row: ROW_TEST
+          sw: KEY_TO_DIODE
+      diode_f:
+        what: klor_diode
+        where: fp_diode_f
+        params:
+          side: F
+          row: ROW_TEST
+          sw: KEY_TO_DIODE
+      helios:
+        what: helios_host
+        where: fp_helios
+        params:
+          P3: SPLIT_DATA
+          P4: GND
+          P5: GND
+          P6: PMW_SCK
+          P7: PMW_MOSI
+          P8: PMW_MISO
+          P9: ROW0
+          P10: ROW1
+          P11: ROW2
+          P12: ROW3
+          P13: PMW_CS
+          P19: COL5
+          P20: COL4
+          P21: COL3
+          P22: COL2
+          P23: COL1
+          P24: COL0
+          P25: ENCODER_A
+          P26: ENCODER_B
+          P27: V3V3
+          P28: RESET
+          P29: GND
+          P30: RAW_5V
+          P32: RGB_DATA_5V
+      trrs_f:
+        what: klor_trrs
+        where: fp_trrs_f
+        params:
+          side: F
+          P1: RAW_5V
+          P2: GND
+          P3: ""
+          P4: SPLIT_DATA
+      trrs_b:
+        what: klor_trrs
+        where: fp_trrs_b
+        params:
+          side: B
+          P1: RAW_5V
+          P2: GND
+          P3: ""
+          P4: SPLIT_DATA
+      encoder:
+        what: klor_ec11
+        where: fp_encoder
+        params:
+          A: ENCODER_A
+          B: ENCODER_B
+          C: GND
+          S1: COL5
+          S2: ENCODER_TO_DIODE
+      reset_f:
+        what: klor_reset
+        where: fp_reset_f
+        params:
+          side: F
+          reset: RESET
+          gnd: GND
+      reset_b:
+        what: klor_reset
+        where: fp_reset_b
+        params:
+          side: B
+          reset: RESET
+          gnd: GND
+      pmw_header:
+        what: pmw_header
+        where: fp_pmw_header
+        params:
+          P1: PMW_CS
+          P2: PMW_MISO
+          P3: PMW_MOSI
+          P4: PMW_SCK
+          P5: ""
+          P6: V3V3
+          P7: GND
+      m3:
+        what: mounting_hole
+        where: fp_m3
+        params:
+          drill: 3.2
+      m2:
+        what: mounting_hole
+        where: fp_m2
+        params:
+          drill: 2.2
+
   task2c_trackball_reference:
     template: kicad8
     outlines:
