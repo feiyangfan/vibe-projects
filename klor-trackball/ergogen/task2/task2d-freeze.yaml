@@ -1,0 +1,146 @@
+status: task2d_frozen_candidate
+revision: 1
+units: mm
+
+authority:
+  requirements: ../../REQUIREMENTS.md
+  ergogen: ../config.yaml
+  preserved_geometry_gate: ../scripts/validate_task2b.py
+  trackball_delta_gate: ../scripts/validate_task2c.py
+  task2d_gate: ../scripts/validate_task2d.py
+
+product_geometry:
+  layout: KLOR_1.4_MX_Konrad
+  left_keys: 20
+  right_keys: 19
+  total_keys: 39
+  right_thumb:
+    retain:
+      - {logical: R32, switch: SW20}
+      - {logical: R33, switch: SW21}
+    remove:
+      - {logical: R34, switch: SW22, diode: D22}
+  encoders:
+    left: retained
+    right:
+      state: retained
+      reference: SW18
+      location: stock
+
+rgb:
+  left_count: 20
+  right_count: 19
+  total_count: 39
+  no_rgb_at_removed_R34: true
+
+canonical_frame:
+  origin: SW13
+  x: stock_kicad_positive_x
+  y: reflected_kicad_positive_up
+
+trackball:
+  ball_diameter: 25
+  ball_center_local: [22.261644, -28.000147]
+  housing_center_from_ball: [-9.165901, -0.000812]
+  housing_envelope: [37.594812, 29.998377]
+  housing_screw_midpoint_from_ball: [-6.212, 0]
+  housing_screw_offsets_from_midpoint:
+    - [0, 7.98]
+    - [0, -7.98]
+  housing_screw_spacing: 15.96
+  housing_screw_final_hole_diameter: deferred_to_task5
+
+breakout:
+  center_from_ball: [-19.212, 0]
+  service_slot: [2, 22]
+  long_axis: y
+  service_direction: negative_x
+  fabrication_form: open_edge_notch
+
+pmw_header:
+  family: PinHeader_1x07_P2.54mm_Vertical
+  keyboard_side: F.Cu
+  pitch: 2.54
+  row_axis: y
+  center_from_breakout: [4.613622, 0]
+  body_reference_envelope: [2.54, 17.78]
+  physical_pin_order_negative_y_to_positive_y:
+    1: CS
+    2: MISO
+    3: MOSI
+    4: SCK
+    5: NC_MOTION
+    6: 3V3
+    7: GND
+  mating_rule: breakout_pin_N_to_keyboard_pin_8_minus_N
+
+pcb_geometry:
+  composition:
+    - {outline: stock_board, operation: add}
+    - {outline: pmw_support_tongue, operation: add}
+    - {outline: breakout_service_slot, operation: subtract}
+  support_tongue:
+    required: true
+    center_from_breakout: [3.9444785, -6.9649485]
+    size: [5.888957, 5.074109]
+    proven_header_overhang_beyond_stock_edge: 4.462113
+  preserve:
+    - stock_geometry_outside_local_notch_and_support_tongue
+    - MH1_through_MH9
+    - MCU_location
+    - TRRS_location
+    - right_encoder_location
+
+switchplate_geometry:
+  preserve_outer_perimeter: true
+  preserve_eight_structural_axes: true
+  retained_key_openings: 19
+  service_opening:
+    - reuse_stock_SW22_14x14_opening
+    - union_2x22_breakout_corridor
+  add_trackball_housing_axes: 2
+  thickness_reference: 1.5
+
+case_geometry_contract:
+  left_case: stock_compatible_unchanged_by_trackball
+  right_case:
+    preserve_eight_structural_axes: true
+    modification: local_shell_relief_only
+    relief_source: placed_Type_C_housing_plus_clearance
+    exact_clearance_margin: deferred_to_task6
+
+task3_change_boundary:
+  allowed:
+    - choose_production_RP2040_ProMicro_compatible_controller_within_frozen_envelope
+    - define_switch_diode_rgb_controller_trrs_encoder_and_pmw_footprints
+    - assign_matrix_and_signal_nets
+    - choose_final_GPIO_ownership_consistent_with_requirements
+    - generate_left_and_right_unrouted_electrical_PCBS
+    - add_copper_keepouts_required_by_frozen_mechanics
+  forbidden_without_reopening_task2:
+    - move_any_retained_key_center_or_rotation
+    - restore_R34_or_remove_R32_or_R33
+    - move_or_remove_right_encoder
+    - move_MCU_or_TRRS_geometry
+    - move_any_structural_axis
+    - move_ball_housing_breakout_or_pmw_header_reference
+    - change_2x22_service_corridor
+    - remove_or_resize_support_tongue_without_new_mechanical_proof
+    - change_stock_board_geometry_outside_the_frozen_local_delta
+    - change_stock_switchplate_outer_perimeter
+    - change_pmw_header_side_row_axis_or_physical_pin_order
+
+deferred_beyond_task2:
+  - production_housing_mount_hole_diameter
+  - exact_right_case_boolean_clearance_margin
+  - exact_controller_variant
+  - final_GPIO_allocation
+  - electrical_routing
+  - copper_zone_geometry
+  - fabrication_tolerances_not_already_required_by_mechanical_fit
+
+change_control:
+  rule: >-
+    Any edit to a frozen product-geometry or mechanical-interface item above must
+    update this manifest, REQUIREMENTS.md when product behavior changes, and the
+    Task-2 validators/results. Task 3 may not silently reinterpret Task-2 geometry.

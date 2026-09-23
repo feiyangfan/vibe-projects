@@ -64,7 +64,7 @@ Passing evidence is recorded in `TASK2C_RESULT.md`.
 
 ### 2D — Geometry freeze
 
-**NEXT**
+**IN PROGRESS**
 
 Freeze the generated right-half geometry for Task 3 only after the final Task-2 contract is reviewed as one system: preserved stock geometry + bounded trackball delta + connector/support geometry.
 
