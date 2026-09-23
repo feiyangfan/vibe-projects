@@ -210,14 +210,25 @@ def main():
             compare_pad_geometry(f"key_{side}.pad{n}", actual, source)
             if actual["net"] != expected_nets[n]:
                 raise AssertionError(f"key_{side}.pad{n} net {actual['net']} != {expected_nets[n]}")
-        npth_actual = {
-            (p["at"], p["drill"]) for p in gp if p["number"] == "" and p["type"] == "np_thru_hole"
-        }
-        npth_source = {
-            (p["at"], p["drill"]) for p in key_src if p["number"] == "" and p["type"] == "np_thru_hole"
-        }
-        if not npth_actual.issubset(npth_source) or len(npth_actual) != 5:
-            raise AssertionError(f"key_{side}: source-derived NPTH subset changed")
+        npth_actual = [
+            p for p in gp if p["number"] == "" and p["type"] == "np_thru_hole"
+        ]
+        npth_source = [
+            p for p in key_src if p["number"] == "" and p["type"] == "np_thru_hole"
+        ]
+        if len(npth_actual) != 5:
+            raise AssertionError(f"key_{side}: expected 5 selected-side NPTHs")
+        for actual_hole in npth_actual:
+            matches = [
+                source_hole for source_hole in npth_source
+                if math.dist(actual_hole["at"], source_hole["at"]) <= 2e-6
+                and actual_hole["drill"] == source_hole["drill"]
+            ]
+            if not matches:
+                raise AssertionError(
+                    f"key_{side}: NPTH {actual_hole['at']} / {actual_hole['drill']} "
+                    "is not source-derived"
+                )
         if "(fp_rect (start -1.75 3.25) (end 1.75 7.75) (layer Edge.Cuts)" not in fp:
             raise AssertionError("reverse-mount LED cutout changed")
     print("PASS non-reversible MX hotswap + SK6812 geometry derives from stock KLOR")
