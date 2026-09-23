@@ -351,7 +351,7 @@ def main():
     print("PASS frozen nine PCB mounting holes")
 
     for token in ("segment", "via", "zone"):
-        if any(f"({token}{ws}" in text for ws in (" ", "\\t", "\\n", "\\r")):
+        if any(f"({token}{ws}" in text for ws in (" ", chr(9), chr(10), chr(13))):
             raise AssertionError(f"Task 3C board must be unrouted; found {token}")
     print("PASS no tracks, vias, or copper zones: routing remains Task 4")
 
