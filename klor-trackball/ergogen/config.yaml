@@ -1,6 +1,6 @@
 meta:
   author: feiyangfan
-  version: 2
+  version: 3
   engine: 4.2.1
 
 units:
@@ -8,6 +8,19 @@ units:
   mx_cutout: 14
   pcb_m3_hole: 3.2
   case_m2_hole: 2.1
+
+  # Task 2C trackball delta
+  ball_diameter: 25
+  breakout_slot_w: 2
+  breakout_slot_h: 22
+  housing_w: 37.594812
+  housing_h: 29.998377
+  housing_axis_marker: 1
+  pmw_header_pitch: 2.54
+  pmw_header_body_w: 2.54
+  pmw_header_body_h: 17.78
+  pmw_support_tongue_w: 5.888957
+  pmw_support_tongue_h: 5.074109
 
 # Task 2B canonical stock frame:
 # - origin = stock SW13 center
@@ -154,6 +167,41 @@ points:
     case_mount_8:
       anchor:
         shift: [41.477996, 26.081755]
+
+    # Task 2C is defined relationally from the locked ball center.
+    # The few sub-micron differences between these canonical relations and the
+    # historical KiCad/Gerber transform are treated as transform noise.
+    ball_center:
+      anchor:
+        shift: [22.261644, -28.000147]
+    housing_center:
+      anchor:
+        ref: ball_center
+        shift: [-9.165901, -0.000812]
+    housing_screw_midpoint:
+      anchor:
+        ref: ball_center
+        shift: [-6.212, 0]
+    housing_screw_1:
+      anchor:
+        ref: housing_screw_midpoint
+        shift: [0, 7.98]
+    housing_screw_2:
+      anchor:
+        ref: housing_screw_midpoint
+        shift: [0, -7.98]
+    breakout_center:
+      anchor:
+        ref: ball_center
+        shift: [-19.212, 0]
+    pmw_header_center:
+      anchor:
+        ref: breakout_center
+        shift: [4.613622, 0]
+    pmw_support_tongue_center:
+      anchor:
+        ref: breakout_center
+        shift: [3.9444785, -6.9649485]
 
 outlines:
   stock_board_outer:
@@ -681,6 +729,79 @@ outlines:
       where: /^case_mount_/
       radius: case_m2_hole / 2
 
+  trackball_ball:
+    - what: circle
+      where: ball_center
+      radius: ball_diameter / 2
+
+  trackball_housing_envelope:
+    - what: rectangle
+      where: housing_center
+      size: [housing_w, housing_h]
+
+  trackball_housing_mount_axes:
+    - what: circle
+      where: /^housing_screw_[12]$/
+      radius: housing_axis_marker / 2
+
+  breakout_service_slot:
+    - what: rectangle
+      where: breakout_center
+      size: [breakout_slot_w, breakout_slot_h]
+
+  pmw_header_envelope:
+    - what: rectangle
+      where: pmw_header_center
+      size: [pmw_header_body_w, pmw_header_body_h]
+
+  # The locked 1x7 mating row overhangs the stock lower edge. This small local
+  # rectangle is the declarative equivalent of the old Task-3D support tongue.
+  pmw_support_tongue:
+    - what: rectangle
+      where: pmw_support_tongue_center
+      size: [pmw_support_tongue_w, pmw_support_tongue_h]
+
+  trackball_board:
+    - name: stock_board
+    - name: pmw_support_tongue
+      operation: add
+    - name: breakout_service_slot
+      operation: subtract
+
+  trackball_konrad_switch_cutouts:
+    - what: rectangle
+      where: /^(sw(?:[1-9]|1[0-7]|20|21))$/
+      size: [mx_cutout, mx_cutout]
+
+  # R34 is not retained electrically, but its existing 14x14 plate aperture is
+  # useful material already removed. Merge that opening with the 2x22 service
+  # corridor rather than creating a larger unrelated plate change.
+  trackball_plate_service_opening:
+    - what: rectangle
+      where: sw22
+      size: [mx_cutout, mx_cutout]
+    - name: breakout_service_slot
+      operation: add
+
+  task2c_preview:
+    - name: trackball_board
+    - name: trackball_konrad_switch_cutouts
+      operation: stack
+    - name: trackball_plate_service_opening
+      operation: stack
+    - name: trackball_ball
+      operation: stack
+    - name: trackball_housing_envelope
+      operation: stack
+    - name: trackball_housing_mount_axes
+      operation: stack
+    - name: pmw_header_envelope
+      operation: stack
+    - name: stock_pcb_holes
+      operation: stack
+    - name: stock_case_mount_axes
+      operation: stack
+
   task2b_preview:
     - name: stock_board
     - name: stock_konrad_switch_cutouts
@@ -691,6 +812,37 @@ outlines:
       operation: stack
 
 pcbs:
+  task2c_trackball_reference:
+    template: kicad8
+    outlines:
+      main:
+        outline: trackball_board
+        layer: Edge.Cuts
+      retained_keys:
+        outline: trackball_konrad_switch_cutouts
+        layer: Cmts.User
+      plate_service:
+        outline: trackball_plate_service_opening
+        layer: Cmts.User
+      housing:
+        outline: trackball_housing_envelope
+        layer: Cmts.User
+      housing_axes:
+        outline: trackball_housing_mount_axes
+        layer: Cmts.User
+      ball:
+        outline: trackball_ball
+        layer: Cmts.User
+      pmw_header:
+        outline: pmw_header_envelope
+        layer: Cmts.User
+      pcb_holes:
+        outline: stock_pcb_holes
+        layer: Cmts.User
+      case_mounts:
+        outline: stock_case_mount_axes
+        layer: Cmts.User
+
   task2b_stock_reference:
     template: kicad8
     outlines:

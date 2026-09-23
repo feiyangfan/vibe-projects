@@ -43,7 +43,7 @@ Passing evidence is recorded in `TASK2B_RESULT.md`.
 
 ### 2C — Trackball delta overlay
 
-**NEXT**
+**IN PROGRESS**
 
 Add parametrically:
 
@@ -57,6 +57,8 @@ Add parametrically:
 - PMW header placement envelope.
 
 Every preserved Task-2B datum outside the trackball delta must remain numerically unchanged.
+
+The implementation uses the Task-1-validated ball placement as the root datum and derives the housing, screw pair, service slot, PMW header reference and local support tongue from it. The support tongue is now justified by geometry: the locked 1x7 mating envelope extends approximately 4.46 mm beyond the stock lower edge.
 
 ### 2D — Geometry freeze
 
