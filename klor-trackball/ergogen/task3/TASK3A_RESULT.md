@@ -2,7 +2,7 @@
 
 ## Status
 
-**IMPLEMENTED — awaiting CI freeze promotion.**
+**PASS — Task 3A is complete and the Rev-1 electrical architecture is frozen.**
 
 Task 3A freezes the electrical architecture that Tasks 3B–3E must implement. It deliberately does not create production footprints or route copper.
 
@@ -170,3 +170,37 @@ Rev 1 does not allocate footprints, nets, or GPIO ownership to:
 Task 3A does **not** choose routing.
 
 Task 3B now owns production footprint qualification. Tasks 3C/3D consume this contract to generate the left/right unrouted boards. Task 3E validates the pair.
+
+
+## Freeze evidence
+
+Passing source head:
+
+`5e3606a35321714066d90563f36950cab9cb2c35`
+
+GitHub Actions:
+
+- workflow: `KLOR Task 3A - electrical contract`;
+- run ID: `35833410675`;
+- job ID: `107091064957`;
+- conclusion: **success**.
+
+The regression proves:
+
+- Task-2D remains frozen at 20/19/39 MX keys;
+- Helios rev1.0 controller selection and audited pad contract are exact;
+- power domains and TRRS safety assumptions are explicit;
+- matrix sites derive from the stock KLOR PCB;
+- 39 MX + 2 encoder-push matrix positions are accounted for;
+- encoder direction/push contracts are exact;
+- half-duplex split is exact;
+- left/right RGB chains derive from stock topology with SW19 removed and right SW22 bypassed;
+- Kivipallur numbering and reversed keyboard-side connector order match;
+- GPIO ownership is unique on each half;
+- PMW GPIO ownership exists only on the right;
+- removed Rev-1 features own no electrical interface;
+- routing remains outside Task 3.
+
+## Next
+
+Proceed to **Task 3B — qualify production footprints**.

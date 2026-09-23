@@ -2,7 +2,7 @@
 
 ## Status
 
-**REV 1 PRODUCT + TASK 2 GEOMETRY FROZEN**
+**REV 1 PRODUCT + TASK 2 GEOMETRY + TASK 3A ELECTRICAL ARCHITECTURE FROZEN**
 
 This document is the authoritative product-requirements freeze for Tasks 2–4.
 

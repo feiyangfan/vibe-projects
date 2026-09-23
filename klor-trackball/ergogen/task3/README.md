@@ -16,7 +16,7 @@ Task 3 may add electrical implementation detail, but it may not silently move or
 
 ### Task 3A — Freeze the electrical architecture
 
-**IN PROGRESS**
+**COMPLETE**
 
 Freeze:
 
@@ -42,6 +42,8 @@ Gate:
 - removed Rev-1 features own no GPIO or electrical interface.
 
 ### Task 3B — Qualify production footprints
+
+**NEXT**
 
 Validate or implement local production footprints for:
 

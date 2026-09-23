@@ -533,6 +533,6 @@ Generated output should never become the only place where design intent exists.
 
 ## Current work
 
-**Task 3A — Freeze the electrical architecture.**
+**Task 3B — Qualify production footprints.**
 
-Task 2 is complete and frozen. Task 3A selects the controller, power domains, matrix/RGB/split/encoder/PMW ownership and final GPIO contract before production footprints are implemented.
+Task 3A is complete and frozen in `ergogen/task3/task3a-electrical-contract.yaml`, with passing evidence in `ergogen/task3/TASK3A_RESULT.md`. Production footprints must now implement that electrical contract without altering Task-2 geometry.
