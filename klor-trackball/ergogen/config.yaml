@@ -668,7 +668,7 @@ outlines:
 
   stock_konrad_switch_cutouts:
     - what: rectangle
-      where: /^(sw(?:0[1-9]|1[0-7]|20|21|22))$/
+      where: /^(sw(?:[1-9]|1[0-7]|20|21|22))$/
       size: [mx_cutout, mx_cutout]
 
   stock_pcb_holes:
