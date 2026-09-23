@@ -909,6 +909,7 @@ pcbs:
         what: helios_host
         where: fp_helios
         params:
+          P2: ""
           P3: SPLIT_DATA
           P4: GND
           P5: GND
