@@ -1,23 +1,82 @@
 meta:
   author: feiyangfan
-  version: 1
+  version: 3
   engine: 4.2.1
 
 units:
   U: 19.05
   mx_cutout: 14
-  m3_hole: 3.2
-  ball_r: 12.5
+  pcb_m3_hole: 3.2
+  case_m2_hole: 2.1
 
-# Task 0 uses SW13 as a local Cartesian origin.
-# X matches stock KiCad X. Y is reflected so positive Y points "up".
-# Rotations are reflected with the Y axis as well.
+  # Task 2C trackball delta
+  ball_diameter: 25
+  breakout_slot_w: 2
+  breakout_slot_h: 22
+  housing_w: 37.594812
+  housing_h: 29.998377
+  housing_axis_marker: 1
+  pmw_header_pitch: 2.54
+  pmw_header_body_w: 2.54
+  pmw_header_body_h: 17.78
+  pmw_support_tongue_w: 5.888957
+  pmw_support_tongue_h: 5.074109
+
+# Task 2B canonical stock frame:
+# - origin = stock SW13 center
+# - X follows stock KiCad +X
+# - Y is reflected from KiCad so positive Y points up
+# - rotations are reflected with Y
 #
-# These points are deliberately a sparse regression slice, not the final KLOR
-# layout model. Task 2 will replace the independent anchors with the canonical
-# parametric Konrad construction once this generation pipeline is proven.
+# The 20 fixed-Konrad switch positions are SW1..SW17 + SW20..SW22.
+# SW19 is an alternate-layout thumb position and is intentionally excluded.
+# Task 2C will suppress SW22/R34 for the trackball variant.
 points:
   zones:
+    origin:
+      anchor:
+        shift: [0, 0]
+    sw1:
+      anchor:
+        shift: [-18.976399, 35.117857]
+    sw2:
+      anchor:
+        shift: [0.023601, 38.097857]
+    sw3:
+      anchor:
+        shift: [19.063601, 47.077857]
+    sw4:
+      anchor:
+        shift: [40.843601, 36.637857]
+        rotate: 4
+    sw5:
+      anchor:
+        shift: [62.653601, 22.137857]
+        rotate: 10
+    sw6:
+      anchor:
+        shift: [-18.999368, 16.063117]
+    sw7:
+      anchor:
+        shift: [0.013601, 19.017857]
+    sw8:
+      anchor:
+        shift: [19.05, 28.072597]
+    sw9:
+      anchor:
+        shift: [39.483601, 17.657857]
+        rotate: 4
+    sw10:
+      anchor:
+        shift: [59.330666, 3.440303]
+        rotate: 10
+    sw11:
+      anchor:
+        shift: [78.913601, 5.057857]
+        rotate: 10
+    sw12:
+      anchor:
+        shift: [-19.016399, -3.052143]
     sw13:
       anchor:
         shift: [0, 0]
@@ -28,6 +87,18 @@ points:
       anchor:
         shift: [38.223601, -1.372143]
         rotate: 4
+    sw16:
+      anchor:
+        shift: [56.043601, -15.422143]
+        rotate: 10
+    sw17:
+      anchor:
+        shift: [75.633601, -13.742143]
+        rotate: 10
+    sw20:
+      anchor:
+        shift: [-37.818553, -33.080407]
+        rotate: -30
     sw21:
       anchor:
         shift: [-18.146399, -24.892143]
@@ -35,7 +106,9 @@ points:
     sw22:
       anchor:
         shift: [2.963601, -22.022143]
-
+    encoder_ref:
+      anchor:
+        shift: [-44.471399, -7.202143]
     mcu_ref:
       anchor:
         shift: [-42.461399, 35.137857]
@@ -43,105 +116,930 @@ points:
       anchor:
         shift: [-59.161399, -20.627143]
         rotate: -90
-    encoder_ref:
+    mh1:
       anchor:
-        shift: [-44.471399, -7.202143]
-
+        shift: [-56.741399, 51.027857]
+    mh2:
+      anchor:
+        shift: [5.338601, 51.027857]
+    mh3:
+      anchor:
+        shift: [34.088601, 51.027857]
+    mh4:
+      anchor:
+        shift: [48.928601, 50.017857]
     mh5:
       anchor:
         shift: [27.238601, 18.697857]
+    mh6:
+      anchor:
+        shift: [-56.741399, -28.402143]
     mh7:
       anchor:
         shift: [29.888601, -14.962143]
     mh8:
       anchor:
         shift: [41.498601, -15.722143]
+    mh9:
+      anchor:
+        shift: [53.188601, 32.297857]
+    case_mount_1:
+      anchor:
+        shift: [48.898826, -39.659363]
+    case_mount_2:
+      anchor:
+        shift: [34.057332, -40.66635]
+    case_mount_3:
+      anchor:
+        shift: [5.295366, -40.620224]
+    case_mount_4:
+      anchor:
+        shift: [-56.768833, -40.650845]
+    case_mount_5:
+      anchor:
+        shift: [-56.758358, 38.777071]
+    case_mount_6:
+      anchor:
+        shift: [27.214179, -8.336892]
+    case_mount_7:
+      anchor:
+        shift: [29.903255, 25.310698]
+    case_mount_8:
+      anchor:
+        shift: [41.477996, 26.081755]
 
-    trackball_ref:
+    # Task 2C is defined relationally from the locked ball center.
+    # The few sub-micron differences between these canonical relations and the
+    # historical KiCad/Gerber transform are treated as transform noise.
+    ball_center:
       anchor:
         shift: [22.261644, -28.000147]
-    breakout_ref:
+    housing_center:
       anchor:
-        shift: [3.049644, -28.000140]
+        ref: ball_center
+        shift: [-9.165901, -0.000812]
+    housing_screw_midpoint:
+      anchor:
+        ref: ball_center
+        shift: [-6.212, 0]
+    housing_screw_1:
+      anchor:
+        ref: housing_screw_midpoint
+        shift: [0, 7.98]
+    housing_screw_2:
+      anchor:
+        ref: housing_screw_midpoint
+        shift: [0, -7.98]
+    breakout_center:
+      anchor:
+        ref: ball_center
+        shift: [-19.212, 0]
+    pmw_header_center:
+      anchor:
+        ref: breakout_center
+        shift: [4.613622, 0]
+    pmw_support_tongue_center:
+      anchor:
+        ref: breakout_center
+        shift: [3.9444785, -6.9649485]
+
+    # Task 3B qualification fixture points. These are intentionally isolated
+    # from production geometry and exist only to prove local footprint output.
+    fp_key_b:
+      anchor:
+        shift: [200, 0]
+    fp_key_f:
+      anchor:
+        shift: [225, 0]
+    fp_diode_b:
+      anchor:
+        shift: [245, 0]
+    fp_diode_f:
+      anchor:
+        shift: [260, 0]
+    fp_helios:
+      anchor:
+        shift: [290, 0]
+    fp_trrs_f:
+      anchor:
+        shift: [320, 0]
+    fp_trrs_b:
+      anchor:
+        shift: [340, 0]
+    fp_encoder:
+      anchor:
+        shift: [365, 0]
+    fp_reset_f:
+      anchor:
+        shift: [390, 0]
+    fp_reset_b:
+      anchor:
+        shift: [405, 0]
+    fp_pmw_header:
+      anchor:
+        shift: [425, 0]
+    fp_m3:
+      anchor:
+        shift: [445, 0]
+    fp_m2:
+      anchor:
+        shift: [457, 0]
+    fp_fixture_center:
+      anchor:
+        shift: [328.5, 0]
 
 outlines:
-  prototype_board:
-    - what: rectangle
-      where: sw13
-      size: [120, 75]
-      fillet: 2
-      adjust:
-        shift: [-9, 3.5]
+  stock_board_outer:
+    - what: path
+      segments:
+        - type: line
+          points:
+            - {ref: origin, shift: [73.212353, 16.616813]}
+            - {ref: origin, shift: [72.19774, 10.965702]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [72.162482, 10.683632]}
+            - {ref: origin, shift: [71.880412, 10.50734]}
+            - {ref: origin, shift: [71.633601, 10.577857]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [71.351531, 10.613115]}
+            - {ref: origin, shift: [71.175237, 10.895185]}
+            - {ref: origin, shift: [71.245756, 11.141996]}
+        - type: line
+          points:
+            - {ref: origin, shift: [73.952784, 26.630282]}
+        - type: line
+          points:
+            - {ref: origin, shift: [74.552182, 30.050376]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [74.622699, 30.402962]}
+            - {ref: origin, shift: [74.340629, 30.755551]}
+            - {ref: origin, shift: [74.023301, 30.826068]}
+        - type: line
+          points:
+            - {ref: origin, shift: [70.180104, 31.495982]}
+        - type: line
+          points:
+            - {ref: origin, shift: [70.180104, 52.862753]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [70.180104, 53.285856]}
+            - {ref: origin, shift: [69.862776, 53.567926]}
+            - {ref: origin, shift: [69.439673, 53.603187]}
+        - type: line
+          points:
+            - {ref: origin, shift: [68.487686, 53.603187]}
+        - type: line
+          points:
+            - {ref: origin, shift: [29.491569, 53.603187]}
+        - type: line
+          points:
+            - {ref: origin, shift: [29.491569, 56.882245]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [29.491569, 57.234832]}
+            - {ref: origin, shift: [29.174241, 57.55216]}
+            - {ref: origin, shift: [28.821652, 57.55216]}
+        - type: line
+          points:
+            - {ref: origin, shift: [9.147298, 57.55216]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [8.794712, 57.55216]}
+            - {ref: origin, shift: [8.477384, 57.234832]}
+            - {ref: origin, shift: [8.477384, 56.882245]}
+        - type: line
+          points:
+            - {ref: origin, shift: [8.477384, 53.603187]}
+        - type: line
+          points:
+            - {ref: origin, shift: [-37.958319, 53.603187]}
+        - type: line
+          points:
+            - {ref: origin, shift: [-37.958319, 46.128343]}
+        - type: line
+          points:
+            - {ref: origin, shift: [-48.016399, 46.128343]}
+        - type: line
+          points:
+            - {ref: origin, shift: [-48.016399, 53.603187]}
+        - type: line
+          points:
+            - {ref: origin, shift: [-57.773709, 53.603187]}
+        - type: line
+          points:
+            - {ref: origin, shift: [-58.690434, 53.603187]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [-59.113537, 53.603187]}
+            - {ref: origin, shift: [-59.430865, 53.285856]}
+            - {ref: origin, shift: [-59.430865, 52.898012]}
+        - type: line
+          points:
+            - {ref: origin, shift: [-59.430865, -30.312513]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [-59.430865, -30.700357]}
+            - {ref: origin, shift: [-59.113537, -31.017688]}
+            - {ref: origin, shift: [-58.725693, -31.017688]}
+        - type: line
+          points:
+            - {ref: origin, shift: [-51.21559, -31.017688]}
+        - type: line
+          points:
+            - {ref: origin, shift: [-50.298864, -32.56907]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [-50.157828, -32.815881]}
+            - {ref: origin, shift: [-50.228347, -33.097951]}
+            - {ref: origin, shift: [-50.475156, -33.238984]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [-50.721967, -33.38002]}
+            - {ref: origin, shift: [-51.004037, -33.309501]}
+            - {ref: origin, shift: [-51.145073, -33.062692]}
+        - type: line
+          points:
+            - {ref: origin, shift: [-51.744471, -32.004931]}
+        - type: line
+          points:
+            - {ref: origin, shift: [-59.395607, -32.004931]}
+        - type: line
+          points:
+            - {ref: origin, shift: [-59.395607, -36.059681]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [-60.312333, -36.90589]}
+            - {ref: origin, shift: [-61.229061, -37.822615]}
+            - {ref: origin, shift: [-62.075269, -38.704083]}
+        - type: line
+          points:
+            - {ref: origin, shift: [-68.950714, -45.579529]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [-69.232784, -45.861599]}
+            - {ref: origin, shift: [-69.232784, -46.284702]}
+            - {ref: origin, shift: [-68.950714, -46.566772]}
+        - type: line
+          points:
+            - {ref: origin, shift: [-55.094046, -60.42344]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [-54.811976, -60.70551]}
+            - {ref: origin, shift: [-54.388873, -60.70551]}
+            - {ref: origin, shift: [-54.106803, -60.42344]}
+        - type: line
+          points:
+            - {ref: origin, shift: [-47.266615, -53.547993]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [-45.609458, -51.890837]}
+            - {ref: origin, shift: [-43.881782, -50.304194]}
+            - {ref: origin, shift: [-42.083586, -48.823329]}
+        - type: line
+          points:
+            - {ref: origin, shift: [-43.881782, -45.720563]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [-44.022815, -45.473751]}
+            - {ref: origin, shift: [-43.952299, -45.191682]}
+            - {ref: origin, shift: [-43.705487, -45.050648]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [-43.458676, -44.909615]}
+            - {ref: origin, shift: [-43.176606, -44.980132]}
+            - {ref: origin, shift: [-43.035573, -45.226943]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [-43.035573, -45.226943]}
+            - {ref: origin, shift: [-41.977811, -47.060394]}
+            - {ref: origin, shift: [-41.766258, -47.412981]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [-41.731, -47.448239]}
+            - {ref: origin, shift: [-41.695741, -47.448239]}
+            - {ref: origin, shift: [-41.660483, -47.448239]}
+        - type: line
+          points:
+            - {ref: origin, shift: [-34.890814, -43.534525]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [-34.15038, -43.040902]}
+            - {ref: origin, shift: [-33.374688, -42.582538]}
+            - {ref: origin, shift: [-32.598999, -42.159435]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [-27.063383, -38.950894]}
+            - {ref: origin, shift: [-21.104663, -36.482784]}
+            - {ref: origin, shift: [-15.463272, -34.96666]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [-9.292998, -33.309501]}
+            - {ref: origin, shift: [-2.981694, -32.463295]}
+            - {ref: origin, shift: [2.90651, -32.428034]}
+        - type: line
+          points:
+            - {ref: origin, shift: [12.708429, -32.428034]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [13.096273, -32.428034]}
+            - {ref: origin, shift: [13.413601, -32.110706]}
+            - {ref: origin, shift: [13.413601, -31.722861]}
+        - type: line
+          points:
+            - {ref: origin, shift: [13.413601, -18.677143]}
+        - type: line
+          points:
+            - {ref: origin, shift: [29.385791, -18.677143]}
+        - type: line
+          points:
+            - {ref: origin, shift: [44.476513, -19.734905]}
+        - type: line
+          points:
+            - {ref: origin, shift: [43.877115, -23.225516]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [43.841857, -23.578102]}
+            - {ref: origin, shift: [44.088668, -23.89543]}
+            - {ref: origin, shift: [44.405996, -23.965947]}
+        - type: line
+          points:
+            - {ref: origin, shift: [63.763021, -27.386041]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [64.115608, -27.456558]}
+            - {ref: origin, shift: [64.468194, -27.209747]}
+            - {ref: origin, shift: [64.538714, -26.85716]}
+        - type: line
+          points:
+            - {ref: origin, shift: [66.769462, -14.059988]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [66.804721, -13.777918]}
+            - {ref: origin, shift: [67.08679, -13.601626]}
+            - {ref: origin, shift: [67.333601, -13.672143]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [67.615671, -13.707401]}
+            - {ref: origin, shift: [67.791963, -13.989471]}
+            - {ref: origin, shift: [67.733601, -14.236282]}
+        - type: line
+          points:
+            - {ref: origin, shift: [66.231129, -22.767152]}
+        - type: line
+          points:
+            - {ref: origin, shift: [83.26108, -25.799401]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [83.648927, -25.869918]}
+            - {ref: origin, shift: [83.966255, -25.623106]}
+            - {ref: origin, shift: [84.036772, -25.235262]}
+        - type: line
+          points:
+            - {ref: origin, shift: [90.771183, 12.844133]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [90.912219, 13.231977]}
+            - {ref: origin, shift: [90.665408, 13.549305]}
+            - {ref: origin, shift: [90.312821, 13.619825]}
+        - type: line
+          points:
+            - {ref: origin, shift: [73.212353, 16.616813]}
+  stock_board_cutout_1:
+    - what: path
+      segments:
+        - type: line
+          points:
+            - {ref: origin, shift: [68.779462, -2.729988]}
+            - {ref: origin, shift: [70.199462, 4.95001]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [70.23472, 5.232079]}
+            - {ref: origin, shift: [70.51679, 5.408374]}
+            - {ref: origin, shift: [70.763601, 5.337857]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [71.010412, 5.302599]}
+            - {ref: origin, shift: [71.186707, 5.020529]}
+            - {ref: origin, shift: [71.151449, 4.773718]}
+        - type: line
+          points:
+            - {ref: origin, shift: [69.731446, -2.906282]}
+        - type: line
+          points:
+            - {ref: origin, shift: [68.91774, -7.594295]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [68.882482, -7.876365]}
+            - {ref: origin, shift: [68.600412, -8.052659]}
+            - {ref: origin, shift: [68.353601, -7.982143]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [68.106792, -7.946884]}
+            - {ref: origin, shift: [67.895239, -7.664815]}
+            - {ref: origin, shift: [67.965756, -7.418003]}
+        - type: line
+          points:
+            - {ref: origin, shift: [68.779462, -2.729988]}
+  stock_board_cutout_2:
+    - what: path
+      segments:
+        - type: line
+          points:
+            - {ref: origin, shift: [-45.856269, -42.300469]}
+            - {ref: origin, shift: [-49.170586, -36.588562]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [-49.311619, -36.34175]}
+            - {ref: origin, shift: [-49.241102, -36.059681]}
+            - {ref: origin, shift: [-48.994291, -35.918645]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [-48.74748, -35.777611]}
+            - {ref: origin, shift: [-48.465413, -35.848128]}
+            - {ref: origin, shift: [-48.324377, -36.094939]}
+        - type: line
+          points:
+            - {ref: origin, shift: [-45.01006, -41.806849]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [-44.869024, -42.018402]}
+            - {ref: origin, shift: [-44.939541, -42.33573]}
+            - {ref: origin, shift: [-45.186352, -42.476763]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [-45.433163, -42.617799]}
+            - {ref: origin, shift: [-45.715233, -42.54728]}
+            - {ref: origin, shift: [-45.856269, -42.300469]}
+  stock_board:
+    - name: stock_board_outer
+    - name: stock_board_cutout_1
+      operation: subtract
+    - name: stock_board_cutout_2
+      operation: subtract
 
-  switch_cutouts:
+  stock_plate_perimeter:
+    - what: path
+      segments:
+        - type: line
+          points:
+            - {ref: origin, shift: [90.319731, -3.311075]}
+            - {ref: origin, shift: [72.313534, -6.487229]}
+        - type: line
+          points:
+            - {ref: origin, shift: [74.6366, -19.677896]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [74.703578, -20.058905]}
+            - {ref: origin, shift: [74.44953, -20.422233]}
+            - {ref: origin, shift: [74.068521, -20.48921]}
+        - type: line
+          points:
+            - {ref: origin, shift: [70.26196, -21.162514]}
+        - type: line
+          points:
+            - {ref: origin, shift: [70.259136, -42.579652]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [70.259085, -42.967708]}
+            - {ref: origin, shift: [69.945071, -43.278111]}
+            - {ref: origin, shift: [69.560544, -43.27806]}
+        - type: line
+          points:
+            - {ref: origin, shift: [29.552016, -43.272784]}
+        - type: line
+          points:
+            - {ref: origin, shift: [29.551588, -46.521867]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [29.551537, -46.909923]}
+            - {ref: origin, shift: [29.237523, -47.220326]}
+            - {ref: origin, shift: [28.852996, -47.220275]}
+        - type: line
+          points:
+            - {ref: origin, shift: [9.227968, -47.217687]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [8.839913, -47.217636]}
+            - {ref: origin, shift: [8.529509, -46.903623]}
+            - {ref: origin, shift: [8.52956, -46.519095]}
+        - type: line
+          points:
+            - {ref: origin, shift: [8.529989, -43.270012]}
+        - type: line
+          points:
+            - {ref: origin, shift: [-58.677705, -43.261149]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [-59.065761, -43.261097]}
+            - {ref: origin, shift: [-59.376164, -42.947084]}
+            - {ref: origin, shift: [-59.376113, -42.562557]}
+        - type: line
+          points:
+            - {ref: origin, shift: [-59.366904, 27.266276]}
+        - type: line
+          points:
+            - {ref: origin, shift: [-46.398793, 27.264566]}
+        - type: line
+          points:
+            - {ref: origin, shift: [-46.397586, 36.415621]}
+        - type: line
+          points:
+            - {ref: origin, shift: [-59.365697, 36.417332]}
+        - type: line
+          points:
+            - {ref: origin, shift: [-59.363527, 52.874415]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [-59.363476, 53.26247]}
+            - {ref: origin, shift: [-59.049463, 53.572873]}
+            - {ref: origin, shift: [-58.664935, 53.572823]}
+        - type: line
+          points:
+            - {ref: origin, shift: [-44.088157, 53.5709]}
+        - type: line
+          points:
+            - {ref: origin, shift: [-41.974536, 57.232455]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [-41.780464, 57.567568]}
+            - {ref: origin, shift: [-41.350059, 57.683928]}
+            - {ref: origin, shift: [-41.014947, 57.486328]}
+        - type: line
+          points:
+            - {ref: origin, shift: [-34.799479, 53.873064]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [-34.767732, 53.848366]}
+            - {ref: origin, shift: [-34.732457, 53.827194]}
+            - {ref: origin, shift: [-34.697181, 53.809551]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [-34.668962, 53.78838]}
+            - {ref: origin, shift: [-34.640742, 53.770738]}
+            - {ref: origin, shift: [-34.608994, 53.753095]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [-34.097509, 53.428472]}
+            - {ref: origin, shift: [-33.586023, 53.114432]}
+            - {ref: origin, shift: [-33.071007, 52.810975]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [-32.89816, 52.705119]}
+            - {ref: origin, shift: [-32.721784, 52.606318]}
+            - {ref: origin, shift: [-32.548937, 52.50399]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [-27.010748, 49.303565]}
+            - {ref: origin, shift: [-21.066771, 46.81217]}
+            - {ref: origin, shift: [-15.411943, 45.298007]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [-9.25266, 43.646195]}
+            - {ref: origin, shift: [-2.909829, 42.784581]}
+            - {ref: origin, shift: [2.970973, 42.762639]}
+        - type: line
+          points:
+            - {ref: origin, shift: [12.785251, 42.761344]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [13.173306, 42.761293]}
+            - {ref: origin, shift: [13.48371, 42.44728]}
+            - {ref: origin, shift: [13.483659, 42.062752]}
+        - type: line
+          points:
+            - {ref: origin, shift: [13.481937, 29.002919]}
+        - type: line
+          points:
+            - {ref: origin, shift: [29.46277, 29.000812]}
+        - type: line
+          points:
+            - {ref: origin, shift: [44.554742, 30.057155]}
+        - type: line
+          points:
+            - {ref: origin, shift: [43.948417, 33.489762]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [43.88144, 33.870771]}
+            - {ref: origin, shift: [44.135488, 34.234099]}
+            - {ref: origin, shift: [44.516497, 34.301076]}
+        - type: line
+          points:
+            - {ref: origin, shift: [63.785667, 37.695785]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [64.166675, 37.762763]}
+            - {ref: origin, shift: [64.530003, 37.508715]}
+            - {ref: origin, shift: [64.596981, 37.127706]}
+        - type: line
+          points:
+            - {ref: origin, shift: [65.33726, 32.926025]}
+        - type: line
+          points:
+            - {ref: origin, shift: [83.375207, 36.105702]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [83.756216, 36.172679]}
+            - {ref: origin, shift: [84.119544, 35.918631]}
+            - {ref: origin, shift: [84.186521, 35.537623]}
+        - type: line
+          points:
+            - {ref: origin, shift: [90.891337, -2.510345]}
+        - type: bezier
+          points:
+            - {ref: origin, shift: [90.958314, -2.891354]}
+            - {ref: origin, shift: [90.704266, -3.254682]}
+            - {ref: origin, shift: [90.323258, -3.321659]}
+        - type: line
+          points:
+            - {ref: origin, shift: [90.323259, -3.311076]}
+        - type: line
+          points:
+            - {ref: origin, shift: [90.319731, -3.311075]}
+
+  stock_konrad_switch_cutouts:
     - what: rectangle
-      where: /^(sw13|sw14|sw15|sw21|sw22)$/
+      where: /^(sw(?:[1-9]|1[0-7]|20|21|22))$/
       size: [mx_cutout, mx_cutout]
 
-  mounting_holes:
+  stock_pcb_holes:
     - what: circle
-      where: /^(mh5|mh7|mh8)$/
-      radius: m3_hole / 2
+      where: /^mh[1-9]$/
+      radius: pcb_m3_hole / 2
 
-  trackball_reference:
+  stock_case_mount_axes:
     - what: circle
-      where: trackball_ref
-      radius: ball_r
+      where: /^case_mount_/
+      radius: case_m2_hole / 2
 
-  breakout_reference:
+  trackball_ball:
+    - what: circle
+      where: ball_center
+      radius: ball_diameter / 2
+
+  trackball_housing_envelope:
     - what: rectangle
-      where: breakout_ref
-      size: [2, 22]
+      where: housing_center
+      size: [housing_w, housing_h]
 
-  prototype_plate:
-    - name: prototype_board
-    - name: switch_cutouts
-      operation: subtract
-    - name: mounting_holes
+  trackball_housing_mount_axes:
+    - what: circle
+      where: /^housing_screw_[12]$/
+      radius: housing_axis_marker / 2
+
+  breakout_service_slot:
+    - what: rectangle
+      where: breakout_center
+      size: [breakout_slot_w, breakout_slot_h]
+
+  pmw_header_envelope:
+    - what: rectangle
+      where: pmw_header_center
+      size: [pmw_header_body_w, pmw_header_body_h]
+
+  # The locked 1x7 mating row overhangs the stock lower edge. This small local
+  # rectangle is the declarative equivalent of the old Task-3D support tongue.
+  pmw_support_tongue:
+    - what: rectangle
+      where: pmw_support_tongue_center
+      size: [pmw_support_tongue_w, pmw_support_tongue_h]
+
+  trackball_board:
+    - name: stock_board
+    - name: pmw_support_tongue
+      operation: add
+    - name: breakout_service_slot
       operation: subtract
 
-  preview:
-    - name: prototype_board
-    - name: switch_cutouts
+  trackball_konrad_switch_cutouts:
+    - what: rectangle
+      where: /^(sw(?:[1-9]|1[0-7]|20|21))$/
+      size: [mx_cutout, mx_cutout]
+
+  # R34 is not retained electrically, but its existing 14x14 plate aperture is
+  # useful material already removed. Merge that opening with the 2x22 service
+  # corridor rather than creating a larger unrelated plate change.
+  trackball_plate_service_opening:
+    - what: rectangle
+      where: sw22
+      size: [mx_cutout, mx_cutout]
+    - name: breakout_service_slot
+      operation: add
+
+  task2c_preview:
+    - name: trackball_board
+    - name: trackball_konrad_switch_cutouts
       operation: stack
-    - name: mounting_holes
+    - name: trackball_plate_service_opening
       operation: stack
-    - name: trackball_reference
+    - name: trackball_ball
       operation: stack
-    - name: breakout_reference
+    - name: trackball_housing_envelope
       operation: stack
+    - name: trackball_housing_mount_axes
+      operation: stack
+    - name: pmw_header_envelope
+      operation: stack
+    - name: stock_pcb_holes
+      operation: stack
+    - name: stock_case_mount_axes
+      operation: stack
+
+  task2b_preview:
+    - name: stock_board
+    - name: stock_konrad_switch_cutouts
+      operation: stack
+    - name: stock_pcb_holes
+      operation: stack
+    - name: stock_case_mount_axes
+      operation: stack
+
+  task3b_fixture_outline:
+    - what: rectangle
+      where: fp_fixture_center
+      size: [275, 45]
 
 pcbs:
-  task0_prototype:
+  task3b_footprint_fixture:
     template: kicad8
     outlines:
       main:
-        outline: prototype_board
+        outline: task3b_fixture_outline
         layer: Edge.Cuts
-      switch_refs:
-        outline: switch_cutouts
-        layer: Cmts.User
-      mount_refs:
-        outline: mounting_holes
-        layer: Cmts.User
-      trackball_ref:
-        outline: trackball_reference
-        layer: Cmts.User
-      breakout_ref:
-        outline: breakout_reference
-        layer: Cmts.User
     footprints:
-      mx_sw13:
-        what: mx
-        where: sw13
+      key_b:
+        what: klor_key
+        where: fp_key_b
         params:
-          from: SW13_FROM
-          to: SW13_TO
-      rgb_sw13:
-        what: rgb
-        where: sw13
-        params:
-          din: RGB_IN
+          side: B
+          col: COL_TEST
+          diode: KEY_TO_DIODE
           dout: RGB_OUT
-          VCC: VCC
-          GND: GND
+          gnd: GND
+          din: RGB_IN
+          vdd: RAW_5V
+      key_f:
+        what: klor_key
+        where: fp_key_f
+        params:
+          side: F
+          col: COL_TEST
+          diode: KEY_TO_DIODE
+          dout: RGB_OUT
+          gnd: GND
+          din: RGB_IN
+          vdd: RAW_5V
+      diode_b:
+        what: klor_diode
+        where: fp_diode_b
+        params:
+          side: B
+          row: ROW_TEST
+          sw: KEY_TO_DIODE
+      diode_f:
+        what: klor_diode
+        where: fp_diode_f
+        params:
+          side: F
+          row: ROW_TEST
+          sw: KEY_TO_DIODE
+      helios:
+        what: helios_host
+        where: fp_helios
+        params:
+          P2: ""
+          P3: SPLIT_DATA
+          P4: GND
+          P5: GND
+          P6: PMW_SCK
+          P7: PMW_MOSI
+          P8: PMW_MISO
+          P9: ROW0
+          P10: ROW1
+          P11: ROW2
+          P12: ROW3
+          P13: PMW_CS
+          P19: COL5
+          P20: COL4
+          P21: COL3
+          P22: COL2
+          P23: COL1
+          P24: COL0
+          P25: ENCODER_A
+          P26: ENCODER_B
+          P27: V3V3
+          P28: RESET
+          P29: GND
+          P30: RAW_5V
+          P32: RGB_DATA_5V
+      trrs_f:
+        what: klor_trrs
+        where: fp_trrs_f
+        params:
+          side: F
+          P1: RAW_5V
+          P2: GND
+          P3: ""
+          P4: SPLIT_DATA
+      trrs_b:
+        what: klor_trrs
+        where: fp_trrs_b
+        params:
+          side: B
+          P1: RAW_5V
+          P2: GND
+          P3: ""
+          P4: SPLIT_DATA
+      encoder:
+        what: klor_ec11
+        where: fp_encoder
+        params:
+          A: ENCODER_A
+          B: ENCODER_B
+          C: GND
+          S1: COL5
+          S2: ENCODER_TO_DIODE
+      reset_f:
+        what: klor_reset
+        where: fp_reset_f
+        params:
+          side: F
+          reset: RESET
+          gnd: GND
+      reset_b:
+        what: klor_reset
+        where: fp_reset_b
+        params:
+          side: B
+          reset: RESET
+          gnd: GND
+      pmw_header:
+        what: pmw_header
+        where: fp_pmw_header
+        params:
+          P1: PMW_CS
+          P2: PMW_MISO
+          P3: PMW_MOSI
+          P4: PMW_SCK
+          P5: ""
+          P6: V3V3
+          P7: GND
+      m3:
+        what: mounting_hole
+        where: fp_m3
+        params:
+          drill: 3.2
+      m2:
+        what: mounting_hole
+        where: fp_m2
+        params:
+          drill: 2.2
+
+  task2c_trackball_reference:
+    template: kicad8
+    outlines:
+      main:
+        outline: trackball_board
+        layer: Edge.Cuts
+      retained_keys:
+        outline: trackball_konrad_switch_cutouts
+        layer: Cmts.User
+      plate_service:
+        outline: trackball_plate_service_opening
+        layer: Cmts.User
+      housing:
+        outline: trackball_housing_envelope
+        layer: Cmts.User
+      housing_axes:
+        outline: trackball_housing_mount_axes
+        layer: Cmts.User
+      ball:
+        outline: trackball_ball
+        layer: Cmts.User
+      pmw_header:
+        outline: pmw_header_envelope
+        layer: Cmts.User
+      pcb_holes:
+        outline: stock_pcb_holes
+        layer: Cmts.User
+      case_mounts:
+        outline: stock_case_mount_axes
+        layer: Cmts.User
+
+  task2b_stock_reference:
+    template: kicad8
+    outlines:
+      main:
+        outline: stock_board
+        layer: Edge.Cuts
+      keys:
+        outline: stock_konrad_switch_cutouts
+        layer: Cmts.User
+      pcb_holes:
+        outline: stock_pcb_holes
+        layer: Cmts.User
+      case_mounts:
+        outline: stock_case_mount_axes
+        layer: Cmts.User

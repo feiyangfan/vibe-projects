@@ -2,7 +2,7 @@
 
 ## Status
 
-**BASELINE FROZEN FOR REV 1 — RIGHT-THUMB ARCHITECTURE TO BE LOCKED IN TASK 2**
+**REV 1 PRODUCT + TASK 2 GEOMETRY + TASK 3A ELECTRICAL ARCHITECTURE FROZEN**
 
 This document is the authoritative product-requirements freeze for Tasks 2–4.
 
@@ -41,22 +41,16 @@ The design must be reproducible from upstream source and must not depend on repe
 | Layout | Fixed **Konrad** only |
 | Switch family | Full-height MX |
 | Left key count | **20** |
-| Right key count | **To be locked in Task 2** |
-| Right thumb keys | **R32 / R33 / R34 are geometry candidates; exact retained/removed set is not yet frozen** |
-| Historical baseline | **39 total: remove R34 / SW22 / D22, retain R32 / R33** |
+| Right key count | **19** |
+| Right thumb keys | **Retain R32 / SW20 and R33 / SW21; remove R34 / SW22 / D22** |
+| Total key count | **39 total: 20 left / 19 right** |
 | Key geometry | Preserve stock Konrad key centers and rotations except where explicitly modified for the trackball interface |
 | Alternative KLOR layouts | Not supported in Rev 1 |
 | Break-off / multi-layout PCB geometry | Not supported in Rev 1 |
 
-The historical derivative removed R34/SW22/D22, but this is now a **candidate**, not a product requirement.
+Task 2 compared the historical R34-only layout with more aggressive thumb/encoder-removal variants and froze the minimum-change Rev-1 architecture: **R32 and R33 retained, R34 removed, right encoder retained**.
 
-Task 2 must optimize the right-thumb architecture before Task 3 begins. The decision priority is:
-
-1. trackball reach, usability, mechanical clearance, and serviceability;
-2. preserve useful right-thumb keys where they do not materially compromise the trackball;
-3. retain the right encoder only if it does not materially compromise the first two priorities.
-
-At minimum, Task 2 must compare the historical R34-only solution with alternatives that sacrifice additional right-thumb controls and/or the right encoder to allow a more favorable trackball position.
+Changing that retained-control set after Task 2D is a geometry/requirements change and requires reopening Task 2 rather than being treated as a Task-3 PCB implementation choice.
 
 ### PCB architecture
 
@@ -87,9 +81,9 @@ Required:
 
 The **left encoder is retained**.
 
-The **right EC11-class encoder is optional pending Task 2 geometry evaluation**. It may be retained, relocated, or removed if doing so materially improves trackball placement, thumb reach, housing clearance, or serviceability.
+The **right EC11-class encoder is retained in its stock location** for Rev 1.
 
-Task 2 must explicitly lock the right-encoder decision before Task 3.
+Task 2 found that removing it provides no meaningful placement benefit while R33 is retained; the trackball housing has substantial clearance to the stock encoder. Relocating or removing the right encoder after Task 2D requires reopening the frozen geometry contract.
 
 ### RGB
 
@@ -100,7 +94,7 @@ Required:
 - south-facing LED orientation;
 - one RGB device per retained key;
 - **20 LEDs on the left**;
-- right-side RGB count derived from the final Task-2 retained-key set.
+- **19 LEDs on the right**;
 
 There must be no RGB device at any right-thumb position removed by the final Task-2 geometry.
 
@@ -157,7 +151,7 @@ Required physical interface:
 
 Rev 1 does **not** require the PMW3360 MOTION signal; polling is sufficient.
 
-Historical keyboard-side pin order, retained as the preferred Task-3 baseline:
+Frozen keyboard-side physical pin order entering Task 3:
 
 | Pin | Signal |
 | ---: | --- |
@@ -169,7 +163,7 @@ Historical keyboard-side pin order, retained as the preferred Task-3 baseline:
 | 6 | 3V3 |
 | 7 | GND |
 
-The checked-in Kivipallur breakout uses the same seven signals in the opposite numeric order. Task 3 must verify mating orientation/cable mapping explicitly rather than assuming pin-number identity.
+The checked-in Kivipallur breakout uses the same seven signals in the opposite numeric order. The verified mate is breakout pin `N` to keyboard pin `8-N`. Task 3 must preserve this physical pin order, keyboard-side F.Cu placement, and mating handedness; exact MCU GPIO ownership remains a Task-3 electrical decision.
 
 ### Trackball mechanical interface
 
@@ -180,9 +174,11 @@ Required:
 - breakout/service opening reference envelope: **2 x 22 mm**;
 - breakout/service path must remain accessible after assembly;
 - trackball position must preserve controller clearance, TRRS clearance, and retained structural mounting axes;
-- R32/R33/R34 and the right encoder are explicitly available as Task-2 trade-space rather than protected geometry.
+- R32 / R33 and the right encoder are preserved geometry;
+- R34 / SW22 / D22 is intentionally removed from the Rev-1 target;
+- the Task-2D ball, housing, breakout, PMW-header, support-tongue, and structural-axis relationships are frozen canonical geometry.
 
-The prior validated placement is a regression reference, not an immutable absolute-coordinate requirement. Task 2 should re-express the relationship parametrically.
+The prior validated placement has been re-expressed parametrically in Ergogen. After Task 2D, changing those canonical relationships requires reopening Task 2.
 
 ### Structural interfaces and case
 
@@ -205,8 +201,8 @@ Required firmware capabilities:
 
 - final matrix produced by the Task-2 retained-key set;
 - split keyboard operation;
-- left encoder plus the right encoder only if retained by Task 2;
-- RGB matrix count matching the final retained-key set;
+- left and right encoders;
+- RGB matrix count matching **39 retained keys total (20 left / 19 right)**;
 - PMW3360 on the right half;
 - QMK split-pointing transport when the pointing side is not the USB master.
 
@@ -275,11 +271,15 @@ These may be added without changing the Rev-1 hardware contract:
 
 ---
 
-## Preferred electrical baseline for Task 3
+## Task 3A electrical implementation
 
-The previous validated derivative demonstrated the following conflict-free allocation:
+Task 3A freezes the Rev-1 electrical implementation in `ergogen/task3/task3a-electrical-contract.yaml`.
 
-- RGB: GP0;
+Selected controller: **0xCB Helios rev1.0**.
+
+Frozen GPIO ownership:
+
+- RGB: **GP25 through the Helios onboard 5 V level shifter**;
 - half-duplex split serial: GP1;
 - PMW SCK: GP2;
 - PMW MOSI: GP3;
@@ -287,9 +287,15 @@ The previous validated derivative demonstrated the following conflict-free alloc
 - PMW CS: GP9;
 - matrix rows: GP5, GP6, GP7, GP8;
 - matrix columns: GP27, GP26, GP22, GP20, GP23, GP21;
-- encoder baseline: GP28, GP29 when the corresponding encoder is retained.
+- encoders: GP28/GP29, with right A/B reversed to preserve established direction semantics.
 
-This is a **preferred engineering baseline**, not a product-level requirement. Task 3 may alter the exact allocation if required by the selected RP2040 controller or SPI implementation, but it may not sacrifice any Required feature or reintroduce a Removed feature merely to preserve historical pin numbers.
+Power domains are explicit:
+
+- RAW/5 V for SK6812 and split power;
+- regulated 3.3 V from each Helios for the right-side PMW3360 breakout;
+- common ground.
+
+The historical GP0 RGB assignment is superseded. GP25 is used because Helios exposes it through an onboard 3.3 V → 5 V level shifter, matching the 5 V SK6812 power domain without adding a separate keyboard-PCB level shifter.
 
 ---
 

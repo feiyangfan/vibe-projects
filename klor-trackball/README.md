@@ -12,8 +12,9 @@ The intended product direction is:
 - breakout architecture: **Kivipallur-style PMW3360 breakout**;
 - housing reference: **Keyball 25 mm Trackball Case Type C**;
 - left rotary encoder retained;
-- right-thumb key retention and right-encoder retention to be decided by comparative Task-2 geometry;
-- historical comparison baseline: **39 keys total — 20 left / 19 right**, removing R34;
+- right-thumb architecture: **retain R32/R33, remove R34**;
+- right rotary encoder retained in the stock location;
+- **39 keys total — 20 left / 19 right**;
 - complete deliverable: **PCB + switchplate + case + firmware + fabrication outputs**.
 
 Those details are now frozen for Rev 1 in [`REQUIREMENTS.md`](REQUIREMENTS.md). Task 1 explicitly classified stock KLOR features as required, optional/deferred, or intentionally removed.
@@ -218,6 +219,10 @@ A short authoritative requirements document exists, and any geometry-dependent p
 
 ## Task 2 — Reconstruct the complete KLOR/Konrad geometry in Ergogen
 
+**Status: COMPLETE**
+
+Task 2 begins with a minimal-change study before full reconstruction. The selected implementation baseline is to remove R34/SW22/D22 only, retain R32/R33 and the right encoder, preserve all structural interfaces, and keep PCB/plate/case changes local to the trackball region. See `ergogen/task2/MINIMAL_CHANGE_STUDY.md`.
+
 Build the actual canonical geometric model.
 
 Before freezing the final right-half geometry, compare the right-thumb/trackball trade-space. At minimum include the historical R34-only + right-encoder baseline and alternatives that remove additional thumb controls and/or the right encoder if they materially improve trackball reach, clearance, or serviceability.
@@ -263,6 +268,26 @@ The generated canonical geometry numerically reproduces all intentionally preser
 ---
 
 ## Task 3 — Establish production footprints and generate the electrical PCB
+
+**Status: IN PROGRESS**
+
+Task 3 is split into explicit electrical gates:
+
+```text
+3A  electrical architecture
+ ↓
+3B  production footprints
+ ↓
+3C  left unrouted PCB
+ ↓
+3D  right unrouted PCB + PMW
+ ↓
+3E  cross-board electrical freeze
+ ↓
+Task 4 routing
+```
+
+The detailed subtask contract is in `ergogen/task3/README.md`.
 
 Turn the geometric model into a real electrical PCB definition.
 
@@ -508,6 +533,6 @@ Generated output should never become the only place where design intent exists.
 
 ## Current work
 
-**Task 2 — Reconstruct the complete KLOR/Konrad geometry in Ergogen.**
+**Task 3B — Qualify production footprints.**
 
-Task 1 is complete. The authoritative product contract is [`REQUIREMENTS.md`](REQUIREMENTS.md), with the audit record in `ergogen/TASK1_RESULT.md`.
+Task 3A is complete and frozen in `ergogen/task3/task3a-electrical-contract.yaml`, with passing evidence in `ergogen/task3/TASK3A_RESULT.md`. Production footprints must now implement that electrical contract without altering Task-2 geometry.

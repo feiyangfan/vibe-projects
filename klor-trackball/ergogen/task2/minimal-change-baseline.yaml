@@ -1,0 +1,128 @@
+status: task2a_minimal_change_baseline
+units: mm
+
+objective:
+  primary: minimize_changes_to_stock_klor_geometry
+  secondary:
+    - preserve_trackball_usability
+    - keep_design_regenerable
+    - avoid_unnecessary_case_and_pcb_reconstruction
+
+selected_baseline:
+  name: r34_only_encoder_retained
+  right_thumb:
+    retain:
+      - {logical: R32, switch: SW20, diode: D20}
+      - {logical: R33, switch: SW21, diode: D21}
+    remove:
+      - {logical: R34, switch: SW22, diode: D22}
+  right_encoder:
+    reference: SW18
+    action: retain
+    reason: historical housing clearance ~27.772 mm; removal does not improve placement while R33 is retained
+
+stock_reference:
+  pcb: ../../klor1.4/PCB/klor1_4/klor1_4.kicad_pcb
+  switchplate: ../../klor1.4/case/3DP/konrad/switchplate/KLOR_konrad_3DP_switchplate.step
+  right_case: ../../klor1.4/case/3DP/konrad/regular/KLOR_konrad_case_R.stl
+  housing: ../../Keyball 25mm Trackball Case Type C - 6719828/files/keyball_trackball_case_25mm_type_c.stp
+  breakout: ../../klorball35/kicad/Kivipallur_PMW3360_breakout/Kivipallur_PMW3360_breakout.kicad_pcb
+
+historical_evidence:
+  commit: 432ea630584c22dff2e9f5a596138dcc7602013f
+  note: evidence_only_not_implementation
+
+trackball_baseline_kicad:
+  ball_center: [162.323043, 134.748004]
+  housing_bbox_xy:
+    min: [134.359736, 119.749627]
+    max: [171.954548, 149.748004]
+  breakout_center: [143.111043, 134.747997]
+  breakout_envelope: [2.0, 22.0]
+
+right_thumb_stock_kicad:
+  R32: {switch: SW20, center: [102.242846, 139.828264], rotation_deg: 30}
+  R33: {switch: SW21, center: [121.915, 131.64], rotation_deg: 15}
+  R34: {switch: SW22, center: [143.025, 128.77], rotation_deg: 0}
+  right_encoder: {reference: SW18, center: [95.59, 113.95], rotation_deg: 0}
+
+validated_clearance_evidence:
+  R33_housing_min_xy_gap: 3.444488
+  SW15_housing_min_xy_gap: 2.654411
+  right_encoder_housing_min_xy_gap: 27.771821
+  mcu_housing_min_xy_gap: 40.320514
+  trrs_housing_min_xy_gap: 46.460051
+  structural_mount_axis_count: 8
+  structural_collisions: 0
+  stock_case_shell_intersects_housing: true
+
+trade_space:
+  current_R33_simple_left_shift_margin: 3.445
+  additional_simple_left_shift_if_R33_removed_before_R32_envelope: 19.823
+  interpretation:
+    - removing_encoder_alone_is_dominated_while_R33_is_retained
+    - removing_R33_is_a_meaningful_ergonomic_option_but_not_minimal_change
+
+switchplate_baseline_native:
+  R34_center: [62.3864, 25.2441]
+  assumed_mx_opening: [14.0, 14.0]
+  breakout_center: [62.4732, 19.2661]
+  breakout_envelope: [2.0, 22.0]
+  breakout_length_already_inside_R34_opening_approx: 12.0
+  additional_narrow_extension_approx: 10.0
+  housing_screws:
+    - [75.4722, 27.2478]
+    - [75.4743, 11.2878]
+  screw_spacing_nominal: 16.0
+
+right_case_baseline_native:
+  placed_housing_xy_bbox_approx:
+    min: [134.30, 60.22]
+    max: [171.90, 90.20]
+  modification: local_shell_relief_only
+  preserve_structural_axes: true
+
+pcb_change_contract:
+  preserve:
+    - all_retained_key_centers_and_rotations
+    - R32
+    - R33
+    - right_encoder
+    - controller_location
+    - trrs_location
+    - structural_holes
+    - stock_outline_except_breakout_notch
+  change:
+    - omit_R34_SW22_D22_and_rgb
+    - bypass_rgb_logically_in_generated_net_model
+    - add_2x22_open_edge_breakout_notch
+    - add_1x7_pmw_header
+    - add_pmw_spi_power_ground_nets
+  avoid_unless_proven_necessary:
+    - connector_support_tongue
+    - unrelated_edge_cut_changes
+    - uuid_based_stock_copper_mutation
+    - historical_routing_topology
+
+switchplate_change_contract:
+  preserve:
+    - stock_perimeter
+    - stock_thickness_reference
+    - all_eight_structural_axes
+    - all_retained_switch_openings
+  change:
+    - reuse_or_merge_R34_opening_for_breakout_service_path
+    - extend_local_2mm_service_clearance_as_needed
+    - add_two_trackball_housing_mount_axes
+
+case_change_contract:
+  left_case: unchanged
+  right_case:
+    preserve:
+      - stock_structure_outside_trackball_region
+      - all_eight_structural_axes
+      - pcb_plate_stackup
+    change:
+      - deterministic_local_shell_relief_from_placed_housing_clearance_volume
+    preferred_method: parameterized_boolean_on_stock_stl
+    fallback: parametric_case_reauthor_only_if_boolean_workflow_is_insufficient
