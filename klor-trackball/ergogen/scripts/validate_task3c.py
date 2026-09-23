@@ -126,9 +126,14 @@ def assert_close(name, actual, expected):
         raise AssertionError(f"{name}: {actual} != {expected}")
 
 
-def find_instance(all_fps, config, fp_name, point_name, offset):
+def pcb_point(config, point_name):
+    """Convert frozen Task-2 canonical (+Y up) point to KiCad (+Y down)."""
     local = point(config, point_name)
-    expected = (local[0] + offset[0], local[1] + offset[1], local[2])
+    return (local[0], -local[1], -local[2])
+
+
+def find_instance(all_fps, config, fp_name, point_name):
+    expected = pcb_point(config, point_name)
     found = [
         fp for fp in all_fps
         if footprint_name(fp) == fp_name
@@ -137,7 +142,7 @@ def find_instance(all_fps, config, fp_name, point_name, offset):
     ]
     if len(found) != 1:
         raise AssertionError(
-            f"{fp_name}@{point_name}: expected 1 instance, got {len(found)}"
+            f"{fp_name}@{point_name}: expected 1 instance at {expected[:2]}, got {len(found)}"
         )
     return found[0]
 
@@ -204,18 +209,13 @@ def main():
         raise AssertionError("left board must not contain PMW header")
     print("PASS exact left production footprint counts")
 
-    # Ergogen translates a PCB whose local outline enters negative coordinates.
-    # Recover that one rigid translation from the unique frozen controller.
+    # The frozen canonical frame reflects KiCad Y so +Y points up.
+    # Generated KiCad output reverses that reflection: (x, y, r) -> (x, -y, -r).
     controller_unique = by_name[NAMES["controller"]][0]
-    controller_local = point(config, contract["controller"]["point"])
-    controller_actual = at_xyz(controller_unique)
-    board_offset = (
-        controller_actual[0] - controller_local[0],
-        controller_actual[1] - controller_local[1],
-    )
-    if abs(controller_actual[2] - controller_local[2]) > TOL:
-        raise AssertionError("controller rotation changed while deriving PCB translation")
-    print(f"PASS generated PCB translation = {board_offset}")
+    expected_controller = pcb_point(config, contract["controller"]["point"])
+    actual_controller = at_xyz(controller_unique)
+    assert_close("controller canonical->KiCad transform", actual_controller, expected_controller)
+    print("PASS frozen canonical-to-KiCad reflection")
 
     switch_contract = contract["matrix"]["switches"]
     matrix_positions = set()
@@ -226,7 +226,7 @@ def main():
     chain_index = {name: i for i, name in enumerate(chain)}
 
     for sw, spec in switch_contract.items():
-        fp = find_instance(all_fps, config, NAMES["key"], spec["point"], board_offset)
+        fp = find_instance(all_fps, config, NAMES["key"], spec["point"])
         key_instances[sw] = fp
         gp = pads(fp)
         n = sw[2:]
@@ -252,7 +252,7 @@ def main():
             raise AssertionError(f"{sw}: RGB DOUT changed")
 
         dpoint = "d" + spec["diode"][1:]
-        dfp = find_instance(all_fps, config, NAMES["diode"], dpoint, board_offset)
+        dfp = find_instance(all_fps, config, NAMES["diode"], dpoint)
         diode_instances[spec["diode"]] = dfp
         dp = pads(dfp)
         if select_pad(dp, 1)["net"] != spec["row"]:
@@ -272,7 +272,7 @@ def main():
         matrix_positions.add(pos)
 
     enc_spec = contract["matrix"]["encoder_click"]
-    enc = find_instance(all_fps, config, NAMES["encoder"], enc_spec["point"], board_offset)
+    enc = find_instance(all_fps, config, NAMES["encoder"], enc_spec["point"])
     ep = pads(enc)
     for pin, net in {
         "A": "ENCODER_A",
@@ -284,7 +284,7 @@ def main():
         if select_pad(ep, pin)["net"] != net:
             raise AssertionError(f"encoder {pin}: wrong net")
 
-    d18 = find_instance(all_fps, config, NAMES["diode"], enc_spec["diode_point"], board_offset)
+    d18 = find_instance(all_fps, config, NAMES["diode"], enc_spec["diode_point"])
     d18p = pads(d18)
     if select_pad(d18p, 1)["net"] != enc_spec["row"]:
         raise AssertionError("D18 row changed")
@@ -306,7 +306,7 @@ def main():
         raise AssertionError("RGB_DATA_5V must connect controller pad32 to first RGB DIN")
     print("PASS exact 20-device left RGB chain")
 
-    ctl = find_instance(all_fps, config, NAMES["controller"], contract["controller"]["point"], board_offset)
+    ctl = find_instance(all_fps, config, NAMES["controller"], contract["controller"]["point"])
     cp = pads(ctl)
     for number, expected in contract["controller"]["pads"].items():
         actual = select_pad(cp, number)["net"]
@@ -320,14 +320,14 @@ def main():
             raise AssertionError(f"right-only net leaked onto left board: {forbidden}")
     print("PASS Helios left GPIO ownership with no PMW nets")
 
-    trrs = find_instance(all_fps, config, NAMES["trrs"], contract["trrs"]["point"], board_offset)
+    trrs = find_instance(all_fps, config, NAMES["trrs"], contract["trrs"]["point"])
     tp = pads(trrs)
     for number, expected in contract["trrs"]["pins"].items():
         expected_net = "" if expected == "NC" else expected
         if select_pad(tp, number)["net"] != expected_net:
             raise AssertionError(f"TRRS pin {number}: wrong net")
 
-    reset = find_instance(all_fps, config, NAMES["reset"], contract["reset"]["point"], board_offset)
+    reset = find_instance(all_fps, config, NAMES["reset"], contract["reset"]["point"])
     rp = pads(reset)
     p1 = [p for p in rp if p["number"] == "1"]
     p2 = [p for p in rp if p["number"] == "2"]
@@ -341,7 +341,7 @@ def main():
     print("PASS split/power/reset interfaces coherent")
 
     for i in range(1, 10):
-        mh = find_instance(all_fps, config, NAMES["mount"], f"mh{i}", board_offset)
+        mh = find_instance(all_fps, config, NAMES["mount"], f"mh{i}")
         mp = pads(mh)
         if len(mp) != 1 or mp[0]["number"] != "":
             raise AssertionError(f"MH{i}: malformed NPTH")
