@@ -280,7 +280,7 @@ def main():
         raise AssertionError("encoder click must have exactly encoder+D18 endpoints")
     matrix_positions.add((enc_spec["row"], enc_spec["col"]))
 
-    if len(matrix_positions) != contract["matrix"]["active_positions"] != 21:
+    if contract["matrix"]["active_positions"] != 21 or len(matrix_positions) != 21:
         raise AssertionError(f"matrix active-position count changed: {len(matrix_positions)}")
     print("PASS 20 MX + encoder click form 21 unique COL2ROW matrix positions")
 
@@ -337,7 +337,7 @@ def main():
     print("PASS frozen nine PCB mounting holes")
 
     for token in ("segment", "via", "zone"):
-        if balanced_blocks(text, token):
+        if re.search(rf"\\({token}(?:\\s|\\n)", text):
             raise AssertionError(f"Task 3C board must be unrouted; found {token}")
     print("PASS no tracks, vias, or copper zones: routing remains Task 4")
 
