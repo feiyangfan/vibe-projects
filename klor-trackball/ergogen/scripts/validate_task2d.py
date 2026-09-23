@@ -122,7 +122,7 @@ def main():
         if phrase in requirements:
             raise AssertionError(f"requirements still contain unresolved Task-2 decision: {phrase}")
     required_phrases = [
-        "**REV 1 PRODUCT + TASK 2 GEOMETRY FROZEN**",
+        "REV 1 PRODUCT + TASK 2 GEOMETRY",
         "| Right key count | **19** |",
         "**Retain R32 / SW20 and R33 / SW21; remove R34 / SW22 / D22**",
         "The **right EC11-class encoder is retained in its stock location** for Rev 1.",

@@ -2,7 +2,7 @@
 
 ## Status
 
-**REV 1 PRODUCT + TASK 2 GEOMETRY FROZEN**
+**REV 1 PRODUCT + TASK 2 GEOMETRY + TASK 3A ELECTRICAL ARCHITECTURE FROZEN**
 
 This document is the authoritative product-requirements freeze for Tasks 2–4.
 
@@ -271,11 +271,15 @@ These may be added without changing the Rev-1 hardware contract:
 
 ---
 
-## Preferred electrical baseline for Task 3
+## Task 3A electrical implementation
 
-The previous validated derivative demonstrated the following conflict-free allocation:
+Task 3A freezes the Rev-1 electrical implementation in `ergogen/task3/task3a-electrical-contract.yaml`.
 
-- RGB: GP0;
+Selected controller: **0xCB Helios rev1.0**.
+
+Frozen GPIO ownership:
+
+- RGB: **GP25 through the Helios onboard 5 V level shifter**;
 - half-duplex split serial: GP1;
 - PMW SCK: GP2;
 - PMW MOSI: GP3;
@@ -283,9 +287,15 @@ The previous validated derivative demonstrated the following conflict-free alloc
 - PMW CS: GP9;
 - matrix rows: GP5, GP6, GP7, GP8;
 - matrix columns: GP27, GP26, GP22, GP20, GP23, GP21;
-- encoder baseline: GP28, GP29 when the corresponding encoder is retained.
+- encoders: GP28/GP29, with right A/B reversed to preserve established direction semantics.
 
-This is a **preferred engineering baseline**, not a product-level requirement. Task 3 may alter the exact allocation if required by the selected RP2040 controller or SPI implementation, but it may not sacrifice any Required feature or reintroduce a Removed feature merely to preserve historical pin numbers.
+Power domains are explicit:
+
+- RAW/5 V for SK6812 and split power;
+- regulated 3.3 V from each Helios for the right-side PMW3360 breakout;
+- common ground.
+
+The historical GP0 RGB assignment is superseded. GP25 is used because Helios exposes it through an onboard 3.3 V → 5 V level shifter, matching the 5 V SK6812 power domain without adding a separate keyboard-PCB level shifter.
 
 ---
 
