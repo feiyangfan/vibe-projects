@@ -351,7 +351,7 @@ def main():
     print("PASS frozen nine PCB mounting holes")
 
     for token in ("segment", "via", "zone"):
-        if re.search(rf"\\({token}(?:\\s|\\n)", text):
+        if re.search(rf"\\({token}\\b", text):
             raise AssertionError(f"Task 3C board must be unrouted; found {token}")
     print("PASS no tracks, vias, or copper zones: routing remains Task 4")
 
