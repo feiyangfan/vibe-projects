@@ -43,7 +43,7 @@ Gate:
 
 ### Task 3B — Qualify production footprints
 
-**IN PROGRESS**
+**COMPLETE**
 
 Validate or implement local production footprints for:
 
@@ -63,6 +63,8 @@ Gate:
 - the selected controller footprint fits the frozen U1 envelope and exposes every Task-3A-required pad.
 
 ### Task 3C — Generate the left production-intent PCB
+
+**NEXT**
 
 Generate the electrically complete, unrouted left PCB from source.
 
