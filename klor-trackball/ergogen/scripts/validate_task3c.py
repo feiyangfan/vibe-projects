@@ -126,7 +126,7 @@ def assert_close(name, actual, expected):
         raise AssertionError(f"{name}: {actual} != {expected}")
 
 
-def find_instance(all_fps, config, fp_name, point_name, offset, board_offset):
+def find_instance(all_fps, config, fp_name, point_name, offset):
     local = point(config, point_name)
     expected = (local[0] + offset[0], local[1] + offset[1], local[2])
     found = [
