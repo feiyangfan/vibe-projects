@@ -269,6 +269,26 @@ The generated canonical geometry numerically reproduces all intentionally preser
 
 ## Task 3 — Establish production footprints and generate the electrical PCB
 
+**Status: IN PROGRESS**
+
+Task 3 is split into explicit electrical gates:
+
+```text
+3A  electrical architecture
+ ↓
+3B  production footprints
+ ↓
+3C  left unrouted PCB
+ ↓
+3D  right unrouted PCB + PMW
+ ↓
+3E  cross-board electrical freeze
+ ↓
+Task 4 routing
+```
+
+The detailed subtask contract is in `ergogen/task3/README.md`.
+
 Turn the geometric model into a real electrical PCB definition.
 
 Implement or validate production footprints for all retained hardware, including as applicable:
@@ -513,6 +533,6 @@ Generated output should never become the only place where design intent exists.
 
 ## Current work
 
-**Task 3 — Establish production footprints and generate the electrical PCB.**
+**Task 3A — Freeze the electrical architecture.**
 
-Task 2 is complete and frozen. The authoritative geometry/change-control contract is `ergogen/task2/task2d-freeze.yaml`, with passing evidence in `ergogen/task2/TASK2D_RESULT.md`. Task 3 may add electrical implementation detail but may not silently reinterpret frozen Task-2 geometry.
+Task 2 is complete and frozen. Task 3A selects the controller, power domains, matrix/RGB/split/encoder/PMW ownership and final GPIO contract before production footprints are implemented.

@@ -1,0 +1,288 @@
+status: task3a_frozen_candidate
+revision: 1
+
+authority:
+  product_requirements: ../../REQUIREMENTS.md
+  geometry_freeze: ../task2/task2d-freeze.yaml
+  stock_pcb_reference: ../../klor1.4/PCB/klor1_4/klor1_4.kicad_pcb
+  stock_qmk_reference: ../../klor1.4/FIRMWARE/qmk_rp2040/electronlab/klor/keyboard.json
+  kivipallur_reference: ../../klorball35/kicad/Kivipallur_PMW3360_breakout/Kivipallur_PMW3360_breakout.kicad_pcb
+
+controller:
+  model: 0xCB Helios
+  hardware_revision: rev1.0
+  mcu: RP2040
+  qmk_board: 0xcb/helios
+  source_repository: 0xCB-dev/0xCB-Helios
+  source_commit: e1a25eb5e4b1bcb25e13dcb18bd6e841dcf7be11
+  selection_reasons:
+    - open_hardware_and_source_auditable
+    - pro_micro_drop_in_mechanical_family
+    - explicit_3v3_output
+    - explicit_raw_5v_pin
+    - onboard_GP25_3v3_to_5v_rgb_level_shifter
+    - required_matrix_encoder_split_and_spi_gpio_available
+  qualification_boundary:
+    footprint_and_mechanical_fit: task3b
+    rule: if_task3b_cannot_qualify_helios_within_frozen_U1_envelope_reopen_task3a
+  audited_pads:
+    GP0: {pad: 2, use: unused}
+    GP1: {pad: 3, use: SPLIT_DATA}
+    GP2: {pad: 6, use_right: PMW_SCK, use_left: unused}
+    GP3: {pad: 7, use_right: PMW_MOSI, use_left: unused}
+    GP4: {pad: 8, use_right: PMW_MISO, use_left: unused}
+    GP5: {pad: 9, use: ROW0}
+    GP6: {pad: 10, use: ROW1}
+    GP7: {pad: 11, use: ROW2}
+    GP8: {pad: 12, use: ROW3}
+    GP9: {pad: 13, use_right: PMW_CS, use_left: unused}
+    GP21: {pad: 19, use: COL5}
+    GP23: {pad: 20, use: COL4}
+    GP20: {pad: 21, use: COL3}
+    GP22: {pad: 22, use: COL2}
+    GP26: {pad: 23, use: COL1}
+    GP27: {pad: 24, use: COL0}
+    GP28: {pad: 25, use: ENCODER_A_OR_B}
+    GP29: {pad: 26, use: ENCODER_A_OR_B}
+    3V3: {pad: 27, use: PMW_3V3}
+    RESET: {pad: 28, use: RESET}
+    GND: {pad: 29, use: GND}
+    RAW_5V: {pad: 30, use: SPLIT_AND_RGB_5V}
+    GP11: {pad: 31, use: unused}
+    GP25_SHIFTED: {pad: 32, mcu_gpio: GP25, use: RGB_DATA_5V}
+
+power:
+  controller_configuration:
+    helios_jp2_default_bridge: [1, 2]
+    effect: RAW_pin_connected_to_internal_5V_rail
+  rails:
+    RAW_5V:
+      nominal_voltage: 5
+      sources:
+        usb_master: controller_RAW_5V
+        split_secondary: TRRS_pin_1
+      consumers:
+        - SK6812_MINI_E_VDD
+        - secondary_half_controller_RAW
+        - helios_rgb_level_shifter_VCCB
+    V3V3:
+      nominal_voltage: 3.3
+      source: controller_pad_27
+      consumers_right:
+        - PMW_header_pin_6
+      consumers_left: []
+    GND:
+      source: common
+      consumers: all
+  usage_rules:
+    usb_sources_while_split_connected: 1
+    powered_TRRS_hotplug_supported: false
+    note: unplug_USB_before_connecting_or_disconnect_TRRS
+  rgb_budget:
+    production_reference: SK6812MINI-E-012
+    supply: RAW_5V
+    datasheet_current_variant_mA: 12
+    unconstrained_full_brightness_is_not_a_supported_USB_power_assumption: true
+    firmware_brightness_limit_required: true
+    final_limit: deferred_to_task8_and_task7_power_validation
+
+matrix:
+  diode_direction: COL2ROW
+  rows:
+    ROW0: {gpio: GP5, controller_pad: 9}
+    ROW1: {gpio: GP6, controller_pad: 10}
+    ROW2: {gpio: GP7, controller_pad: 11}
+    ROW3: {gpio: GP8, controller_pad: 12}
+  columns:
+    COL0: {gpio: GP27, controller_pad: 24}
+    COL1: {gpio: GP26, controller_pad: 23}
+    COL2: {gpio: GP22, controller_pad: 22}
+    COL3: {gpio: GP20, controller_pad: 21}
+    COL4: {gpio: GP23, controller_pad: 20}
+    COL5: {gpio: GP21, controller_pad: 19}
+  switch_electrical_pattern:
+    switch_column_pad: 5
+    switch_to_diode_pad: 6
+    diode_switch_side_pad: 2
+    diode_row_side_pad: 1
+  stock_sites:
+    SW1:  [ROW0, COL5]
+    SW2:  [ROW0, COL4]
+    SW3:  [ROW0, COL3]
+    SW4:  [ROW0, COL2]
+    SW5:  [ROW0, COL1]
+    SW6:  [ROW1, COL5]
+    SW7:  [ROW1, COL4]
+    SW8:  [ROW1, COL3]
+    SW9:  [ROW1, COL2]
+    SW10: [ROW1, COL1]
+    SW11: [ROW1, COL0]
+    SW12: [ROW2, COL5]
+    SW13: [ROW2, COL4]
+    SW14: [ROW2, COL3]
+    SW15: [ROW2, COL2]
+    SW16: [ROW2, COL1]
+    SW17: [ROW2, COL0]
+    ENCODER_CLICK: [ROW3, COL5]
+    SW20: [ROW3, COL3]
+    SW21: [ROW3, COL2]
+    SW22: [ROW3, COL1]
+  left:
+    mx_switches: [SW1, SW2, SW3, SW4, SW5, SW6, SW7, SW8, SW9, SW10, SW11, SW12, SW13, SW14, SW15, SW16, SW17, SW20, SW21, SW22]
+    encoder_click: ENCODER_CLICK
+    active_matrix_positions: 21
+    qmk_global_rows: [0, 1, 2, 3]
+  right:
+    mx_switches: [SW1, SW2, SW3, SW4, SW5, SW6, SW7, SW8, SW9, SW10, SW11, SW12, SW13, SW14, SW15, SW16, SW17, SW20, SW21]
+    encoder_click: ENCODER_CLICK
+    active_matrix_positions: 20
+    qmk_global_rows: [4, 5, 6, 7]
+    intentionally_absent:
+      - SW19
+      - SW22
+  row3_col0: unused
+  alternate_layout_SW19: intentionally_absent_both_halves
+
+encoders:
+  click:
+    column: COL5
+    row: ROW3
+    diode_direction: COL2ROW
+  left_rotary:
+    A: GP28
+    B: GP29
+    common: GND
+  right_rotary:
+    A: GP29
+    B: GP28
+    common: GND
+    reason_for_swap: preserve_stock_qmk_right_side_direction_semantics
+
+split:
+  transport: half_duplex_serial
+  gpio: GP1
+  controller_pad: 3
+  trrs:
+    pin_1: RAW_5V
+    pin_2: GND
+    pin_3: NC
+    pin_4: SPLIT_DATA
+  full_duplex_RX: intentionally_removed
+
+rgb:
+  device: SK6812MINI-E-012
+  supply: RAW_5V
+  ground: GND
+  controller_gpio: GP25
+  controller_output_pad: 32
+  electrical_output: 5V_level_shifted_on_Helios
+  signal_name: RGB_DATA_5V
+  pad_contract:
+    DOUT: 1
+    GND: 2
+    DIN: 3
+    VDD: 4
+  left:
+    count: 20
+    chain: [SW20, SW21, SW12, SW6, SW1, SW2, SW7, SW13, SW22, SW14, SW8, SW3, SW4, SW9, SW15, SW16, SW10, SW5, SW11, SW17]
+  right:
+    count: 19
+    chain: [SW20, SW21, SW12, SW6, SW1, SW2, SW7, SW13, SW14, SW8, SW3, SW4, SW9, SW15, SW16, SW10, SW5, SW11, SW17]
+    bypassed_stock_device: SW22
+  alternate_layout_SW19: absent
+
+pmw3360:
+  side: right_only
+  spi:
+    SCK:  {gpio: GP2, controller_pad: 6}
+    MOSI: {gpio: GP3, controller_pad: 7}
+    MISO: {gpio: GP4, controller_pad: 8}
+    CS:   {gpio: GP9, controller_pad: 13}
+  motion:
+    header_position: 5
+    electrical_state: NC
+    firmware_strategy: polling
+  keyboard_header:
+    reference: J4
+    family: PinHeader_1x07_P2.54mm_Vertical
+    side: F.Cu
+    pin_order:
+      1: PMW_CS
+      2: PMW_MISO
+      3: PMW_MOSI
+      4: PMW_SCK
+      5: NC_MOTION
+      6: V3V3
+      7: GND
+    mating_rule: breakout_pin_N_to_keyboard_pin_8_minus_N
+
+reset:
+  per_half: true
+  controller_pad: 28
+  controller_net: RESET
+  switch_action: short_RESET_to_GND
+  placement: preserve_stock_reset_location_where_practical
+
+removed_rev1_hardware:
+  no_footprints_no_nets_no_gpio_ownership:
+    - OLED
+    - DRV2605L_haptic
+    - buzzer_audio
+    - PAW3204
+    - general_I2C_accessories
+    - battery_connector
+    - battery_operation
+    - hardware_power_switch
+    - tenting_puck_electrical_support
+    - full_duplex_RX
+    - alternate_layout_SW19
+
+gpio_ownership:
+  left:
+    GP1: SPLIT_DATA
+    GP5: ROW0
+    GP6: ROW1
+    GP7: ROW2
+    GP8: ROW3
+    GP20: COL3
+    GP21: COL5
+    GP22: COL2
+    GP23: COL4
+    GP25: RGB_DATA_via_Helios_level_shifter
+    GP26: COL1
+    GP27: COL0
+    GP28: ENCODER_A
+    GP29: ENCODER_B
+  right:
+    GP1: SPLIT_DATA
+    GP2: PMW_SCK
+    GP3: PMW_MOSI
+    GP4: PMW_MISO
+    GP5: ROW0
+    GP6: ROW1
+    GP7: ROW2
+    GP8: ROW3
+    GP9: PMW_CS
+    GP20: COL3
+    GP21: COL5
+    GP22: COL2
+    GP23: COL4
+    GP25: RGB_DATA_via_Helios_level_shifter
+    GP26: COL1
+    GP27: COL0
+    GP28: ENCODER_B
+    GP29: ENCODER_A
+
+task3b_handoff:
+  must_qualify:
+    - helios_rev1_controller_footprint_in_frozen_U1_envelope
+    - helios_pad_27_3V3
+    - helios_pad_30_RAW_5V
+    - helios_pad_32_level_shifted_GP25
+    - mx_hotswap_and_SK6812_combined_or_coincident_footprint
+    - SOD123_diode
+    - TRRS
+    - EC11
+    - reset
+    - PMW_1x7
+  routing: forbidden_until_task4

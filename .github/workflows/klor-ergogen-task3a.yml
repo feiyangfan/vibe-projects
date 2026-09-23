@@ -1,0 +1,39 @@
+name: KLOR Task 3A - electrical contract
+
+on:
+  pull_request:
+    paths:
+      - "klor-trackball/REQUIREMENTS.md"
+      - "klor-trackball/README.md"
+      - "klor-trackball/ergogen/task2/**"
+      - "klor-trackball/ergogen/task3/**"
+      - "klor-trackball/ergogen/scripts/validate_task3a.py"
+      - "klor-trackball/klor1.4/PCB/klor1_4/klor1_4.kicad_pcb"
+      - "klor-trackball/klor1.4/FIRMWARE/qmk_rp2040/electronlab/klor/keyboard.json"
+      - "klor-trackball/klorball35/kicad/Kivipallur_PMW3360_breakout/Kivipallur_PMW3360_breakout.kicad_pcb"
+      - ".github/workflows/klor-ergogen-task3a.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  electrical-contract:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: klor-trackball/ergogen
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install validator dependency
+        run: python -m pip install "PyYAML==6.0.2"
+
+      - name: Validate Task 3A electrical architecture
+        run: python scripts/validate_task3a.py
