@@ -164,3 +164,17 @@ Everything outside that delta should remain numerically unchanged.
 ## Next
 
 Proceed to **Task 2C — Overlay the minimal trackball delta**.
+
+
+## Preservation re-validation during Task 2C
+
+Task 2C does not replace or mutate the Task-2B stock layer. The Task-2C CI workflow explicitly regenerates the complete model and re-runs `validate_task2b.py` before accepting any trackball delta.
+
+Passing Task-2C preservation run:
+
+- workflow: `KLOR Task 2C - trackball delta`
+- run ID: `35804745592`
+- head: `98c35cdf700785a2fd9d587f025f4ce8f7935e66`
+- Task-2B preservation step: **PASS**
+
+This confirms that the Task-2B stock geometry remains numerically unchanged while the Task-2C target geometry is layered on top.

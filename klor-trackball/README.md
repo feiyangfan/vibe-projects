@@ -512,6 +512,6 @@ Generated output should never become the only place where design intent exists.
 
 ## Current work
 
-**Task 2C — Overlay the minimal trackball delta.**
+**Task 2D — Freeze canonical geometry for Task 3.**
 
-Tasks 2A and 2B are complete. The minimal-change baseline is documented in `ergogen/task2/MINIMAL_CHANGE_STUDY.md`, and the passing stock-geometry regression is recorded in `ergogen/task2/TASK2B_RESULT.md`.
+Tasks 2A, 2B, and 2C are complete. The stock foundation is recorded in `ergogen/task2/TASK2B_RESULT.md`; the parameterized trackball overlay and its passing regression are recorded in `ergogen/task2/TASK2C_RESULT.md`.

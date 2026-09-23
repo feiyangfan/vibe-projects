@@ -43,7 +43,7 @@ Passing evidence is recorded in `TASK2B_RESULT.md`.
 
 ### 2C — Trackball delta overlay
 
-**IN PROGRESS**
+**COMPLETE**
 
 Add parametrically:
 
@@ -58,11 +58,15 @@ Add parametrically:
 
 Every preserved Task-2B datum outside the trackball delta must remain numerically unchanged.
 
-The implementation uses the Task-1-validated ball placement as the root datum and derives the housing, screw pair, service slot, PMW header reference and local support tongue from it. The support tongue is now justified by geometry: the locked 1x7 mating envelope extends approximately 4.46 mm beyond the stock lower edge.
+The implementation uses the Task-1-validated ball placement as the root datum and derives the housing, screw pair, service slot, PMW header reference and local support tongue from it. The support tongue is justified by geometry: the locked 1x7 mating envelope extends **4.462 mm** beyond the stock lower edge.
+
+Passing evidence is recorded in `TASK2C_RESULT.md`.
 
 ### 2D — Geometry freeze
 
-Freeze the generated right-half geometry for Task 3 only after numeric preservation and clearance gates pass.
+**NEXT**
+
+Freeze the generated right-half geometry for Task 3 only after the final Task-2 contract is reviewed as one system: preserved stock geometry + bounded trackball delta + connector/support geometry.
 
 ## Design rule
 
