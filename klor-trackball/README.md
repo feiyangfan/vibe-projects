@@ -12,8 +12,9 @@ The intended product direction is:
 - breakout architecture: **Kivipallur-style PMW3360 breakout**;
 - housing reference: **Keyball 25 mm Trackball Case Type C**;
 - left rotary encoder retained;
-- right-thumb key retention and right-encoder retention to be decided by comparative Task-2 geometry;
-- historical comparison baseline: **39 keys total — 20 left / 19 right**, removing R34;
+- right-thumb architecture: **retain R32/R33, remove R34**;
+- right rotary encoder retained in the stock location;
+- **39 keys total — 20 left / 19 right**;
 - complete deliverable: **PCB + switchplate + case + firmware + fabrication outputs**.
 
 Those details are now frozen for Rev 1 in [`REQUIREMENTS.md`](REQUIREMENTS.md). Task 1 explicitly classified stock KLOR features as required, optional/deferred, or intentionally removed.
@@ -218,7 +219,7 @@ A short authoritative requirements document exists, and any geometry-dependent p
 
 ## Task 2 — Reconstruct the complete KLOR/Konrad geometry in Ergogen
 
-**Status: IN PROGRESS**
+**Status: COMPLETE**
 
 Task 2 begins with a minimal-change study before full reconstruction. The selected implementation baseline is to remove R34/SW22/D22 only, retain R32/R33 and the right encoder, preserve all structural interfaces, and keep PCB/plate/case changes local to the trackball region. See `ergogen/task2/MINIMAL_CHANGE_STUDY.md`.
 
@@ -512,6 +513,6 @@ Generated output should never become the only place where design intent exists.
 
 ## Current work
 
-**Task 2D — Freeze canonical geometry for Task 3.**
+**Task 3 — Establish production footprints and generate the electrical PCB.**
 
-Tasks 2A, 2B, and 2C are complete. The stock foundation is recorded in `ergogen/task2/TASK2B_RESULT.md`; the parameterized trackball overlay and its passing regression are recorded in `ergogen/task2/TASK2C_RESULT.md`.
+Task 2 is complete and frozen. The authoritative geometry/change-control contract is `ergogen/task2/task2d-freeze.yaml`, with passing evidence in `ergogen/task2/TASK2D_RESULT.md`. Task 3 may add electrical implementation detail but may not silently reinterpret frozen Task-2 geometry.

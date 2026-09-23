@@ -64,9 +64,22 @@ Passing evidence is recorded in `TASK2C_RESULT.md`.
 
 ### 2D — Geometry freeze
 
-**IN PROGRESS**
+**COMPLETE**
 
-Freeze the generated right-half geometry for Task 3 only after the final Task-2 contract is reviewed as one system: preserved stock geometry + bounded trackball delta + connector/support geometry.
+The final Task-2 contract is frozen in `task2d-freeze.yaml` and regression-enforced by `validate_task2d.py`.
+
+The freeze combines:
+
+- the exact preserved-stock geometry from 2B;
+- the bounded trackball delta from 2C;
+- the final 20-left / 19-right / 39-total key architecture;
+- R32/R33 retained and R34 removed;
+- the right encoder retained at stock position;
+- the PMW header side/orientation/pin-order/mechanical relationship;
+- the required local PCB support tongue and 2 × 22 open-edge notch;
+- the Task-3 allowed/forbidden geometry boundary.
+
+Passing evidence is recorded in `TASK2D_RESULT.md`.
 
 ## Design rule
 
