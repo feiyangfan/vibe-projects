@@ -512,6 +512,6 @@ Generated output should never become the only place where design intent exists.
 
 ## Current work
 
-**Task 2B — Reconstruct preserved stock KLOR/Konrad geometry in Ergogen.**
+**Task 2C — Overlay the minimal trackball delta.**
 
-Task 2A's minimal-change study is complete. The implementation baseline and preserve/change boundary are in `ergogen/task2/`.
+Tasks 2A and 2B are complete. The minimal-change baseline is documented in `ergogen/task2/MINIMAL_CHANGE_STUDY.md`, and the passing stock-geometry regression is recorded in `ergogen/task2/TASK2B_RESULT.md`.

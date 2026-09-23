@@ -27,13 +27,36 @@ This selection is based on minimum product/CAD/PCB change. It is not a claim tha
 
 ### 2B — Stock geometry reconstruction
 
-**IN PROGRESS**
+**COMPLETE**
 
-Build the preserved KLOR/Konrad geometry in Ergogen and regress it numerically against stock sources. The active `config.yaml` now reconstructs the 20 fixed-Konrad key datums, encoder, MCU/TRRS, nine stock PCB hole references, eight case/switchplate structural axes, the exact stock PCB Edge.Cuts (three closed chains), and the stock switchplate outer perimeter.
+The active `config.yaml` reconstructs and regression-checks:
+
+- all 20 fixed-Konrad stock key datums;
+- right encoder;
+- MCU and TRRS;
+- nine stock PCB hole references;
+- eight case/switchplate structural axes;
+- the exact stock PCB Edge.Cuts as three source-derived closed paths;
+- the stock switchplate outer perimeter from the checked-in SVG.
+
+Passing evidence is recorded in `TASK2B_RESULT.md`.
 
 ### 2C — Trackball delta overlay
 
-Add the trackball, housing screws, breakout/service path, and local PCB/plate modifications as parameters relative to the preserved stock geometry.
+**NEXT**
+
+Add parametrically:
+
+- R34/SW22 suppression;
+- 25 mm ball center;
+- Type-C housing envelope;
+- housing screw pair;
+- breakout/service path;
+- local PCB breakout notch;
+- local switchplate service extension;
+- PMW header placement envelope.
+
+Every preserved Task-2B datum outside the trackball delta must remain numerically unchanged.
 
 ### 2D — Geometry freeze
 
