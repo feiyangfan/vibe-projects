@@ -203,6 +203,87 @@ points:
         ref: breakout_center
         shift: [3.9444785, -6.9649485]
 
+    # Task 3C left production electrical placement. Diodes and reset retain
+    # their stock source positions in the frozen Task-2 canonical frame.
+    d1:
+      anchor:
+        shift: [-23.061399, 26.647857]
+    d2:
+      anchor:
+        shift: [-4.061399, 29.647857]
+    d3:
+      anchor:
+        shift: [15.038601, 38.647857]
+    d4:
+      anchor:
+        shift: [35.93446, 28.529271]
+        rotate: 4
+    d5:
+      anchor:
+        shift: [56.864428, 14.543059]
+        rotate: 10
+    d6:
+      anchor:
+        shift: [-23.061399, 7.547857]
+    d7:
+      anchor:
+        shift: [-3.064399, 10.550857]
+    d8:
+      anchor:
+        shift: [15.017601, 19.562857]
+    d9:
+      anchor:
+        shift: [34.542742, 9.466443]
+        rotate: 4
+    d10:
+      anchor:
+        shift: [53.564428, -4.256941]
+        rotate: 10
+    d11:
+      anchor:
+        shift: [73.693601, -2.422143]
+        rotate: 10
+    d12:
+      anchor:
+        shift: [-23.261399, -11.542143]
+    d13:
+      anchor:
+        shift: [7.833601, -1.532143]
+        rotate: -90
+    d14:
+      anchor:
+        shift: [14.938601, 0.447857]
+    d15:
+      anchor:
+        shift: [34.53446, -9.570729]
+        rotate: 4
+    d16:
+      anchor:
+        shift: [50.238601, -22.952143]
+        rotate: 10
+    d17:
+      anchor:
+        shift: [70.513601, -21.232143]
+        rotate: 10
+    d18:
+      anchor:
+        shift: [-39.181399, -0.212143]
+    d20:
+      anchor:
+        shift: [-43.093399, -41.012386]
+        rotate: -120
+    d21:
+      anchor:
+        shift: [-25.374399, -31.191143]
+        rotate: -105
+    d22:
+      anchor:
+        shift: [-5.516399, -26.452143]
+        rotate: -90
+    reset_ref:
+      anchor:
+        shift: [-57.751404, -13.912151]
+        rotate: 90
     # Task 3B qualification fixture points. These are intentionally isolated
     # from production geometry and exist only to prove local footprint output.
     fp_key_b:
@@ -997,6 +1078,479 @@ pcbs:
         params:
           drill: 2.2
 
+  task3c_left_production:
+    template: kicad8
+    outlines:
+      main:
+        outline: stock_board
+        layer: Edge.Cuts
+    footprints:
+      key_sw1:
+        what: klor_key
+        where: sw1
+        params:
+          side: B
+          col: COL5
+          diode: SW1_TO_D1
+          dout: RGB_SW1_TO_SW2
+          gnd: GND
+          din: RGB_SW6_TO_SW1
+          vdd: RAW_5V
+      key_sw2:
+        what: klor_key
+        where: sw2
+        params:
+          side: B
+          col: COL4
+          diode: SW2_TO_D2
+          dout: RGB_SW2_TO_SW7
+          gnd: GND
+          din: RGB_SW1_TO_SW2
+          vdd: RAW_5V
+      key_sw3:
+        what: klor_key
+        where: sw3
+        params:
+          side: B
+          col: COL3
+          diode: SW3_TO_D3
+          dout: RGB_SW3_TO_SW4
+          gnd: GND
+          din: RGB_SW8_TO_SW3
+          vdd: RAW_5V
+      key_sw4:
+        what: klor_key
+        where: sw4
+        params:
+          side: B
+          col: COL2
+          diode: SW4_TO_D4
+          dout: RGB_SW4_TO_SW9
+          gnd: GND
+          din: RGB_SW3_TO_SW4
+          vdd: RAW_5V
+      key_sw5:
+        what: klor_key
+        where: sw5
+        params:
+          side: B
+          col: COL1
+          diode: SW5_TO_D5
+          dout: RGB_SW5_TO_SW11
+          gnd: GND
+          din: RGB_SW10_TO_SW5
+          vdd: RAW_5V
+      key_sw6:
+        what: klor_key
+        where: sw6
+        params:
+          side: B
+          col: COL5
+          diode: SW6_TO_D6
+          dout: RGB_SW6_TO_SW1
+          gnd: GND
+          din: RGB_SW12_TO_SW6
+          vdd: RAW_5V
+      key_sw7:
+        what: klor_key
+        where: sw7
+        params:
+          side: B
+          col: COL4
+          diode: SW7_TO_D7
+          dout: RGB_SW7_TO_SW13
+          gnd: GND
+          din: RGB_SW2_TO_SW7
+          vdd: RAW_5V
+      key_sw8:
+        what: klor_key
+        where: sw8
+        params:
+          side: B
+          col: COL3
+          diode: SW8_TO_D8
+          dout: RGB_SW8_TO_SW3
+          gnd: GND
+          din: RGB_SW14_TO_SW8
+          vdd: RAW_5V
+      key_sw9:
+        what: klor_key
+        where: sw9
+        params:
+          side: B
+          col: COL2
+          diode: SW9_TO_D9
+          dout: RGB_SW9_TO_SW15
+          gnd: GND
+          din: RGB_SW4_TO_SW9
+          vdd: RAW_5V
+      key_sw10:
+        what: klor_key
+        where: sw10
+        params:
+          side: B
+          col: COL1
+          diode: SW10_TO_D10
+          dout: RGB_SW10_TO_SW5
+          gnd: GND
+          din: RGB_SW16_TO_SW10
+          vdd: RAW_5V
+      key_sw11:
+        what: klor_key
+        where: sw11
+        params:
+          side: B
+          col: COL0
+          diode: SW11_TO_D11
+          dout: RGB_SW11_TO_SW17
+          gnd: GND
+          din: RGB_SW5_TO_SW11
+          vdd: RAW_5V
+      key_sw12:
+        what: klor_key
+        where: sw12
+        params:
+          side: B
+          col: COL5
+          diode: SW12_TO_D12
+          dout: RGB_SW12_TO_SW6
+          gnd: GND
+          din: RGB_SW21_TO_SW12
+          vdd: RAW_5V
+      key_sw13:
+        what: klor_key
+        where: sw13
+        params:
+          side: B
+          col: COL4
+          diode: SW13_TO_D13
+          dout: RGB_SW13_TO_SW22
+          gnd: GND
+          din: RGB_SW7_TO_SW13
+          vdd: RAW_5V
+      key_sw14:
+        what: klor_key
+        where: sw14
+        params:
+          side: B
+          col: COL3
+          diode: SW14_TO_D14
+          dout: RGB_SW14_TO_SW8
+          gnd: GND
+          din: RGB_SW22_TO_SW14
+          vdd: RAW_5V
+      key_sw15:
+        what: klor_key
+        where: sw15
+        params:
+          side: B
+          col: COL2
+          diode: SW15_TO_D15
+          dout: RGB_SW15_TO_SW16
+          gnd: GND
+          din: RGB_SW9_TO_SW15
+          vdd: RAW_5V
+      key_sw16:
+        what: klor_key
+        where: sw16
+        params:
+          side: B
+          col: COL1
+          diode: SW16_TO_D16
+          dout: RGB_SW16_TO_SW10
+          gnd: GND
+          din: RGB_SW15_TO_SW16
+          vdd: RAW_5V
+      key_sw17:
+        what: klor_key
+        where: sw17
+        params:
+          side: B
+          col: COL0
+          diode: SW17_TO_D17
+          dout: ""
+          gnd: GND
+          din: RGB_SW11_TO_SW17
+          vdd: RAW_5V
+      key_sw20:
+        what: klor_key
+        where: sw20
+        params:
+          side: B
+          col: COL3
+          diode: SW20_TO_D20
+          dout: RGB_SW20_TO_SW21
+          gnd: GND
+          din: RGB_DATA_5V
+          vdd: RAW_5V
+      key_sw21:
+        what: klor_key
+        where: sw21
+        params:
+          side: B
+          col: COL2
+          diode: SW21_TO_D21
+          dout: RGB_SW21_TO_SW12
+          gnd: GND
+          din: RGB_SW20_TO_SW21
+          vdd: RAW_5V
+      key_sw22:
+        what: klor_key
+        where: sw22
+        params:
+          side: B
+          col: COL1
+          diode: SW22_TO_D22
+          dout: RGB_SW22_TO_SW14
+          gnd: GND
+          din: RGB_SW13_TO_SW22
+          vdd: RAW_5V
+      diode_d1:
+        what: klor_diode
+        where: d1
+        params:
+          side: B
+          row: ROW0
+          sw: SW1_TO_D1
+      diode_d2:
+        what: klor_diode
+        where: d2
+        params:
+          side: B
+          row: ROW0
+          sw: SW2_TO_D2
+      diode_d3:
+        what: klor_diode
+        where: d3
+        params:
+          side: B
+          row: ROW0
+          sw: SW3_TO_D3
+      diode_d4:
+        what: klor_diode
+        where: d4
+        params:
+          side: B
+          row: ROW0
+          sw: SW4_TO_D4
+      diode_d5:
+        what: klor_diode
+        where: d5
+        params:
+          side: B
+          row: ROW0
+          sw: SW5_TO_D5
+      diode_d6:
+        what: klor_diode
+        where: d6
+        params:
+          side: B
+          row: ROW1
+          sw: SW6_TO_D6
+      diode_d7:
+        what: klor_diode
+        where: d7
+        params:
+          side: B
+          row: ROW1
+          sw: SW7_TO_D7
+      diode_d8:
+        what: klor_diode
+        where: d8
+        params:
+          side: B
+          row: ROW1
+          sw: SW8_TO_D8
+      diode_d9:
+        what: klor_diode
+        where: d9
+        params:
+          side: B
+          row: ROW1
+          sw: SW9_TO_D9
+      diode_d10:
+        what: klor_diode
+        where: d10
+        params:
+          side: B
+          row: ROW1
+          sw: SW10_TO_D10
+      diode_d11:
+        what: klor_diode
+        where: d11
+        params:
+          side: B
+          row: ROW1
+          sw: SW11_TO_D11
+      diode_d12:
+        what: klor_diode
+        where: d12
+        params:
+          side: B
+          row: ROW2
+          sw: SW12_TO_D12
+      diode_d13:
+        what: klor_diode
+        where: d13
+        params:
+          side: B
+          row: ROW2
+          sw: SW13_TO_D13
+      diode_d14:
+        what: klor_diode
+        where: d14
+        params:
+          side: B
+          row: ROW2
+          sw: SW14_TO_D14
+      diode_d15:
+        what: klor_diode
+        where: d15
+        params:
+          side: B
+          row: ROW2
+          sw: SW15_TO_D15
+      diode_d16:
+        what: klor_diode
+        where: d16
+        params:
+          side: B
+          row: ROW2
+          sw: SW16_TO_D16
+      diode_d17:
+        what: klor_diode
+        where: d17
+        params:
+          side: B
+          row: ROW2
+          sw: SW17_TO_D17
+      diode_d20:
+        what: klor_diode
+        where: d20
+        params:
+          side: B
+          row: ROW3
+          sw: SW20_TO_D20
+      diode_d21:
+        what: klor_diode
+        where: d21
+        params:
+          side: B
+          row: ROW3
+          sw: SW21_TO_D21
+      diode_d22:
+        what: klor_diode
+        where: d22
+        params:
+          side: B
+          row: ROW3
+          sw: SW22_TO_D22
+      diode_d18:
+        what: klor_diode
+        where: d18
+        params:
+          side: B
+          row: ROW3
+          sw: ENCODER_TO_D18
+      encoder:
+        what: klor_ec11
+        where: encoder_ref
+        params:
+          A: ENCODER_A
+          B: ENCODER_B
+          C: GND
+          S1: COL5
+          S2: ENCODER_TO_D18
+      controller:
+        what: helios_host
+        where: mcu_ref
+        params:
+          P2: ""
+          P3: SPLIT_DATA
+          P4: GND
+          P5: GND
+          P6: ""
+          P7: ""
+          P8: ""
+          P9: ROW0
+          P10: ROW1
+          P11: ROW2
+          P12: ROW3
+          P13: ""
+          P19: COL5
+          P20: COL4
+          P21: COL3
+          P22: COL2
+          P23: COL1
+          P24: COL0
+          P25: ENCODER_A
+          P26: ENCODER_B
+          P27: V3V3
+          P28: RESET
+          P29: GND
+          P30: RAW_5V
+          P32: RGB_DATA_5V
+      trrs:
+        what: klor_trrs
+        where: trrs_ref
+        params:
+          side: B
+          P1: RAW_5V
+          P2: GND
+          P3: ""
+          P4: SPLIT_DATA
+      reset:
+        what: klor_reset
+        where: reset_ref
+        params:
+          side: B
+          reset: RESET
+          gnd: GND
+      mh1:
+        what: mounting_hole
+        where: mh1
+        params:
+          drill: 3.2
+      mh2:
+        what: mounting_hole
+        where: mh2
+        params:
+          drill: 3.2
+      mh3:
+        what: mounting_hole
+        where: mh3
+        params:
+          drill: 3.2
+      mh4:
+        what: mounting_hole
+        where: mh4
+        params:
+          drill: 3.2
+      mh5:
+        what: mounting_hole
+        where: mh5
+        params:
+          drill: 3.2
+      mh6:
+        what: mounting_hole
+        where: mh6
+        params:
+          drill: 3.2
+      mh7:
+        what: mounting_hole
+        where: mh7
+        params:
+          drill: 3.2
+      mh8:
+        what: mounting_hole
+        where: mh8
+        params:
+          drill: 3.2
+      mh9:
+        what: mounting_hole
+        where: mh9
+        params:
+          drill: 2.2
   task2c_trackball_reference:
     template: kicad8
     outlines:
