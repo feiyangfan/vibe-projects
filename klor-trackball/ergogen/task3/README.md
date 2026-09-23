@@ -64,7 +64,7 @@ Gate:
 
 ### Task 3C — Generate the left production-intent PCB
 
-**IN PROGRESS**
+**COMPLETE**
 
 Generate the electrically complete, unrouted left PCB from source.
 
@@ -87,6 +87,8 @@ Gate:
 - the board is electrically coherent and intentionally unrouted.
 
 ### Task 3D — Generate the right production-intent PCB
+
+**NEXT**
 
 Generate the right PCB on the frozen Task-2D trackball geometry.
 
