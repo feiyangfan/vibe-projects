@@ -480,7 +480,7 @@ def main():
         actual = (float(p["x"]), float(p["y"]), float(p.get("r", 0.0)))
         assert_xyz(f"case_mount_{i}", actual, (*expected, 0.0), PATH_TOL, ROT_TOL)
 
-    stock_keys = [k for k in generated if re.fullmatch(r"sw(?:0[1-9]|1[0-7]|20|21|22)", k)]
+    stock_keys = [k for k in generated if re.fullmatch(r"sw(?:[1-9]|1[0-7]|20|21|22)", k)]
     if len(stock_keys) != 20:
         raise AssertionError(f"expected 20 fixed-Konrad stock keys, got {len(stock_keys)}")
     print("PASS 20-key stock Konrad geometry reconstructed")
