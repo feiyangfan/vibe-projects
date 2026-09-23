@@ -64,14 +64,14 @@ Gate:
 
 ### Task 3C — Generate the left production-intent PCB
 
-**NEXT**
+**IN PROGRESS**
 
 Generate the electrically complete, unrouted left PCB from source.
 
 Expected electrical content:
 
 - 20 MX keys;
-- 20 matrix diodes;
+- 21 matrix diodes (20 MX + encoder click D18);
 - 20 RGB devices;
 - encoder rotary A/B plus encoder push;
 - controller;
@@ -93,7 +93,7 @@ Generate the right PCB on the frozen Task-2D trackball geometry.
 Expected electrical content:
 
 - 19 MX keys;
-- 19 matrix diodes;
+- 20 matrix diodes (19 MX + encoder click D18);
 - 19 RGB devices;
 - right encoder rotary A/B plus encoder push;
 - controller;
