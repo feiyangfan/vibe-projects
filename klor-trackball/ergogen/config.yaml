@@ -20,7 +20,7 @@ units:
   pmw_header_body_w: 2.54
   pmw_header_body_h: 17.78
   pmw_support_tongue_w: 5.888957
-  pmw_support_tongue_h: 18.460598
+  pmw_support_tongue_h: 18.825007
 
 # Task 2B canonical stock frame:
 # - origin = stock SW13 center
@@ -140,13 +140,6 @@ points:
     mh8:
       anchor:
         shift: [41.498601, -15.722143]
-    # Connector-right Task-2 revision: shift only the right-target MH8 by
-    # +1.0 mm canonical Y so the 2x22 PMW service notch clears the M3 drill.
-    # Stock MH8 remains unchanged for the left PCB / stock reference.
-    mh8_trackball:
-      anchor:
-        ref: mh8
-        shift: [0, 1]
     mh9:
       anchor:
         shift: [53.188601, 32.297857]
@@ -180,7 +173,7 @@ points:
     # historical KiCad/Gerber transform are treated as transform noise.
     ball_center:
       anchor:
-        shift: [22.261644, -28.000147]
+        shift: [16.5, -28.000147]
     housing_center:
       anchor:
         ref: ball_center
@@ -208,7 +201,7 @@ points:
     pmw_support_tongue_center:
       anchor:
         ref: breakout_center
-        shift: [-3.9444785, -0.271704]
+        shift: [-3.9444785, -0.0894995]
 
     # Connector-right orientation copied from the KLORBall-35 right PCB:
     # keyboard pin 1 / CS is at positive canonical Y and pin 7 / GND at
@@ -865,16 +858,6 @@ outlines:
       where: /^mh[1-9]$/
       radius: pcb_m3_hole / 2
 
-  # Right-target mounting-hole set. All stock holes are retained except MH8,
-  # whose target instance moves +1.0 mm Y to clear the connector-right service notch.
-  trackball_pcb_holes:
-    - what: circle
-      where: /^(mh[1-7]|mh9)$/
-      radius: pcb_m3_hole / 2
-    - what: circle
-      where: mh8_trackball
-      radius: pcb_m3_hole / 2
-
   stock_case_mount_axes:
     - what: circle
       where: /^case_mount_/
@@ -948,7 +931,7 @@ outlines:
       operation: stack
     - name: pmw_header_envelope
       operation: stack
-    - name: trackball_pcb_holes
+    - name: stock_pcb_holes
       operation: stack
     - name: stock_case_mount_axes
       operation: stack
@@ -1568,7 +1551,7 @@ pcbs:
           drill: 3.2
       mh8:
         what: mounting_hole
-        where: mh8_trackball
+        where: mh8
         params:
           drill: 3.2
       mh9:
