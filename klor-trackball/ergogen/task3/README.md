@@ -88,7 +88,7 @@ Gate:
 
 ### Task 3D — Generate the right production-intent PCB
 
-**REOPENED — IN PROGRESS**
+**REVISION 2 — COMPLETE**
 
 Generate the right PCB on the frozen Task-2D trackball geometry.
 
