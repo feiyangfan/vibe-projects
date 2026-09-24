@@ -1,0 +1,71 @@
+name: KLOR Task 3D - right production PCB
+
+on:
+  pull_request:
+    paths:
+      - "klor-trackball/ergogen/**"
+      - ".github/workflows/klor-ergogen-task3d.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate-right-production:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: klor-trackball/ergogen
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install validator dependency
+        run: python -m pip install "PyYAML==6.0.2"
+
+      - name: Generate pass A
+        run: npx --yes ergogen@4.2.1 . --output generated-a --clean --svg --debug
+
+      - name: Generate pass B
+        run: npx --yes ergogen@4.2.1 . --output generated-b --clean --svg --debug
+
+      - name: Prove deterministic regeneration
+        run: diff -rq generated-a generated-b
+
+      - name: Re-run Task 2B
+        run: python scripts/validate_task2b.py --generated generated-a
+
+      - name: Re-run Task 2C
+        run: python scripts/validate_task2c.py --generated generated-a
+
+      - name: Re-run Task 2D
+        run: python scripts/validate_task2d.py --generated generated-a
+
+      - name: Re-run Task 3A
+        run: python scripts/validate_task3a.py
+
+      - name: Re-run Task 3B
+        run: python scripts/validate_task3b.py generated-a
+
+      - name: Re-run Task 3C
+        run: python scripts/validate_task3c.py generated-a
+
+      - name: Validate Task 3D right board
+        run: python scripts/validate_task3d.py generated-a
+
+      - name: Upload right production PCB
+        uses: actions/upload-artifact@v4
+        with:
+          name: klor-task3d-right-production-pcb
+          path: klor-trackball/ergogen/generated-a/pcbs/task3d_right_production.kicad_pcb
+          if-no-files-found: error
