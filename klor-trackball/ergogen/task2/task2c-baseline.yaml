@@ -17,7 +17,7 @@ variant:
 
 trackball:
   ball_diameter: 25
-  ball_center_local: [22.261644, -28.000147]
+  ball_center_local: [16.5, -28.000147]
   housing_center_from_ball: [9.165901, 0.000812]
   housing_envelope: [37.594812, 29.998377]
 
@@ -57,25 +57,24 @@ pmw_header_reference:
 support_tongue:
   required: true
   reason: locked_header_mating_envelope_overhangs_stock_lower_edge
-  stock_edge_y_at_header: -19.201038
-  stock_edge_y_at_tongue_inner_x: -19.041552
+  stock_edge_y_at_header: -18.797184
+  stock_edge_y_at_tongue_inner_x: -18.677143
   header_body_bottom_y: -36.890147
-  body_overhang_beyond_stock_edge: 17.689109
-  center_from_breakout: [-3.9444785, -0.271704]
-  size: [5.888957, 18.460598]
+  body_overhang_beyond_stock_edge: 18.092963
+  center_from_breakout: [-3.9444785, -0.0894995]
+  size: [5.888957, 18.825007]
   note: >-
     Connector-right support is re-derived against the sloped stock lower edge.
     The tongue touches the breakout slot at its negative-X edge and extends only
     far enough to support the frozen 1x7 header body plus the prior 0.612 mm margin.
 
-pcb_mounting_delta:
-  stock_holes_retained: [MH1, MH2, MH3, MH4, MH5, MH6, MH7, MH9]
-  relocated:
-    MH8:
-      shift_canonical: [0, 1.0]
-      target_point: mh8_trackball
-      reason: clear_connector_right_2x22_service_notch
-      minimum_edge_to_drill_clearance: 0.678004
+placement_adjustment:
+  prior_ball_center_local: [22.261644, -28.000147]
+  revised_ball_center_local: [16.5, -28.000147]
+  inward_shift_x: -5.761644
+  reason:
+    - preserve_2_5mm_conservative_housing_clearance_to_retained_SW16
+    - preserve_stock_MH8_clearance_from_connector_right_service_notch
 
 plate_delta:
   preserve_outer_perimeter: true
@@ -94,8 +93,7 @@ preservation_contract:
     - right_encoder
     - MCU
     - TRRS
-    - MH1_through_MH7_and_MH9
-    - MH8_identity_with_1mm_target_Y_relocation
+    - MH1_through_MH9
     - all_eight_case_mount_axes
     - stock_board_geometry_outside_notch_and_support_tongue
     - stock_switchplate_outer_perimeter
