@@ -1,150 +1,90 @@
-# Task 2C Result — Minimal Trackball Delta
+# Task 2C Result — Connector-Right Trackball Delta
 
 ## Status
 
-**PASS — Task 2C is complete.**
+**PASS — Task 2C revision 2 is complete.**
 
-Task 2C layers the minimum required trackball geometry on top of the separately validated Task-2B stock model.
+Revision 2 supersedes the original left-side breakout orientation. The canonical trackball assembly now matches the handedness of the checked-in KLORBall-35 right PCB: the Kivipallur/keyboard connector is on the **right / positive canonical X side of the ball**.
 
-The design is no longer expressed as a set of absolute KiCad edits. The ball center is the root trackball datum and the housing, screw pair, breakout corridor, PMW header reference, and support tongue are derived from it.
+## Why the ball center moved
 
-## Passing source state
+A direct 180 degree flip around the previous ball center `(22.261644, -28.000147)` puts the conservative Type-C housing envelope into retained SW16.
 
-Branch:
-
-`klor-trackball/task2-minimal-change`
-
-Passing head:
-
-`98c35cdf700785a2fd9d587f025f4ce8f7935e66`
-
-GitHub Actions:
-
-- workflow: `KLOR Task 2C - trackball delta`
-- run ID: `35804745592`
-- job ID: `107002903566`
-- conclusion: **success**
-
-Generated artifact:
-
-- name: `klor-task2c-trackball-geometry`
-- artifact ID: `10727496484`
-- SHA-256: `61fca51e9835cf27450aa11afb0d8f283856de51200f7624602dac4d52feddca`
-
-The workflow:
-
-1. generates Ergogen twice;
-2. proves deterministic output;
-3. re-runs the full Task-2B preservation regression;
-4. validates the Task-2C delta;
-5. uploads the generated geometry.
-
-## Preserved Task-2B foundation
-
-The Task-2C workflow re-runs `validate_task2b.py` before validating any trackball-specific geometry.
-
-Result: **PASS**.
-
-Therefore Task 2C did not alter:
-
-- the 20-key stock Konrad reference layer;
-- right encoder;
-- MCU/TRRS datums;
-- MH1..MH9;
-- eight structural case/switchplate axes;
-- stock PCB Edge.Cuts source paths;
-- stock switchplate perimeter source path.
-
-The target variant is created as a new composition on top of those preserved definitions.
-
-## Final right-thumb architecture entering Task 2D
-
-The Task-2C target is:
-
-- retain R32 / `SW20`;
-- retain R33 / `SW21`;
-- suppress R34 / `SW22`;
-- retain the right encoder;
-- 19 right-half keys;
-- 39 total keys using the existing 20-key left half.
-
-`SW22` remains available only as a stock reference datum so the previous R34 aperture can be reused mechanically. It is excluded from the target key-cutout selector.
-
-## Canonical trackball relationships
-
-Canonical frame:
-
-- origin = stock `SW13`;
-- +X = stock KiCad +X;
-- +Y = reflected KiCad Y, positive upward.
-
-Trackball root datum:
+The minimum-change correction is an inward X shift only:
 
 ```text
-ball_center = (22.261644, -28.000147)
+prior ball center   = (22.261644, -28.000147)
+revision-2 center   = (16.500000, -28.000147)
+delta               = (-5.761644, 0)
 ```
 
-Historical Task-1 placement regression: **PASS**.
+This preserves:
 
-Derived relationships:
+- all 19 retained right MX positions;
+- R32 / SW20 and R33 / SW21;
+- the stock right encoder;
+- MCU and TRRS datums;
+- all nine stock PCB mounting holes;
+- all stock case/switchplate structural axes.
+
+The conservative housing-to-key gate passes with SW16 as the limiting retained key at approximately **2.580294 mm**.
+
+The connector-right 2 x 22 service notch also clears stock MH8 by approximately **3.354275 mm edge-to-drill**.
+
+## Canonical revision-2 relationships
 
 ```text
+ball_center
+    = (16.5, -28.000147)
+
 housing_center
-    = ball_center + (-9.165901, -0.000812)
+    = ball_center + (9.165901, 0.000812)
 
 housing_screw_midpoint
-    = ball_center + (-6.212, 0)
+    = ball_center + (6.212, 0)
 
-housing_screw_1
-    = housing_screw_midpoint + (0, +7.98)
-
-housing_screw_2
-    = housing_screw_midpoint + (0, -7.98)
+housing_screw_1 / 2
+    = midpoint + (0, +/-7.98)
 
 breakout_center
-    = ball_center + (-19.212, 0)
+    = ball_center + (19.212, 0)
 
 pmw_header_center
-    = breakout_center + (4.613622, 0)
+    = breakout_center + (-4.613622, 0)
 ```
 
-Validated source-geometry screw spacing: **15.96 mm**.
-
-The tiny historical transform residual between the breakout and ball Y coordinates is intentionally normalized out as sub-micron frame noise.
-
-## Housing envelope
-
-The source-audited Type-C housing XY envelope is represented relative to the ball center.
-
-Reference size:
+Therefore:
 
 ```text
-37.594812 × 29.998377 mm
+breakout_center   = (35.712, -28.000147)
+pmw_header_center = (31.098378, -28.000147)
 ```
 
-The conservative retained-key clearance check passes.
+Both remain to the right of the ball.
 
-Closest retained key under the simple 18 × 18 mm XY envelope:
+## PMW connector handedness
 
-```text
-SW15 gap = 2.629627 mm
-```
+The checked-in KLORBall-35 right PCB was audited directly.
 
-This is consistent with the earlier source-mesh audit and remains above the Task-2C regression floor.
+Its keyboard-side J2 order is:
 
-## Breakout/service corridor
+1. CS
+2. MISO
+3. MOSI
+4. SCK
+5. NC / MOTION
+6. 3V3
+7. GND
 
-The breakout service corridor is:
+In the canonical frame, **pin 1 / CS is at positive Y** and **pin 7 / GND is at negative Y**.
 
-```text
-2 × 22 mm
-axis: Y
-service direction: -X
-```
+Revision 2 adopts that physical direction while preserving the verified Kivipallur mating rule:
 
-The validator proves that it crosses the stock lower PCB edge. Therefore the fabrication geometry is an **open edge notch**, not a closed internal slot.
+`breakout pin N -> keyboard pin 8-N`.
 
-The target PCB is composed declaratively as:
+## PCB delta
+
+The target right PCB remains:
 
 ```text
 stock_board
@@ -153,113 +93,39 @@ stock_board
 = trackball_board
 ```
 
-No stock KiCad UUID or Edge.Cuts object is mutated.
+The connector-right header now sits over the sloped lower stock edge, so the support tongue is re-derived rather than mirrored blindly.
 
-## PMW header support conclusion
-
-Task 2A left the support tongue conditional because a regenerated design should not inherit old geometry without proof.
-
-Task 2C now supplies that proof.
-
-The locked Kivipallur mating relationship requires:
-
-- 1 × 7 header;
-- 2.54 mm pitch;
-- row axis parallel to the 22 mm service corridor;
-- row midpoint offset +4.613622 mm from the corridor center.
-
-Using the nominal 2.54 × 17.78 mm header-body reference envelope:
+Frozen tongue:
 
 ```text
-stock lower edge at header X  = -32.428034
-header body bottom            = -36.890147
-required overhang             =   4.462113 mm
+center_from_breakout = (-3.9444785, -0.0894995)
+size                 = 5.888957 x 18.825007 mm
 ```
 
-So the connector cannot remain fully on the stock outline while preserving the locked mating geometry.
+At the header center, the body extends approximately **18.092963 mm** beyond the stock lower edge. The tongue joins the stock edge at its inner X side and terminates at the negative-X edge of the service notch.
 
-The support extension is therefore **required**, not historical baggage.
+The 2 x 22 service opening is now a separate connector-right corridor; the removed SW22/R34 aperture remains preserved as already-open switchplate material rather than being treated as a merged corridor.
 
-It is encoded as one local parameterized rectangle:
+## Qualification
 
-```text
-size = 5.888957 × 5.074109 mm
-```
+Qualification head:
 
-The validator confirms that it:
+`53db19fc1d0049b4bcc4f311a69ae30ba4713313`
 
-- joins the stock lower edge;
-- covers the complete header width;
-- extends deep enough for the header envelope;
-- does not require unrelated outline changes.
+Passing workflow:
 
-This replaces the old UUID-based Task-3D Edge.Cuts surgery with an upstream geometric relation.
+- `KLOR Task 2C - trackball delta`
+- run ID: `35948524860`
+- conclusion: **success**
 
-## Switchplate delta
+Artifact:
 
-The stock switchplate perimeter remains unchanged.
+- `klor-task2c-trackball-geometry`
+- artifact ID: `10787711234`
+- SHA-256: `8486ccbcb33b3323aa8ef57ea031fdc385d98d102f68f1591fa900ea35afa52f`
 
-The target plate service opening is defined by combining:
+The workflow also re-ran and passed the complete Task-2B stock-preservation gate.
 
-1. the existing stock R34 / SW22 14 × 14 mm aperture;
-2. the 2 × 22 mm breakout corridor.
+## Conclusion
 
-This reuses already-open material and adds only the narrow missing service extension.
-
-Two Type-C housing screw axes are also canonical Task-2 points. Final hole diameter remains a Task-5 fabrication/detail decision; the axes are frozen here.
-
-## Generated outputs
-
-Task 2C generates:
-
-- canonical trackball points;
-- 25 mm ball reference;
-- housing envelope;
-- housing screw axes;
-- breakout/service corridor;
-- PMW header envelope;
-- local support tongue;
-- target 19-key right-half cutout reference;
-- merged plate service opening;
-- target PCB Edge.Cuts;
-- combined Task-2C preview;
-- KiCad 8 trackball-reference PCB scaffold.
-
-Generated output remains disposable and ignored.
-
-## Completion gate
-
-| Gate | Result |
-| --- | --- |
-| Clean Ergogen generation succeeds | PASS |
-| Two generation passes are deterministic | PASS |
-| Complete Task-2B preservation gate still passes | PASS |
-| Ball placement matches Task-1 historical regression | PASS |
-| Breakout placement matches historical regression | PASS |
-| Housing/screw/breakout/header relationships are parametric | PASS |
-| R34/SW22 is the only target key suppressed | PASS |
-| Right encoder remains retained | PASS |
-| 2 × 22 corridor is proven to be an open-edge notch | PASS |
-| Support tongue necessity is numerically demonstrated | PASS |
-| Support tongue covers the required header envelope | PASS |
-| Plate reuses R34 aperture + local corridor only | PASS |
-| Conservative retained-key/housing clearance passes | PASS |
-| Generated KiCad/DXF outputs exist | PASS |
-
-## Architectural conclusion
-
-The Task-2 geometry now has a clean two-layer structure:
-
-```text
-Task 2B: exact preserved stock geometry
-                +
-Task 2C: bounded parametric trackball delta
-                =
-Task 2D freeze candidate
-```
-
-The old implementation is now used as regression evidence only. Its mechanically necessary result—the small PMW connector support extension—has been re-derived and represented parametrically.
-
-## Next
-
-Proceed to **Task 2D — freeze the canonical geometry and contract entering Task 3**.
+Task 2C revision 2 preserves the fixed Konrad controls and stock mounting system while changing only the trackball placement/orientation and the local connector-support geometry required to put the PMW connector on the right side of the ball.
