@@ -1,0 +1,162 @@
+status: task3c_complete
+revision: 1
+
+authority:
+  geometry_freeze: ../task2/task2d-freeze.yaml
+  electrical_contract: task3a-electrical-contract.yaml
+  footprint_contract: task3b-footprints.yaml
+  ergogen: ../config.yaml
+  stock_pcb: ../../klor1.4/PCB/klor1_4/klor1_4.kicad_pcb
+
+board:
+  pcb: task3c_left_production
+  half: left
+  geometry: stock_board
+  assembly_side_for_single_side_smd: B
+  routing: forbidden_until_task4
+  mounting_holes:
+    M3: [mh1, mh2, mh3, mh4, mh5, mh6, mh7, mh8]
+    M2: [mh9]
+
+counts:
+  mx_keys: 20
+  matrix_diodes: 21
+  rgb_devices: 20
+  encoder: 1
+  controller: 1
+  trrs: 1
+  reset: 1
+  note: >-
+    The encoder click is an additional COL2ROW matrix position and therefore
+    requires D18 in addition to the 20 MX-key diodes. The earlier roadmap count
+    of 20 diodes was inconsistent with the frozen 21-position left matrix.
+
+matrix:
+  diode_direction: COL2ROW
+  switches:
+    SW1:  {point: sw1,  diode: D1,  row: ROW0, col: COL5}
+    SW2:  {point: sw2,  diode: D2,  row: ROW0, col: COL4}
+    SW3:  {point: sw3,  diode: D3,  row: ROW0, col: COL3}
+    SW4:  {point: sw4,  diode: D4,  row: ROW0, col: COL2}
+    SW5:  {point: sw5,  diode: D5,  row: ROW0, col: COL1}
+    SW6:  {point: sw6,  diode: D6,  row: ROW1, col: COL5}
+    SW7:  {point: sw7,  diode: D7,  row: ROW1, col: COL4}
+    SW8:  {point: sw8,  diode: D8,  row: ROW1, col: COL3}
+    SW9:  {point: sw9,  diode: D9,  row: ROW1, col: COL2}
+    SW10: {point: sw10, diode: D10, row: ROW1, col: COL1}
+    SW11: {point: sw11, diode: D11, row: ROW1, col: COL0}
+    SW12: {point: sw12, diode: D12, row: ROW2, col: COL5}
+    SW13: {point: sw13, diode: D13, row: ROW2, col: COL4}
+    SW14: {point: sw14, diode: D14, row: ROW2, col: COL3}
+    SW15: {point: sw15, diode: D15, row: ROW2, col: COL2}
+    SW16: {point: sw16, diode: D16, row: ROW2, col: COL1}
+    SW17: {point: sw17, diode: D17, row: ROW2, col: COL0}
+    SW20: {point: sw20, diode: D20, row: ROW3, col: COL3}
+    SW21: {point: sw21, diode: D21, row: ROW3, col: COL2}
+    SW22: {point: sw22, diode: D22, row: ROW3, col: COL1}
+  encoder_click:
+    point: encoder_ref
+    diode_point: d18
+    diode: D18
+    row: ROW3
+    col: COL5
+    switch_net: ENCODER_TO_D18
+  active_positions: 21
+
+encoder:
+  point: encoder_ref
+  A: ENCODER_A
+  B: ENCODER_B
+  common: GND
+
+rgb:
+  count: 20
+  input: RGB_DATA_5V
+  chain:
+    - SW20
+    - SW21
+    - SW12
+    - SW6
+    - SW1
+    - SW2
+    - SW7
+    - SW13
+    - SW22
+    - SW14
+    - SW8
+    - SW3
+    - SW4
+    - SW9
+    - SW15
+    - SW16
+    - SW10
+    - SW5
+    - SW11
+    - SW17
+  final_dout: NC
+
+controller:
+  point: mcu_ref
+  footprint: helios_host
+  pads:
+    2: NC
+    3: SPLIT_DATA
+    4: GND
+    5: GND
+    6: NC
+    7: NC
+    8: NC
+    9: ROW0
+    10: ROW1
+    11: ROW2
+    12: ROW3
+    13: NC
+    19: COL5
+    20: COL4
+    21: COL3
+    22: COL2
+    23: COL1
+    24: COL0
+    25: ENCODER_A
+    26: ENCODER_B
+    27: V3V3
+    28: RESET
+    29: GND
+    30: RAW_5V
+    32: RGB_DATA_5V
+  left_unused_gpio_pads: [2, 6, 7, 8, 13]
+  forbidden_nets: [PMW_SCK, PMW_MOSI, PMW_MISO, PMW_CS]
+
+trrs:
+  point: trrs_ref
+  side: B
+  pins:
+    1: RAW_5V
+    2: GND
+    3: NC
+    4: SPLIT_DATA
+
+reset:
+  point: reset_ref
+  side: B
+  pad_1: RESET
+  pad_2: GND
+
+production_modules:
+  key: klor_key
+  diode: klor_diode
+  controller: helios_host
+  trrs: klor_trrs
+  encoder: klor_ec11
+  reset: klor_reset
+  mounting: mounting_hole
+  pmw_header_on_left: false
+
+gate:
+  deterministic_generation: required
+  exact_local_footprints: required
+  exact_matrix_positions: 21
+  intentionally_unrouted: true
+  task2_geometry_must_regress: true
+  task3a_must_regress: true
+  task3b_must_regress: true
