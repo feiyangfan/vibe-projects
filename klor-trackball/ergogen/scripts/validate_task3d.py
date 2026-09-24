@@ -434,14 +434,17 @@ def main():
     )
 
     pp = pads(pmw)
-    pin_order = {int(k): v for k, v in contract["pmw3360"]["physical_pin_order_negative_y_to_positive_y"].items()}
+    pin_order = {
+        int(k): v
+        for k, v in contract["pmw3360"]["physical_pin_order_positive_y_to_negative_y"].items()
+    }
     pitch = float(contract["pmw3360"]["pitch"])
     for n in range(1, 8):
         p = select_pad(pp, n)
         expected_net = "" if pin_order[n] == "NC" else pin_order[n]
         if p["net"] != expected_net:
             raise AssertionError(f"PMW pin {n}: {p['net']} != {expected_net}")
-        expected_y = frozen_center[1] + (-3 + (n - 1)) * pitch
+        expected_y = frozen_center[1] + (3 - (n - 1)) * pitch
         actual_xy = global_pad_in_canonical(pmw, p)
         assert_close(
             f"PMW pin {n} frozen physical position",
@@ -459,7 +462,20 @@ def main():
         raise AssertionError("PMW_SCK must connect controller and header only")
     if net_count(all_fps, "V3V3") != 2:
         raise AssertionError("V3V3 must connect Helios pad27 and PMW header pin6 only")
-    print("PASS frozen PMW 1x7 center, side, physical pin order, SPI and 3V3 ownership")
+    ball_center = resolve_point(config, "ball_center")
+    breakout_center = resolve_point(config, "breakout_center")
+    if not (frozen_center[0] > ball_center[0] and breakout_center[0] > ball_center[0]):
+        raise AssertionError("PMW connector/breakout must remain on +X / right side of ball")
+    if contract["pmw3360"]["pin_1_end"] != "positive_canonical_y":
+        raise AssertionError("PMW pin 1 must remain at positive canonical Y")
+    if contract["pmw3360"]["pin_7_end"] != "negative_canonical_y":
+        raise AssertionError("PMW pin 7 must remain at negative canonical Y")
+    assert_close(
+        "Task3D ball center",
+        ball_center[:2],
+        tuple(float(x) for x in contract["board"]["ball_center_local"]),
+    )
+    print("PASS KLORBall-35-style right-side PMW center, physical direction, SPI and 3V3 ownership")
 
     for i in range(1, 10):
         mh = find_instance(all_fps, config, NAMES["mount"], f"mh{i}")
