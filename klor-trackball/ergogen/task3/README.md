@@ -88,7 +88,7 @@ Gate:
 
 ### Task 3D — Generate the right production-intent PCB
 
-**IN PROGRESS**
+**COMPLETE**
 
 Generate the right PCB on the frozen Task-2D trackball geometry.
 
@@ -113,6 +113,8 @@ Gate:
 - the right PCB is electrically coherent and intentionally unrouted.
 
 ### Task 3E — Cross-board electrical integration and freeze
+
+**NEXT**
 
 Validate the left and right generated boards as one split keyboard.
 
