@@ -40,7 +40,7 @@ canonical_frame:
 
 trackball:
   ball_diameter: 25
-  ball_center_local: [22.261644, -28.000147]
+  ball_center_local: [16.5, -28.000147]
   orientation_reference: klorball35_right_connector_on_positive_x_side
   housing_center_from_ball: [9.165901, 0.000812]
   housing_envelope: [37.594812, 29.998377]
@@ -85,19 +85,18 @@ pcb_geometry:
     - {outline: breakout_service_slot, operation: subtract}
   support_tongue:
     required: true
-    center_from_breakout: [-3.9444785, -0.271704]
-    size: [5.888957, 18.460598]
-    proven_header_overhang_beyond_stock_edge: 17.689109
-  pcb_mounting_holes:
-    retained_stock: [MH1, MH2, MH3, MH4, MH5, MH6, MH7, MH9]
-    relocated:
-      MH8:
-        canonical_shift: [0, 1.0]
-        target_point: mh8_trackball
-        service_notch_edge_clearance: 0.678004
+    center_from_breakout: [-3.9444785, -0.0894995]
+    size: [5.888957, 18.825007]
+    proven_header_overhang_beyond_stock_edge: 18.092963
+  placement_adjustment:
+    prior_ball_center_local: [22.261644, -28.000147]
+    inward_shift_x: -5.761644
+    reason:
+      - preserve_conservative_2_5mm_housing_clearance_to_SW16
+      - preserve_stock_MH8_clearance
   preserve:
-    - stock_geometry_outside_local_notch_support_tongue_and_MH8_relocation
-    - MH1_through_MH7_and_MH9
+    - stock_geometry_outside_local_notch_and_support_tongue
+    - MH1_through_MH9
     - MCU_location
     - TRRS_location
     - right_encoder_location
@@ -133,8 +132,7 @@ task3_change_boundary:
     - restore_R34_or_remove_R32_or_R33
     - move_or_remove_right_encoder
     - move_MCU_or_TRRS_geometry
-    - move_any_case_or_switchplate_structural_axis
-    - move_any_right_PCB_mount_except_the_frozen_MH8_1mm_relocation
+    - move_any_structural_axis
     - move_ball_housing_breakout_or_pmw_header_reference
     - change_2x22_service_corridor
     - remove_or_resize_support_tongue_without_new_mechanical_proof
@@ -154,9 +152,12 @@ deferred_beyond_task2:
 change_control:
   revision_2_reason: >-
     User-requested correction to match KLORBall-35 trackball handedness: rotate
-    the Type-C/Kivipallur assembly 180 degrees around the unchanged ball center
-    so the keyboard connector is on the right / positive-X side. The only stock
-    right-PCB mounting-hole accommodation is MH8 +1.0 mm canonical Y.
+    the Type-C/Kivipallur assembly 180 degrees so the keyboard connector is on
+    the right / positive-X side. The ball center moves 5.761644 mm inward in X,
+    to x=16.5 mm, because the direct flip at the historical center overlaps
+    retained SW16 under the existing conservative housing-envelope check. This
+    inward shift also preserves stock MH8, so all nine PCB mounting holes remain
+    at their stock positions.
   rule: >-
     Any edit to a frozen product-geometry or mechanical-interface item above must
     update this manifest, REQUIREMENTS.md when product behavior changes, and the
