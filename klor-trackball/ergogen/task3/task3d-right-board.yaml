@@ -1,5 +1,5 @@
-status: task3d_complete
-revision: 1
+status: task3d_candidate
+revision: 2
 
 authority:
   geometry_freeze: ../task2/task2d-freeze.yaml
@@ -12,6 +12,9 @@ board:
   pcb: task3d_right_production
   half: right
   geometry: trackball_board
+  geometry_revision: task2d_revision_2_connector_right
+  ball_center_local: [16.5, -28.000147]
+  connector_side: positive_canonical_x
   assembly_side_for_single_side_smd: F
   routing: forbidden_until_task4
   mounting_holes:
@@ -153,8 +156,11 @@ pmw3360:
   frozen_center_point: pmw_header_center
   side: F
   pitch: 2.54
-  canonical_rotation: 180
-  physical_pin_order_negative_y_to_positive_y:
+  orientation_reference: klorball35_right
+  canonical_rotation: 0
+  pin_1_end: positive_canonical_y
+  pin_7_end: negative_canonical_y
+  physical_pin_order_positive_y_to_negative_y:
     1: PMW_CS
     2: PMW_MISO
     3: PMW_MOSI
@@ -185,7 +191,7 @@ gate:
   exact_local_footprints: required
   exact_matrix_positions: 20
   frozen_trackball_outline: required
-  frozen_pmw_geometry_and_pin_order: required
+  frozen_pmw_geometry_pin_order_and_right_side_orientation: required
   removed_R34_site_absent: required
   intentionally_unrouted: true
   task2_geometry_must_regress: true
