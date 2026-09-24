@@ -88,7 +88,7 @@ Gate:
 
 ### Task 3D — Generate the right production-intent PCB
 
-**NEXT**
+**IN PROGRESS**
 
 Generate the right PCB on the frozen Task-2D trackball geometry.
 
@@ -101,7 +101,7 @@ Expected electrical content:
 - controller;
 - TRRS half-duplex split;
 - reset;
-- frozen PMW 1x7 connector;
+- frozen PMW 1x7 connector on F.Cu with frozen physical pin order;
 - PMW3360 SPI/power nets.
 
 Gate:
