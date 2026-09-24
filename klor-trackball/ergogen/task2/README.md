@@ -43,7 +43,7 @@ Passing evidence is recorded in `TASK2B_RESULT.md`.
 
 ### 2C — Trackball delta overlay
 
-**COMPLETE**
+**REVISION 2 — IN PROGRESS**
 
 Add parametrically:
 
@@ -58,13 +58,13 @@ Add parametrically:
 
 Every preserved Task-2B datum outside the trackball delta must remain numerically unchanged.
 
-The implementation uses the Task-1-validated ball placement as the root datum and derives the housing, screw pair, service slot, PMW header reference and local support tongue from it. The support tongue is justified by geometry: the locked 1x7 mating envelope extends **4.462 mm** beyond the stock lower edge.
+Revision 2 rotates the Type-C/Kivipallur assembly to match KLORBall-35 handedness: the connector is on the **right / +X side** of the ball. A direct flip at the historical ball center would overlap retained SW16 under the existing conservative housing-envelope gate, so the ball moves inward to canonical **(16.5, -28.000147) mm**. This keeps all nine PCB mounting holes stock. The connector-right header requires a re-derived local support tongue because its body extends approximately **18.093 mm** beyond the sloped stock lower edge.
 
 Passing evidence is recorded in `TASK2C_RESULT.md`.
 
 ### 2D — Geometry freeze
 
-**COMPLETE**
+**REVISION 2 — IN PROGRESS**
 
 The final Task-2 contract is frozen in `task2d-freeze.yaml` and regression-enforced by `validate_task2d.py`.
 
@@ -75,7 +75,7 @@ The freeze combines:
 - the final 20-left / 19-right / 39-total key architecture;
 - R32/R33 retained and R34 removed;
 - the right encoder retained at stock position;
-- the PMW header side/orientation/pin-order/mechanical relationship;
+- the KLORBall-35-style PMW connector side/orientation/pin-order/mechanical relationship;
 - the required local PCB support tongue and 2 × 22 open-edge notch;
 - the Task-3 allowed/forbidden geometry boundary.
 
