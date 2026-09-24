@@ -1,95 +1,104 @@
-# Task 3D Result — Right Production-Intent PCB
+# Task 3D Result — Right Production-Intent PCB Revision 2
 
 ## Status
 
-**PASS — Task 3D is complete.**
+**PASS — Task 3D revision 2 is complete.**
 
-Task 3D generates the electrically complete, intentionally unrouted right Rev-1 PCB from the frozen Task-2D trackball geometry, Task-3A electrical architecture, Task-3B qualified local footprints, and the completed Task-3C left-board baseline.
+Task 3D was reopened after the trackball handedness correction. The generated right PCB now places the PMW/Kivipallur connector on the **right / positive canonical X side of the ball**, matching the checked-in KLORBall-35 right PCB orientation.
 
-## Qualified implementation
+The board remains electrically complete and intentionally unrouted.
+
+## Qualified right-board content
 
 Generated PCB:
 
 `task3d_right_production.kicad_pcb`
 
-Production content:
+Content:
 
 - 19 MX hotswap + SK6812MINI-E sites;
-- 20 COL2ROW matrix diodes;
+- 20 COL2ROW matrix diodes: 19 MX + encoder click D18;
 - 19 RGB devices;
 - one EC11 encoder with diode-isolated push;
-- one 0xCB Helios rev1.0 controller at the frozen U1 position;
-- one MJ-4PP-9 TRRS split connector;
+- one 0xCB Helios rev1.0;
+- one MJ-4PP-9 TRRS connector;
 - one reset switch;
-- one frozen PMW 1x7 connector;
-- eight M3 and one M2 frozen PCB mounting holes;
+- one PMW 1x7 connector on F.Cu;
+- eight M3 + one M2 stock PCB mounting holes;
 - no tracks, vias, or copper zones.
 
-Routing remains owned by Task 4.
+Routing remains Task 4.
 
-## Removed R34 site
+## Revision-2 mechanical placement
 
-The right board retains:
+Canonical ball center:
 
-- SW20 / R32;
-- SW21 / R33.
+`(16.5, -28.000147)`
 
-It omits:
+This is a `-5.761644 mm` inward-X shift from the former Task-2 center.
 
-- SW22 / R34;
-- D22;
-- the SW22 RGB device.
+The shift is required because a direct 180 degree flip at the old center causes the conservative Type-C housing envelope to overlap retained SW16.
 
-The right RGB chain therefore contains 19 devices and directly bypasses the removed SW22 site.
+Revision-2 relationships:
 
-## Right production side
+- housing center from ball: `(+9.165901, +0.000812)`;
+- breakout center from ball: `(+19.212, 0)`;
+- PMW header center from breakout: `(-4.613622, 0)`;
+- PMW header center: `(31.098378, -28.000147)`.
 
-Rev 1 uses separate non-reversible production PCBs.
+The PMW header and breakout are therefore on the right / +X side of the ball.
 
-Task 3C uses the qualified B-side SMD variants on the left half. Task 3D uses the opposite qualified F-side variants for right-side keys, diodes, TRRS and reset.
+The conservative housing gate passes with approximately **2.580294 mm** clearance to SW16.
 
-The PMW header remains on F.Cu as frozen in Task 2D.
+The 2 x 22 service notch clears stock MH8 by approximately **3.354275 mm edge-to-drill**, so all stock PCB mounting-hole positions remain unchanged.
 
-## Matrix and encoder
+## KLORBall-35 header orientation
 
-The generated right board validates:
+The checked-in KLORBall-35 right PCB was audited directly before this revision.
 
-- 19 MX positions;
-- one encoder-click matrix position;
-- 20 unique COL2ROW matrix positions total;
-- D18 remains the encoder-click diode;
-- right rotary direction semantics are preserved:
-  - EC11 A -> GP29 / Helios pad 26;
-  - EC11 B -> GP28 / Helios pad 25.
+KLORBall-35 J2 uses:
 
-## PMW3360 interface
-
-The generated board preserves the frozen Task-2D PMW header center and Y-axis row.
-
-Physical pin order from negative canonical Y to positive canonical Y:
-
-1. PMW_CS
-2. PMW_MISO
-3. PMW_MOSI
-4. PMW_SCK
-5. NC_MOTION
-6. V3V3
+1. CS
+2. MISO
+3. MOSI
+4. SCK
+5. NC / MOTION
+6. 3V3
 7. GND
 
-Controller ownership:
+Revision 2 matches its physical direction:
 
-- GP2 / Helios pad 6 -> PMW_SCK;
-- GP3 / Helios pad 7 -> PMW_MOSI;
-- GP4 / Helios pad 8 -> PMW_MISO;
-- GP9 / Helios pad 13 -> PMW_CS;
+- keyboard pin 1 / CS = positive canonical Y end;
+- keyboard pin 7 / GND = negative canonical Y end;
+- canonical PMW footprint rotation = 0 degrees.
+
+The electrical pin assignment itself is unchanged.
+
+The verified Kivipallur mate remains:
+
+`breakout pin N -> keyboard pin 8-N`.
+
+## Electrical ownership
+
+PMW controller ownership remains:
+
+- GP2 / Helios pad 6 -> SCK;
+- GP3 / Helios pad 7 -> MOSI;
+- GP4 / Helios pad 8 -> MISO;
+- GP9 / Helios pad 13 -> CS;
 - Helios pad 27 -> V3V3;
-- MOTION remains electrically NC and firmware uses polling.
+- MOTION -> NC / polling.
 
-The production PMW instance is rotated 180 degrees in the canonical frame so the qualified footprint's local pin order maps to the frozen physical negative-Y-to-positive-Y order after canonical-to-KiCad reflection.
+The right encoder remains:
 
-## Geometry
+- A -> GP29 / Helios pad 26;
+- B -> GP28 / Helios pad 25.
 
-The right PCB uses exactly the frozen Task-2D composition:
+SW22 / D22 / R34 and its RGB device remain absent. The 19-device RGB chain bypasses SW22.
+
+## PCB outline
+
+The board still uses:
 
 ```text
 stock_board
@@ -98,46 +107,42 @@ stock_board
 = trackball_board
 ```
 
-No retained key, encoder, MCU, TRRS, mounting axis, ball/housing datum, breakout datum, PMW center, service corridor, or support-tongue geometry is moved.
+Revision-2 support tongue:
 
-## Validation
+- center from breakout: `(-3.9444785, -0.0894995)`;
+- size: `5.888957 x 18.825007 mm`;
+- connector body overhang beyond the stock lower edge: approximately `18.092963 mm`.
+
+No unrelated stock Edge.Cuts are changed.
+
+## Qualification
 
 Qualification head:
 
-`3da79cf1a8741409f27643b90acc02ef7142cfe1`
+`53db19fc1d0049b4bcc4f311a69ae30ba4713313`
 
-Passing workflow:
+Passing Task-3D workflow:
 
 - workflow: `KLOR Task 3D - right production PCB`
-- run ID: `35940504521`
+- run ID: `35948524891`
 - conclusion: **success**
 
-The same head also passed:
+Artifact:
+
+- `klor-task3d-right-production-pcb`
+- artifact ID: `10787776772`
+- SHA-256: `0fcd6c270e1524f043f4db30db0d5634e4b9d4794feeb0a7ab4fb6923d720f57`
+
+The same qualification head also passed:
 
 - Task 2B;
-- Task 2C;
-- Task 2D;
+- Task 2C revision 2;
+- Task 2D revision 2;
 - Task 3A;
 - Task 3B;
 - Task 3C.
 
-The Task-3D workflow proves:
-
-1. two clean Ergogen 4.2.1 generations are deterministic;
-2. all upstream geometry/electrical/footprint/left-board gates still pass;
-3. exact right production footprint counts and F-side SMD population;
-4. the 20-position right matrix;
-5. the exact 19-device RGB chain with SW22 bypassed;
-6. the right encoder GP28/GP29 ownership swap;
-7. frozen PMW center, orientation, physical pin order, SPI ownership, and 3V3 ownership;
-8. absence of SW22/D22/R34 electrical leakage;
-9. absence of tracks, vias, and copper zones.
-
-Qualification artifact:
-
-- name: `klor-task3d-right-production-pcb`
-- artifact ID: `10784173764`
-- SHA-256: `db58d1118cc6fc76143cda23da3ab4c666c69b163f4832c3e31e74685eba8944`
+The Task-3D gate verifies deterministic generation, exact footprint counts, matrix/RGB contracts, connector-right PMW geometry and physical direction, SPI/3V3 endpoint ownership, stock mounting holes, and the intentionally unrouted state.
 
 ## Next
 
