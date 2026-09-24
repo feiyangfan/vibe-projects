@@ -88,7 +88,7 @@ Gate:
 
 ### Task 3D — Generate the right production-intent PCB
 
-**COMPLETE**
+**REOPENED — IN PROGRESS**
 
 Generate the right PCB on the frozen Task-2D trackball geometry.
 
@@ -101,7 +101,7 @@ Expected electrical content:
 - controller;
 - TRRS half-duplex split;
 - reset;
-- frozen PMW 1x7 connector on F.Cu with frozen physical pin order;
+- connector-right PMW 1x7 on F.Cu, matching KLORBall-35 handedness and physical pin direction;
 - PMW3360 SPI/power nets.
 
 Gate:
@@ -109,7 +109,7 @@ Gate:
 - R32/R33 remain;
 - R34/SW22/D22 and its RGB device are absent;
 - the RGB chain bypasses R34 logically;
-- the PMW connector matches Task 2D exactly;
+- the PMW connector sits on the right/+X side of the ball and matches Task-2D revision 2 exactly;
 - the right PCB is electrically coherent and intentionally unrouted.
 
 ### Task 3E — Cross-board electrical integration and freeze
