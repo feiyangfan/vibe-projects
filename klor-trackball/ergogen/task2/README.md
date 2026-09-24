@@ -43,7 +43,7 @@ Passing evidence is recorded in `TASK2B_RESULT.md`.
 
 ### 2C — Trackball delta overlay
 
-**REVISION 2 — IN PROGRESS**
+**REVISION 2 — COMPLETE**
 
 Add parametrically:
 
@@ -64,7 +64,7 @@ Passing evidence is recorded in `TASK2C_RESULT.md`.
 
 ### 2D — Geometry freeze
 
-**REVISION 2 — IN PROGRESS**
+**REVISION 2 — COMPLETE**
 
 The final Task-2 contract is frozen in `task2d-freeze.yaml` and regression-enforced by `validate_task2d.py`.
 
