@@ -20,7 +20,7 @@ units:
   pmw_header_body_w: 2.54
   pmw_header_body_h: 17.78
   pmw_support_tongue_w: 5.888957
-  pmw_support_tongue_h: 5.074109
+  pmw_support_tongue_h: 18.460598
 
 # Task 2B canonical stock frame:
 # - origin = stock SW13 center
@@ -140,6 +140,13 @@ points:
     mh8:
       anchor:
         shift: [41.498601, -15.722143]
+    # Connector-right Task-2 revision: shift only the right-target MH8 by
+    # +1.0 mm canonical Y so the 2x22 PMW service notch clears the M3 drill.
+    # Stock MH8 remains unchanged for the left PCB / stock reference.
+    mh8_trackball:
+      anchor:
+        ref: mh8
+        shift: [0, 1]
     mh9:
       anchor:
         shift: [53.188601, 32.297857]
@@ -177,11 +184,11 @@ points:
     housing_center:
       anchor:
         ref: ball_center
-        shift: [-9.165901, -0.000812]
+        shift: [9.165901, 0.000812]
     housing_screw_midpoint:
       anchor:
         ref: ball_center
-        shift: [-6.212, 0]
+        shift: [6.212, 0]
     housing_screw_1:
       anchor:
         ref: housing_screw_midpoint
@@ -193,23 +200,23 @@ points:
     breakout_center:
       anchor:
         ref: ball_center
-        shift: [-19.212, 0]
+        shift: [19.212, 0]
     pmw_header_center:
       anchor:
         ref: breakout_center
-        shift: [4.613622, 0]
+        shift: [-4.613622, 0]
     pmw_support_tongue_center:
       anchor:
         ref: breakout_center
-        shift: [3.9444785, -6.9649485]
+        shift: [-3.9444785, -0.271704]
 
-    # Task 3D production header orientation. Task 2D freezes physical pin 1 at
-    # negative canonical Y; the KiCad footprint's pin 1 is local -Y, so the
-    # production instance rotates 180 degrees under the canonical Y reflection.
+    # Connector-right orientation copied from the KLORBall-35 right PCB:
+    # keyboard pin 1 / CS is at positive canonical Y and pin 7 / GND at
+    # negative canonical Y. The qualified footprint therefore stays at 0 deg.
     pmw_header_prod:
       anchor:
         ref: pmw_header_center
-        rotate: 180
+        rotate: 0
 
     # Task 3C left production electrical placement. Diodes and reset retain
     # their stock source positions in the frozen Task-2 canonical frame.
@@ -858,6 +865,16 @@ outlines:
       where: /^mh[1-9]$/
       radius: pcb_m3_hole / 2
 
+  # Right-target mounting-hole set. All stock holes are retained except MH8,
+  # whose target instance moves +1.0 mm Y to clear the connector-right service notch.
+  trackball_pcb_holes:
+    - what: circle
+      where: /^(mh[1-7]|mh9)$/
+      radius: pcb_m3_hole / 2
+    - what: circle
+      where: mh8_trackball
+      radius: pcb_m3_hole / 2
+
   stock_case_mount_axes:
     - what: circle
       where: /^case_mount_/
@@ -931,7 +948,7 @@ outlines:
       operation: stack
     - name: pmw_header_envelope
       operation: stack
-    - name: stock_pcb_holes
+    - name: trackball_pcb_holes
       operation: stack
     - name: stock_case_mount_axes
       operation: stack
@@ -1551,7 +1568,7 @@ pcbs:
           drill: 3.2
       mh8:
         what: mounting_hole
-        where: mh8
+        where: mh8_trackball
         params:
           drill: 3.2
       mh9:
