@@ -73,7 +73,7 @@ def main():
             raise AssertionError(f"missing/empty frozen geometry output: {path}")
     print("PASS frozen Task-2 generated outputs exist")
 
-    if freeze["revision"] != 1:
+    if freeze["revision"] != 2:
         raise AssertionError("Task 2D freeze revision changed")
     if freeze["status"] not in {"task2d_frozen_candidate", "task2d_frozen"}:
         raise AssertionError(f"unexpected freeze status: {freeze['status']}")
@@ -128,6 +128,7 @@ def main():
         "The **right EC11-class encoder is retained in its stock location** for Rev 1.",
         "- **19 LEDs on the right**;",
         "Frozen keyboard-side physical pin order entering Task 3:",
+        "connector sits on the **right / positive-canonical-X side of the ball**",
     ]
     for phrase in required_phrases:
         if phrase not in requirements:
@@ -161,6 +162,16 @@ def main():
         "ball center",
         pxy(points, "ball_center")[:2],
         tuple(float(x) for x in trackball["ball_center_local"]),
+    )
+    prior_ball = tuple(float(x) for x in pcb["placement_adjustment"]["prior_ball_center_local"])
+    actual_shift = (
+        pxy(points, "ball_center")[0] - prior_ball[0],
+        pxy(points, "ball_center")[1] - prior_ball[1],
+    )
+    assert_close(
+        "Task-2 rev2 inward ball shift",
+        actual_shift,
+        (float(pcb["placement_adjustment"]["inward_shift_x"]), 0.0),
     )
     assert_delta(
         "housing center from ball",
@@ -246,7 +257,7 @@ def main():
         raise AssertionError("plate no longer reuses the stock R34 aperture")
     if plate[1].get("name") != "breakout_service_slot" or plate[1].get("operation") != "add":
         raise AssertionError("plate service corridor composition changed")
-    print("PASS switchplate service delta remains R34 aperture + 2x22 corridor")
+    print("PASS switchplate keeps R34 aperture and adds separate right-side 2x22 corridor")
 
     if header["keyboard_side"] != "F.Cu":
         raise AssertionError("PMW keyboard-side connector side changed")
@@ -261,12 +272,26 @@ def main():
         6: "3V3",
         7: "GND",
     }
-    actual_pin_order = {int(k): v for k, v in header["physical_pin_order_negative_y_to_positive_y"].items()}
+    actual_pin_order = {
+        int(k): v
+        for k, v in header["physical_pin_order_positive_y_to_negative_y"].items()
+    }
     if actual_pin_order != expected_pin_order:
         raise AssertionError(f"PMW physical pin order changed: {actual_pin_order}")
+    if header["pin_1_end"] != "positive_canonical_y" or header["pin_7_end"] != "negative_canonical_y":
+        raise AssertionError("KLORBall-35 PMW header handedness changed")
     if header["mating_rule"] != "breakout_pin_N_to_keyboard_pin_8_minus_N":
         raise AssertionError("PMW mating rule changed")
-    print("PASS PMW physical connector contract frozen")
+    ball = pxy(points, "ball_center")
+    breakout_pt = pxy(points, "breakout_center")
+    header_pt = pxy(points, "pmw_header_center")
+    housing_pt = pxy(points, "housing_center")
+    if not (breakout_pt[0] > ball[0] and header_pt[0] > ball[0] and housing_pt[0] > ball[0]):
+        raise AssertionError("trackball connector assembly is no longer on +X / right side")
+    prod = config["points"]["zones"]["pmw_header_prod"]["anchor"]
+    if float(prod.get("rotate", 0.0)) != 0.0:
+        raise AssertionError("connector-right production header must remain at 0 canonical degrees")
+    print("PASS PMW physical connector contract matches KLORBall-35 right-side orientation")
 
     forbidden = set(freeze["task3_change_boundary"]["forbidden_without_reopening_task2"])
     must_forbid = {
@@ -275,7 +300,7 @@ def main():
         "move_or_remove_right_encoder",
         "move_any_structural_axis",
         "move_ball_housing_breakout_or_pmw_header_reference",
-        "change_pmw_header_side_row_axis_or_physical_pin_order",
+        "change_pmw_header_side_row_axis_or_physical_pin_order_or_connector_side",
     }
     if not must_forbid.issubset(forbidden):
         raise AssertionError("Task-3 geometry change boundary is incomplete")

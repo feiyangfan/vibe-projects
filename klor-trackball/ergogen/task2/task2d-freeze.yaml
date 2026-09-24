@@ -1,5 +1,5 @@
 status: task2d_frozen
-revision: 1
+revision: 2
 units: mm
 
 authority:
@@ -40,10 +40,11 @@ canonical_frame:
 
 trackball:
   ball_diameter: 25
-  ball_center_local: [22.261644, -28.000147]
-  housing_center_from_ball: [-9.165901, -0.000812]
+  ball_center_local: [16.5, -28.000147]
+  orientation_reference: klorball35_right_connector_on_positive_x_side
+  housing_center_from_ball: [9.165901, 0.000812]
   housing_envelope: [37.594812, 29.998377]
-  housing_screw_midpoint_from_ball: [-6.212, 0]
+  housing_screw_midpoint_from_ball: [6.212, 0]
   housing_screw_offsets_from_midpoint:
     - [0, 7.98]
     - [0, -7.98]
@@ -51,10 +52,10 @@ trackball:
   housing_screw_final_hole_diameter: deferred_to_task5
 
 breakout:
-  center_from_ball: [-19.212, 0]
+  center_from_ball: [19.212, 0]
   service_slot: [2, 22]
   long_axis: y
-  service_direction: negative_x
+  service_direction: positive_x
   fabrication_form: open_edge_notch
 
 pmw_header:
@@ -62,9 +63,12 @@ pmw_header:
   keyboard_side: F.Cu
   pitch: 2.54
   row_axis: y
-  center_from_breakout: [4.613622, 0]
+  center_from_breakout: [-4.613622, 0]
   body_reference_envelope: [2.54, 17.78]
-  physical_pin_order_negative_y_to_positive_y:
+  orientation_reference: klorball35_right
+  pin_1_end: positive_canonical_y
+  pin_7_end: negative_canonical_y
+  physical_pin_order_positive_y_to_negative_y:
     1: CS
     2: MISO
     3: MOSI
@@ -81,9 +85,15 @@ pcb_geometry:
     - {outline: breakout_service_slot, operation: subtract}
   support_tongue:
     required: true
-    center_from_breakout: [3.9444785, -6.9649485]
-    size: [5.888957, 5.074109]
-    proven_header_overhang_beyond_stock_edge: 4.462113
+    center_from_breakout: [-3.9444785, -0.0894995]
+    size: [5.888957, 18.825007]
+    proven_header_overhang_beyond_stock_edge: 18.092963
+  placement_adjustment:
+    prior_ball_center_local: [22.261644, -28.000147]
+    inward_shift_x: -5.761644
+    reason:
+      - preserve_conservative_2_5mm_housing_clearance_to_SW16
+      - preserve_stock_MH8_clearance
   preserve:
     - stock_geometry_outside_local_notch_and_support_tongue
     - MH1_through_MH9
@@ -95,9 +105,9 @@ switchplate_geometry:
   preserve_outer_perimeter: true
   preserve_eight_structural_axes: true
   retained_key_openings: 19
-  service_opening:
-    - reuse_stock_SW22_14x14_opening
-    - union_2x22_breakout_corridor
+  service_openings:
+    - preserve_stock_SW22_14x14_opening
+    - add_disconnected_2x22_breakout_corridor_right_of_ball
   add_trackball_housing_axes: 2
   thickness_reference: 1.5
 
@@ -128,7 +138,7 @@ task3_change_boundary:
     - remove_or_resize_support_tongue_without_new_mechanical_proof
     - change_stock_board_geometry_outside_the_frozen_local_delta
     - change_stock_switchplate_outer_perimeter
-    - change_pmw_header_side_row_axis_or_physical_pin_order
+    - change_pmw_header_side_row_axis_or_physical_pin_order_or_connector_side
 
 deferred_beyond_task2:
   - production_housing_mount_hole_diameter
@@ -140,6 +150,14 @@ deferred_beyond_task2:
   - fabrication_tolerances_not_already_required_by_mechanical_fit
 
 change_control:
+  revision_2_reason: >-
+    User-requested correction to match KLORBall-35 trackball handedness: rotate
+    the Type-C/Kivipallur assembly 180 degrees so the keyboard connector is on
+    the right / positive-X side. The ball center moves 5.761644 mm inward in X,
+    to x=16.5 mm, because the direct flip at the historical center overlaps
+    retained SW16 under the existing conservative housing-envelope check. This
+    inward shift also preserves stock MH8, so all nine PCB mounting holes remain
+    at their stock positions.
   rule: >-
     Any edit to a frozen product-geometry or mechanical-interface item above must
     update this manifest, REQUIREMENTS.md when product behavior changes, and the

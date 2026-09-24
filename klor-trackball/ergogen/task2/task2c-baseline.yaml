@@ -1,4 +1,5 @@
 status: task2c_geometry_baseline
+revision: 2
 units: mm
 
 canonical_frame:
@@ -16,12 +17,12 @@ variant:
 
 trackball:
   ball_diameter: 25
-  ball_center_local: [22.261644, -28.000147]
-  housing_center_from_ball: [-9.165901, -0.000812]
+  ball_center_local: [16.5, -28.000147]
+  housing_center_from_ball: [9.165901, 0.000812]
   housing_envelope: [37.594812, 29.998377]
 
 housing_mount:
-  midpoint_from_ball: [-6.212, 0]
+  midpoint_from_ball: [6.212, 0]
   screw_half_spacing: 7.98
   screw_1_from_midpoint: [0, 7.98]
   screw_2_from_midpoint: [0, -7.98]
@@ -29,19 +30,22 @@ housing_mount:
   note: axes_are_canonical_task2_geometry
 
 breakout:
-  center_from_ball: [-19.212, 0]
+  center_from_ball: [19.212, 0]
   service_slot: [2, 22]
   slot_axis: y
-  service_direction: negative_x
+  service_direction: positive_x
 
 pmw_header_reference:
   connector: PinHeader_1x07_P2.54mm_Vertical
   keyboard_side: F.Cu
   pitch: 2.54
   body_reference_envelope: [2.54, 17.78]
-  center_from_breakout: [4.613622, 0]
+  center_from_breakout: [-4.613622, 0]
   row_axis: y
-  keyboard_pin_order_negative_y_to_positive_y:
+  orientation_reference: klorball35_right
+  pin_1_end: positive_canonical_y
+  pin_7_end: negative_canonical_y
+  keyboard_pin_order_positive_y_to_negative_y:
     1: CS
     2: MISO
     3: MOSI
@@ -53,23 +57,32 @@ pmw_header_reference:
 support_tongue:
   required: true
   reason: locked_header_mating_envelope_overhangs_stock_lower_edge
-  stock_edge_y_at_header: -32.428034
-  header_body_bottom_y: -36.890140
-  body_overhang_beyond_stock_edge: 4.462106
-  center_from_breakout: [3.9444785, -6.9649485]
-  size: [5.888957, 5.074109]
+  stock_edge_y_at_header: -18.797184
+  stock_edge_y_at_tongue_inner_x: -18.677143
+  header_body_bottom_y: -36.890147
+  body_overhang_beyond_stock_edge: 18.092963
+  center_from_breakout: [-3.9444785, -0.0894995]
+  size: [5.888957, 18.825007]
   note: >-
-    Declarative local board union derived from the old validated Task-3D geometry.
-    It is not a UUID/object mutation and does not change unrelated stock edges.
+    Connector-right support is re-derived against the sloped stock lower edge.
+    The tongue touches the breakout slot at its negative-X edge and extends only
+    far enough to support the frozen 1x7 header body plus the prior 0.612 mm margin.
+
+placement_adjustment:
+  prior_ball_center_local: [22.261644, -28.000147]
+  revised_ball_center_local: [16.5, -28.000147]
+  inward_shift_x: -5.761644
+  reason:
+    - preserve_2_5mm_conservative_housing_clearance_to_retained_SW16
+    - preserve_stock_MH8_clearance_from_connector_right_service_notch
 
 plate_delta:
   preserve_outer_perimeter: true
   retained_switch_cutouts: 19
   removed_switch: SW22
-  service_opening:
-    composition:
-      - reuse_stock_SW22_14x14_opening
-      - union_2x22_breakout_corridor
+  service_openings:
+    - preserve_stock_SW22_14x14_opening
+    - add_disconnected_2x22_breakout_corridor_on_right_of_ball
   add_housing_mount_axes: 2
 
 preservation_contract:

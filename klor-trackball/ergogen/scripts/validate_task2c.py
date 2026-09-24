@@ -26,9 +26,8 @@ STOCK_PCB = KLOR / "klor1.4/PCB/klor1_4/klor1_4.kicad_pcb"
 
 TOL = 2e-6
 HIST_TOL = 1e-4
-
-HIST_BALL_KICAD = (162.323043, 134.748004, 0.0)
-HIST_BREAKOUT_KICAD = (143.111043, 134.747997, 0.0)
+MIN_HOUSING_KEY_GAP = 2.5
+MIN_NOTCH_TO_MH8_EDGE_GAP = 0.5
 
 
 def point(generated, name):
@@ -59,6 +58,7 @@ def selector_names(config, outline_name, generated):
 
 
 def stock_lower_edge_y_at_x(pcb_text, origin, x):
+    """Return the lowest stock Edge.Cuts line intersection at canonical X."""
     ys = []
     for prim in top_edge_primitives(pcb_text):
         if prim["type"] != "gr_line":
@@ -66,12 +66,15 @@ def stock_lower_edge_y_at_x(pcb_text, origin, x):
         (x1, y1), (x2, y2) = prim["pts"]
         a = local_from_kicad((x1, y1, 0.0), origin)
         b = local_from_kicad((x2, y2, 0.0), origin)
-        if abs(a[1] - b[1]) > TOL:
+        if not (min(a[0], b[0]) - TOL <= x <= max(a[0], b[0]) + TOL):
             continue
-        if min(a[0], b[0]) - TOL <= x <= max(a[0], b[0]) + TOL:
-            ys.append(a[1])
+        dx = b[0] - a[0]
+        if abs(dx) <= TOL:
+            continue
+        t = (x - a[0]) / dx
+        ys.append(a[1] + t * (b[1] - a[1]))
     if not ys:
-        raise AssertionError(f"no horizontal stock edge covers x={x}")
+        raise AssertionError(f"no stock Edge.Cuts line covers x={x}")
     return min(ys)
 
 
@@ -119,17 +122,43 @@ def main():
     header = point(generated, "pmw_header_center")
     tongue = point(generated, "pmw_support_tongue_center")
 
-    expected_ball = local_from_kicad(HIST_BALL_KICAD, origin)
-    expected_breakout = local_from_kicad(HIST_BREAKOUT_KICAD, origin)
-    assert_xy("ball historical regression", ball, expected_ball, HIST_TOL)
-    assert_xy("breakout historical regression", breakout, expected_breakout, HIST_TOL)
+    expected_ball = tuple(float(x) for x in baseline["trackball"]["ball_center_local"])
+    assert_xy("Task-2 rev2 ball placement", ball, expected_ball, HIST_TOL)
 
-    assert_delta("housing center from ball", housing, ball, (-9.165901, -0.000812))
-    assert_delta("housing screw midpoint from ball", screw_mid, ball, (-6.212, 0.0))
+    prior_ball = tuple(float(x) for x in baseline["placement_adjustment"]["prior_ball_center_local"])
+    expected_shift = float(baseline["placement_adjustment"]["inward_shift_x"])
+    actual_shift = (ball[0] - prior_ball[0], ball[1] - prior_ball[1])
+    assert_xy("connector-right inward placement shift", actual_shift, (expected_shift, 0.0), HIST_TOL)
+
+    assert_delta(
+        "housing center from ball",
+        housing,
+        ball,
+        tuple(float(x) for x in baseline["trackball"]["housing_center_from_ball"]),
+    )
+    assert_delta(
+        "housing screw midpoint from ball",
+        screw_mid,
+        ball,
+        tuple(float(x) for x in baseline["housing_mount"]["midpoint_from_ball"]),
+    )
     assert_delta("housing screw 1 from midpoint", screw_1, screw_mid, (0.0, 7.98))
     assert_delta("housing screw 2 from midpoint", screw_2, screw_mid, (0.0, -7.98))
-    assert_delta("breakout center from ball", breakout, ball, (-19.212, 0.0))
-    assert_delta("PMW header from breakout", header, breakout, (4.613622, 0.0))
+    assert_delta(
+        "breakout center from ball",
+        breakout,
+        ball,
+        tuple(float(x) for x in baseline["breakout"]["center_from_ball"]),
+    )
+    assert_delta(
+        "PMW header from breakout",
+        header,
+        breakout,
+        tuple(float(x) for x in baseline["pmw_header_reference"]["center_from_breakout"]),
+    )
+    if not (housing[0] > ball[0] and breakout[0] > ball[0] and header[0] > ball[0]):
+        raise AssertionError("connector-right orientation regressed: housing/breakout/header must be +X of ball")
+    print("PASS KLORBall-35 handedness: connector assembly is on +X / right side of ball")
     if abs(math.dist(screw_1[:2], screw_2[:2]) - 15.96) > TOL:
         raise AssertionError("housing screw pair spacing changed")
     print("PASS housing screw spacing = 15.96 mm source geometry")
@@ -162,7 +191,7 @@ def main():
         raise AssertionError("plate service opening must reuse stock SW22 aperture")
     if plate_parts[1].get("name") != "breakout_service_slot":
         raise AssertionError("plate service opening must merge with breakout slot")
-    print("PASS plate delta reuses R34 opening and merges only the service corridor")
+    print("PASS plate preserves R34 opening and adds connector-right 2x22 corridor")
 
     units = config["units"]
     if float(units["ball_diameter"]) != 25:
@@ -175,12 +204,10 @@ def main():
     header_h = float(units["pmw_header_body_h"])
     header_bottom = header[1] - header_h / 2
     overhang = edge_y - header_bottom
-    if overhang < 4.4:
-        raise AssertionError(f"expected header overhang proving tongue need, got {overhang}")
     expected_overhang = float(baseline["support_tongue"]["body_overhang_beyond_stock_edge"])
     if abs(overhang - expected_overhang) > HIST_TOL:
         raise AssertionError(f"header overhang regression changed: {overhang}")
-    print(f"PASS locked PMW header overhangs stock edge by {overhang:.6f} mm")
+    print(f"PASS connector-right PMW header overhangs stock edge by {overhang:.6f} mm")
 
     tongue_w = float(units["pmw_support_tongue_w"])
     tongue_h = float(units["pmw_support_tongue_h"])
@@ -192,16 +219,35 @@ def main():
         raise AssertionError("support tongue does not cover PMW header width")
     if tongue_lo[1] > header_lo[1] + TOL:
         raise AssertionError("support tongue is not deep enough for PMW header")
-    if abs(tongue_hi[1] - edge_y) > HIST_TOL:
-        raise AssertionError(f"support tongue does not terminate at stock edge: {tongue_hi[1]} vs {edge_y}")
-    print("PASS local support tongue covers the required header overhang")
+    tongue_join_edge_y = stock_lower_edge_y_at_x(pcb_text, origin, tongue_lo[0])
+    expected_join = float(baseline["support_tongue"]["stock_edge_y_at_tongue_inner_x"])
+    if abs(tongue_join_edge_y - expected_join) > HIST_TOL:
+        raise AssertionError("support-tongue stock-edge join regression changed")
+    if abs(tongue_hi[1] - tongue_join_edge_y) > HIST_TOL:
+        raise AssertionError(
+            f"support tongue does not terminate at sloped stock edge: {tongue_hi[1]} vs {tongue_join_edge_y}"
+        )
+    slot_w = float(units["breakout_slot_w"])
+    if abs(tongue_hi[0] - (breakout[0] - slot_w / 2)) > HIST_TOL:
+        raise AssertionError("connector-right support tongue must terminate at negative-X slot edge")
+    print("PASS re-derived connector-right support tongue joins stock edge and service notch")
 
     slot_h = float(units["breakout_slot_h"])
     slot_top = breakout[1] + slot_h / 2
     slot_bottom = breakout[1] - slot_h / 2
-    if not (slot_bottom < edge_y < slot_top):
+    breakout_edge_y = stock_lower_edge_y_at_x(pcb_text, origin, breakout[0])
+    if not (slot_bottom < breakout_edge_y < slot_top):
         raise AssertionError("2x22 breakout slot no longer crosses the stock lower edge")
-    print("PASS 2x22 service corridor is an open-edge notch, not a closed slot")
+
+    mh8 = point(generated, "mh8")
+    slot_lo_x = breakout[0] - slot_w / 2
+    slot_hi_x = breakout[0] + slot_w / 2
+    dx = max(slot_lo_x - mh8[0], mh8[0] - slot_hi_x, 0.0)
+    dy = max(slot_bottom - mh8[1], mh8[1] - slot_top, 0.0)
+    notch_to_mh8_edge = math.hypot(dx, dy) - float(units["pcb_m3_hole"]) / 2
+    if notch_to_mh8_edge < MIN_NOTCH_TO_MH8_EDGE_GAP:
+        raise AssertionError(f"connector-right notch/MH8 clearance too small: {notch_to_mh8_edge}")
+    print(f"PASS stock MH8 retained with {notch_to_mh8_edge:.6f} mm notch-edge clearance")
 
     housing_w = float(units["housing_w"])
     housing_h = float(units["housing_h"])
@@ -213,7 +259,7 @@ def main():
         gaps.append((rect_gap(housing_lo, housing_hi, p), name))
     gaps.sort()
     min_gap, min_name = gaps[0]
-    if min_gap < 2.5:
+    if min_gap < MIN_HOUSING_KEY_GAP:
         raise AssertionError(f"housing/key clearance regressed: {min_name} = {min_gap}")
     print(f"PASS conservative retained-key/housing gap: {min_name} = {min_gap:.6f} mm")
 

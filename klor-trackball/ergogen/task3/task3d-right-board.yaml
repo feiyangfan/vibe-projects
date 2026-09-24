@@ -1,0 +1,200 @@
+status: task3d_complete
+revision: 2
+
+authority:
+  geometry_freeze: ../task2/task2d-freeze.yaml
+  electrical_contract: task3a-electrical-contract.yaml
+  footprint_contract: task3b-footprints.yaml
+  left_board_contract: task3c-left-board.yaml
+  ergogen: ../config.yaml
+
+board:
+  pcb: task3d_right_production
+  half: right
+  geometry: trackball_board
+  geometry_revision: task2d_revision_2_connector_right
+  ball_center_local: [16.5, -28.000147]
+  connector_side: positive_canonical_x
+  assembly_side_for_single_side_smd: F
+  routing: forbidden_until_task4
+  mounting_holes:
+    M3: [mh1, mh2, mh3, mh4, mh5, mh6, mh7, mh8]
+    M2: [mh9]
+
+counts:
+  mx_keys: 19
+  matrix_diodes: 20
+  rgb_devices: 19
+  encoder: 1
+  controller: 1
+  trrs: 1
+  reset: 1
+  pmw_header: 1
+  note: >-
+    The right half has 19 MX keys plus the diode-isolated encoder click, so it
+    requires 20 matrix diodes total. SW22/D22/R34 and its RGB device are absent.
+
+intentionally_absent:
+  - SW19
+  - SW22
+  - D22
+  - R34
+
+matrix:
+  diode_direction: COL2ROW
+  switches:
+    SW1:  {point: sw1,  diode: D1,  row: ROW0, col: COL5}
+    SW2:  {point: sw2,  diode: D2,  row: ROW0, col: COL4}
+    SW3:  {point: sw3,  diode: D3,  row: ROW0, col: COL3}
+    SW4:  {point: sw4,  diode: D4,  row: ROW0, col: COL2}
+    SW5:  {point: sw5,  diode: D5,  row: ROW0, col: COL1}
+    SW6:  {point: sw6,  diode: D6,  row: ROW1, col: COL5}
+    SW7:  {point: sw7,  diode: D7,  row: ROW1, col: COL4}
+    SW8:  {point: sw8,  diode: D8,  row: ROW1, col: COL3}
+    SW9:  {point: sw9,  diode: D9,  row: ROW1, col: COL2}
+    SW10: {point: sw10, diode: D10, row: ROW1, col: COL1}
+    SW11: {point: sw11, diode: D11, row: ROW1, col: COL0}
+    SW12: {point: sw12, diode: D12, row: ROW2, col: COL5}
+    SW13: {point: sw13, diode: D13, row: ROW2, col: COL4}
+    SW14: {point: sw14, diode: D14, row: ROW2, col: COL3}
+    SW15: {point: sw15, diode: D15, row: ROW2, col: COL2}
+    SW16: {point: sw16, diode: D16, row: ROW2, col: COL1}
+    SW17: {point: sw17, diode: D17, row: ROW2, col: COL0}
+    SW20: {point: sw20, diode: D20, row: ROW3, col: COL3}
+    SW21: {point: sw21, diode: D21, row: ROW3, col: COL2}
+  encoder_click:
+    point: encoder_ref
+    diode_point: d18
+    diode: D18
+    row: ROW3
+    col: COL5
+    switch_net: ENCODER_TO_D18
+  active_positions: 20
+
+encoder:
+  point: encoder_ref
+  A: ENCODER_A
+  B: ENCODER_B
+  common: GND
+  controller_mapping:
+    ENCODER_A: {gpio: GP29, controller_pad: 26}
+    ENCODER_B: {gpio: GP28, controller_pad: 25}
+
+rgb:
+  count: 19
+  input: RGB_DATA_5V
+  bypassed_removed_site: SW22
+  chain:
+    - SW20
+    - SW21
+    - SW12
+    - SW6
+    - SW1
+    - SW2
+    - SW7
+    - SW13
+    - SW14
+    - SW8
+    - SW3
+    - SW4
+    - SW9
+    - SW15
+    - SW16
+    - SW10
+    - SW5
+    - SW11
+    - SW17
+  final_dout: NC
+
+controller:
+  point: mcu_ref
+  footprint: helios_host
+  pads:
+    2: NC
+    3: SPLIT_DATA
+    4: GND
+    5: GND
+    6: PMW_SCK
+    7: PMW_MOSI
+    8: PMW_MISO
+    9: ROW0
+    10: ROW1
+    11: ROW2
+    12: ROW3
+    13: PMW_CS
+    19: COL5
+    20: COL4
+    21: COL3
+    22: COL2
+    23: COL1
+    24: COL0
+    25: ENCODER_B
+    26: ENCODER_A
+    27: V3V3
+    28: RESET
+    29: GND
+    30: RAW_5V
+    32: RGB_DATA_5V
+
+trrs:
+  point: trrs_ref
+  side: F
+  pins:
+    1: RAW_5V
+    2: GND
+    3: NC
+    4: SPLIT_DATA
+
+reset:
+  point: reset_ref
+  side: F
+  pad_1: RESET
+  pad_2: GND
+
+pmw3360:
+  point: pmw_header_prod
+  frozen_center_point: pmw_header_center
+  side: F
+  pitch: 2.54
+  orientation_reference: klorball35_right
+  canonical_rotation: 0
+  pin_1_end: positive_canonical_y
+  pin_7_end: negative_canonical_y
+  physical_pin_order_positive_y_to_negative_y:
+    1: PMW_CS
+    2: PMW_MISO
+    3: PMW_MOSI
+    4: PMW_SCK
+    5: NC
+    6: V3V3
+    7: GND
+  controller_endpoints:
+    PMW_SCK: {gpio: GP2, controller_pad: 6}
+    PMW_MOSI: {gpio: GP3, controller_pad: 7}
+    PMW_MISO: {gpio: GP4, controller_pad: 8}
+    PMW_CS: {gpio: GP9, controller_pad: 13}
+  motion: NC
+  mating_rule: breakout_pin_N_to_keyboard_pin_8_minus_N
+
+production_modules:
+  key: klor_key
+  diode: klor_diode
+  controller: helios_host
+  trrs: klor_trrs
+  encoder: klor_ec11
+  reset: klor_reset
+  pmw_header: pmw_header
+  mounting: mounting_hole
+
+gate:
+  deterministic_generation: required
+  exact_local_footprints: required
+  exact_matrix_positions: 20
+  frozen_trackball_outline: required
+  frozen_pmw_geometry_pin_order_and_right_side_orientation: required
+  removed_R34_site_absent: required
+  intentionally_unrouted: true
+  task2_geometry_must_regress: true
+  task3a_must_regress: true
+  task3b_must_regress: true
+  task3c_must_regress: true
