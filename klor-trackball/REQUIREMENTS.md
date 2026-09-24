@@ -52,7 +52,7 @@ Task 2 compared the historical R34-only layout with more aggressive thumb/encode
 
 Changing that retained-control set after Task 2D is a geometry/requirements change and requires reopening Task 2 rather than being treated as a Task-3 PCB implementation choice.
 
-Task 2D revision 2 was explicitly reopened to correct trackball handedness: the ball center and retained controls remain fixed, while the Type-C/Kivipallur assembly is rotated to put the connector on the right side. The right target PCB shifts MH8 by +1.0 mm canonical Y solely to clear the revised 2 x 22 service notch; stock/left MH8 remains unchanged.
+Task 2D revision 2 was explicitly reopened to correct trackball handedness. The Type-C/Kivipallur assembly is rotated to put the connector on the right side. A direct flip at the historical ball center would violate the existing conservative housing-clearance rule at retained SW16, so the revised ball center moves **5.761644 mm inward in canonical X**, from x = 22.261644 mm to **x = 16.5 mm**, while keeping Y unchanged. This also keeps the revised service notch clear of stock MH8, so all nine PCB mounting holes remain at their stock positions.
 
 ### PCB architecture
 
