@@ -88,9 +88,9 @@ Gate:
 
 ### Task 3D — Generate the right production-intent PCB
 
-**REVISION 2 — COMPLETE**
+**REVISION 3 — COMPLETE**
 
-Generate the right PCB on the frozen Task-2D trackball geometry.
+Generate the right PCB on the frozen Task-2D revision-3 trackball geometry.
 
 Expected electrical content:
 
@@ -109,7 +109,9 @@ Gate:
 - R32/R33 remain;
 - R34/SW22/D22 and its RGB device are absent;
 - the RGB chain bypasses R34 logically;
-- the PMW connector sits on the right/+X side of the ball and matches Task-2D revision 2 exactly;
+- the PMW connector sits on the right/+X side of the ball and matches Task-2D revision 3 exactly;
+- the generated PCB includes the frozen open-edge trackball cavity and preserves the right-side PMW peninsula;
+- generated Edge.Cuts maintain at least 9.5 mm ball-center clearance;
 - the right PCB is electrically coherent and intentionally unrouted.
 
 ### Task 3E — Cross-board electrical integration and freeze
