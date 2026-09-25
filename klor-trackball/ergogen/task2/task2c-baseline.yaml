@@ -1,5 +1,5 @@
 status: task2c_geometry_baseline
-revision: 2
+revision: 3
 units: mm
 
 canonical_frame:
@@ -76,6 +76,30 @@ placement_adjustment:
     - preserve_2_5mm_conservative_housing_clearance_to_retained_SW16
     - preserve_stock_MH8_clearance_from_connector_right_service_notch
 
+pcb_cavity:
+  topology: klorball35_style_open_edge
+  reference: checked_in_klorball35_right_edge_cuts
+  klorball35_reference_min_ball_center_edge_distance: 9.658
+  required_min_ball_center_edge_distance: 9.5
+  points_from_ball:
+    - [-21.5, 13.0]
+    - [-5.0, 12.94]
+    - [9.93, 12.36]
+    - [11.85, 10.19]
+    - [9.31, -19.37]
+    - [11.17, -21.54]
+    - [11.17, -40.0]
+    - [-21.5, -40.0]
+  adaptation:
+    original_reference_left_lip_x: -24.285
+    revised_left_lip_x: -21.5
+    reason: preserve_retained_R33_SW21_MX_envelope
+  pmw_peninsula:
+    header_center_from_ball: [14.598378, 0]
+    must_remain_outside_cavity: true
+  ball_center_must_be_inside_cavity: true
+  open_to_lower_board_edge: true
+
 plate_delta:
   preserve_outer_perimeter: true
   retained_switch_cutouts: 19
@@ -95,5 +119,5 @@ preservation_contract:
     - TRRS
     - MH1_through_MH9
     - all_eight_case_mount_axes
-    - stock_board_geometry_outside_notch_and_support_tongue
+    - stock_board_geometry_outside_cavity_notch_and_support_tongue
     - stock_switchplate_outer_perimeter
