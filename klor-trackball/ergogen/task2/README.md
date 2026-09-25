@@ -43,7 +43,7 @@ Passing evidence is recorded in `TASK2B_RESULT.md`.
 
 ### 2C — Trackball delta overlay
 
-**REVISION 3 — REOPENED**
+**REVISION 3 — COMPLETE**
 
 Add parametrically:
 
@@ -62,13 +62,13 @@ Revision 2 rotates the Type-C/Kivipallur assembly to match KLORBall-35 handednes
 
 Revision 3 reopens the PCB mechanical delta because the revision-2 board only subtracts the 2 × 22 mm breakout/service notch. That leaves stock PCB material occupying most of the trackball/housing region, unlike the KLORBall-35 reference board. See `TASK2_REV3_CAVITY.md`.
 
-Passing evidence for the superseded revision 2 remains recorded in `TASK2C_RESULT.md`.
+Revision-3 passing evidence is recorded in `TASK2C_RESULT.md`; `TASK2_REV3_CAVITY.md` records the correction rationale.
 
 ### 2D — Geometry freeze
 
 **REVISION 3 — REOPENED**
 
-The revision-2 freeze is superseded for the PCB cavity only. Revision 3 must re-freeze the right-PCB mechanical interface after a KLORBall-35-style open-edge trackball cavity is implemented and validated.
+Revision 3 re-freezes the right-PCB mechanical interface with a validated KLORBall-35-style open-edge trackball cavity.
 
 The freeze combines:
 
@@ -78,7 +78,7 @@ The freeze combines:
 - R32/R33 retained and R34 removed;
 - the right encoder retained at stock position;
 - the KLORBall-35-style PMW connector side/orientation/pin-order/mechanical relationship;
-- the required local PCB support tongue and 2 × 22 open-edge notch;
+- the KLORBall-35-style open-edge trackball cavity, right-side PMW peninsula, support tongue, and 2 × 22 service notch;
 - the Task-3 allowed/forbidden geometry boundary.
 
 Passing evidence is recorded in `TASK2D_RESULT.md`.
