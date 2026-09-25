@@ -192,6 +192,40 @@ def net_count(all_fps, net):
     return sum(1 for fp in all_fps for p in pads(fp) if p["net"] == net)
 
 
+def segment_distance(point_xy, a, b):
+    px, py = point_xy
+    ax, ay = a
+    bx, by = b
+    vx, vy = bx - ax, by - ay
+    denom = vx * vx + vy * vy
+    if denom <= TOL:
+        return math.hypot(px - ax, py - ay)
+    t = max(0.0, min(1.0, ((px - ax) * vx + (py - ay) * vy) / denom))
+    qx = ax + t * vx
+    qy = ay + t * vy
+    return math.hypot(px - qx, py - qy)
+
+
+def min_edge_cut_line_distance(board_text, point_xy):
+    distances = []
+    for block in balanced_blocks(board_text, "gr_line"):
+        if "(layer Edge.Cuts)" not in block and '(layer "Edge.Cuts")' not in block:
+            continue
+        start = re.search(r"\(start\s+([-\d.]+)\s+([-\d.]+)\)", block)
+        end = re.search(r"\(end\s+([-\d.]+)\s+([-\d.]+)\)", block)
+        if start and end:
+            distances.append(
+                segment_distance(
+                    point_xy,
+                    (float(start.group(1)), float(start.group(2))),
+                    (float(end.group(1)), float(end.group(2))),
+                )
+            )
+    if not distances:
+        raise AssertionError("generated board has no Edge.Cuts lines")
+    return min(distances)
+
+
 def global_pad_in_canonical(fp, pad):
     fx, fy, fr = at_xyz(fp)
     px, py = pad["at"]
@@ -250,6 +284,20 @@ def main():
     print("PASS right production assembly uses qualified F-side variants")
 
     text = board_path.read_text(encoding="utf-8")
+    ball_for_cavity = resolve_point(config, "ball_center")
+    ball_pcb_xy = (ball_for_cavity[0], -ball_for_cavity[1])
+    min_ball_edge = min_edge_cut_line_distance(text, ball_pcb_xy)
+    required_ball_edge = float(contract["gate"]["minimum_ball_center_edge_clearance_mm"])
+    if min_ball_edge < required_ball_edge:
+        raise AssertionError(
+            f"generated ball-center/Edge.Cuts clearance too small: "
+            f"{min_ball_edge} < {required_ball_edge}"
+        )
+    print(
+        f"PASS generated rev3 open cavity: nearest Edge.Cuts is "
+        f"{min_ball_edge:.6f} mm from ball center"
+    )
+
     all_fps = fp_blocks(text)
     by_name = {}
     for fp in all_fps:
