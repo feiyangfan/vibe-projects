@@ -1,5 +1,5 @@
 status: task2d_frozen
-revision: 2
+revision: 3
 units: mm
 
 authority:
@@ -82,7 +82,22 @@ pcb_geometry:
   composition:
     - {outline: stock_board, operation: add}
     - {outline: pmw_support_tongue, operation: add}
+    - {outline: trackball_cavity, operation: subtract}
     - {outline: breakout_service_slot, operation: subtract}
+  cavity:
+    topology: klorball35_style_open_edge
+    reference_min_ball_center_edge_distance: 9.658
+    required_min_ball_center_edge_distance: 9.5
+    points_from_ball:
+      - [-21.5, 13.0]
+      - [-5.0, 12.94]
+      - [9.93, 12.36]
+      - [11.85, 10.19]
+      - [9.31, -19.37]
+      - [11.17, -21.54]
+      - [11.17, -40.0]
+      - [-21.5, -40.0]
+    pmw_peninsula_required: true
   support_tongue:
     required: true
     center_from_breakout: [-3.9444785, -0.0894995]
@@ -95,7 +110,7 @@ pcb_geometry:
       - preserve_conservative_2_5mm_housing_clearance_to_SW16
       - preserve_stock_MH8_clearance
   preserve:
-    - stock_geometry_outside_local_notch_and_support_tongue
+    - stock_geometry_outside_local_cavity_notch_and_support_tongue
     - MH1_through_MH9
     - MCU_location
     - TRRS_location
@@ -134,6 +149,7 @@ task3_change_boundary:
     - move_MCU_or_TRRS_geometry
     - move_any_structural_axis
     - move_ball_housing_breakout_or_pmw_header_reference
+    - change_trackball_cavity
     - change_2x22_service_corridor
     - remove_or_resize_support_tongue_without_new_mechanical_proof
     - change_stock_board_geometry_outside_the_frozen_local_delta
@@ -150,6 +166,13 @@ deferred_beyond_task2:
   - fabrication_tolerances_not_already_required_by_mechanical_fit
 
 change_control:
+  revision_3_reason: >-
+    Revision 2 left stock FR-4 under and around most of the trackball because
+    the 2 x 22 breakout corridor was incorrectly treated as the complete PCB
+    clearance feature. Revision 3 adds a KLORBall-35-style open-edge cavity,
+    adapted locally to preserve retained R33/SW21 and the right-side PMW
+    connector peninsula. The ball/header placement and electrical ownership do
+    not change.
   revision_2_reason: >-
     User-requested correction to match KLORBall-35 trackball handedness: rotate
     the Type-C/Kivipallur assembly 180 degrees so the keyboard connector is on

@@ -64,6 +64,7 @@ def main():
 
     required_outputs = [
         args.generated / "outlines/trackball_board.dxf",
+        args.generated / "outlines/trackball_cavity.dxf",
         args.generated / "outlines/trackball_plate_service_opening.dxf",
         args.generated / "outlines/task2c_preview.dxf",
         args.generated / "pcbs/task2c_trackball_reference.kicad_pcb",
@@ -73,7 +74,7 @@ def main():
             raise AssertionError(f"missing/empty frozen geometry output: {path}")
     print("PASS frozen Task-2 generated outputs exist")
 
-    if freeze["revision"] != 2:
+    if freeze["revision"] != 3:
         raise AssertionError("Task 2D freeze revision changed")
     if freeze["status"] not in {"task2d_frozen_candidate", "task2d_frozen"}:
         raise AssertionError(f"unexpected freeze status: {freeze['status']}")
@@ -169,7 +170,7 @@ def main():
         pxy(points, "ball_center")[1] - prior_ball[1],
     )
     assert_close(
-        "Task-2 rev2 inward ball shift",
+        "Task-2 rev3 retained ball shift from historical placement",
         actual_shift,
         (float(pcb["placement_adjustment"]["inward_shift_x"]), 0.0),
     )

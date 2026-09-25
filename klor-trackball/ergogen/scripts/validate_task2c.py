@@ -86,6 +86,40 @@ def rect_gap(a_lo, a_hi, center, half=9.0):
     return math.hypot(dx, dy)
 
 
+def point_in_polygon(point_xy, polygon):
+    x, y = point_xy
+    inside = False
+    j = len(polygon) - 1
+    for i in range(len(polygon)):
+        xi, yi = polygon[i]
+        xj, yj = polygon[j]
+        if ((yi > y) != (yj > y)) and (
+            x < (xj - xi) * (y - yi) / (yj - yi) + xi
+        ):
+            inside = not inside
+        j = i
+    return inside
+
+
+def segment_distance(point_xy, a, b):
+    px, py = point_xy
+    ax, ay = a
+    bx, by = b
+    vx, vy = bx - ax, by - ay
+    denom = vx * vx + vy * vy
+    if denom <= TOL:
+        return math.hypot(px - ax, py - ay)
+    t = max(0.0, min(1.0, ((px - ax) * vx + (py - ay) * vy) / denom))
+    return math.hypot(px - (ax + t * vx), py - (ay + t * vy))
+
+
+def polygon_edge_distance(point_xy, polygon):
+    return min(
+        segment_distance(point_xy, polygon[i], polygon[(i + 1) % len(polygon)])
+        for i in range(len(polygon))
+    )
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--generated", type=Path, required=True)
@@ -94,6 +128,7 @@ def main():
     required = [
         args.generated / "points/points.yaml",
         args.generated / "outlines/trackball_board.dxf",
+        args.generated / "outlines/trackball_cavity.dxf",
         args.generated / "outlines/trackball_plate_service_opening.dxf",
         args.generated / "outlines/trackball_housing_envelope.dxf",
         args.generated / "outlines/pmw_header_envelope.dxf",
@@ -123,7 +158,7 @@ def main():
     tongue = point(generated, "pmw_support_tongue_center")
 
     expected_ball = tuple(float(x) for x in baseline["trackball"]["ball_center_local"])
-    assert_xy("Task-2 rev2 ball placement", ball, expected_ball, HIST_TOL)
+    assert_xy("Task-2 rev3 ball placement", ball, expected_ball, HIST_TOL)
 
     prior_ball = tuple(float(x) for x in baseline["placement_adjustment"]["prior_ball_center_local"])
     expected_shift = float(baseline["placement_adjustment"]["inward_shift_x"])
@@ -173,18 +208,18 @@ def main():
 
     board_parts = config["outlines"]["trackball_board"]
     board_contract = [
-        (board_parts[0].get("name"), board_parts[0].get("operation", "add")),
-        (board_parts[1].get("name"), board_parts[1].get("operation", "add")),
-        (board_parts[2].get("name"), board_parts[2].get("operation", "add")),
+        (part.get("name"), part.get("operation", "add"))
+        for part in board_parts
     ]
     expected_board_contract = [
         ("stock_board", "add"),
         ("pmw_support_tongue", "add"),
+        ("trackball_cavity", "subtract"),
         ("breakout_service_slot", "subtract"),
     ]
     if board_contract != expected_board_contract:
         raise AssertionError(f"trackball board composition changed: {board_contract}")
-    print("PASS board delta = stock + local support tongue - 2x22 service notch")
+    print("PASS board delta = stock + PMW tongue - open trackball cavity - 2x22 service notch")
 
     plate_parts = config["outlines"]["trackball_plate_service_opening"]
     if plate_parts[0].get("where") != "sw22":
@@ -198,6 +233,46 @@ def main():
         raise AssertionError("ball diameter changed")
     if [float(units["breakout_slot_w"]), float(units["breakout_slot_h"])] != [2.0, 22.0]:
         raise AssertionError("breakout service envelope changed")
+
+    cavity_spec = baseline["pcb_cavity"]
+    cavity_cfg = config["outlines"]["trackball_cavity"]
+    if len(cavity_cfg) != 1 or cavity_cfg[0].get("what") != "polygon":
+        raise AssertionError("trackball cavity must be one explicit polygon")
+    cavity_points = [
+        (float(p["shift"][0]), float(p["shift"][1]))
+        for p in cavity_cfg[0]["points"]
+    ]
+    expected_cavity = [
+        (float(p[0]), float(p[1]))
+        for p in cavity_spec["points_from_ball"]
+    ]
+    if len(cavity_points) != len(expected_cavity):
+        raise AssertionError("trackball cavity vertex count changed")
+    for actual, expected in zip(cavity_points, expected_cavity):
+        assert_xy("cavity vertex", actual, expected, HIST_TOL)
+
+    if not point_in_polygon((0.0, 0.0), cavity_points):
+        raise AssertionError("ball center is not inside the explicit PCB cavity")
+    cavity_clearance = polygon_edge_distance((0.0, 0.0), cavity_points)
+    required_cavity_clearance = float(cavity_spec["required_min_ball_center_edge_distance"])
+    if cavity_clearance < required_cavity_clearance:
+        raise AssertionError(
+            f"ball-center/cavity-edge clearance too small: {cavity_clearance}"
+        )
+
+    header_rel = (header[0] - ball[0], header[1] - ball[1])
+    if point_in_polygon(header_rel, cavity_points):
+        raise AssertionError("PMW header center fell inside the trackball cavity")
+    mh8_rel = (point(generated, "mh8")[0] - ball[0], point(generated, "mh8")[1] - ball[1])
+    if point_in_polygon(mh8_rel, cavity_points):
+        raise AssertionError("stock MH8 fell inside the trackball cavity")
+    sw21_rel = (point(generated, "sw21")[0] - ball[0], point(generated, "sw21")[1] - ball[1])
+    if point_in_polygon(sw21_rel, cavity_points):
+        raise AssertionError("retained R33/SW21 fell inside the trackball cavity")
+    print(
+        f"PASS rev3 KLORBall-35-style open cavity: "
+        f"ball-center edge clearance = {cavity_clearance:.6f} mm"
+    )
 
     edge_y = stock_lower_edge_y_at_x(pcb_text, origin, header[0])
     header_w = float(units["pmw_header_body_w"])
@@ -269,7 +344,7 @@ def main():
         raise AssertionError("Task 2C right-thumb architecture changed")
 
     print("PASS Task 2B stock geometry remains a separately generated/validated source layer")
-    print("Task 2C minimal trackball-delta regression passed")
+    print("Task 2C revision-3 cavity regression passed")
     return 0
 
 

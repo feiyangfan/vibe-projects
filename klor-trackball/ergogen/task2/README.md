@@ -43,7 +43,7 @@ Passing evidence is recorded in `TASK2B_RESULT.md`.
 
 ### 2C — Trackball delta overlay
 
-**REVISION 2 — COMPLETE**
+**REVISION 3 — COMPLETE**
 
 Add parametrically:
 
@@ -60,13 +60,15 @@ Every preserved Task-2B datum outside the trackball delta must remain numericall
 
 Revision 2 rotates the Type-C/Kivipallur assembly to match KLORBall-35 handedness: the connector is on the **right / +X side** of the ball. A direct flip at the historical ball center would overlap retained SW16 under the existing conservative housing-envelope gate, so the ball moves inward to canonical **(16.5, -28.000147) mm**. This keeps all nine PCB mounting holes stock. The connector-right header requires a re-derived local support tongue because its body extends approximately **18.093 mm** beyond the sloped stock lower edge.
 
-Passing evidence is recorded in `TASK2C_RESULT.md`.
+Revision 3 reopens the PCB mechanical delta because the revision-2 board only subtracts the 2 × 22 mm breakout/service notch. That leaves stock PCB material occupying most of the trackball/housing region, unlike the KLORBall-35 reference board. See `TASK2_REV3_CAVITY.md`.
+
+Revision-3 passing evidence is recorded in `TASK2C_RESULT.md`; `TASK2_REV3_CAVITY.md` records the correction rationale.
 
 ### 2D — Geometry freeze
 
-**REVISION 2 — COMPLETE**
+**REVISION 3 — REOPENED**
 
-The final Task-2 contract is frozen in `task2d-freeze.yaml` and regression-enforced by `validate_task2d.py`.
+Revision 3 re-freezes the right-PCB mechanical interface with a validated KLORBall-35-style open-edge trackball cavity.
 
 The freeze combines:
 
@@ -76,7 +78,7 @@ The freeze combines:
 - R32/R33 retained and R34 removed;
 - the right encoder retained at stock position;
 - the KLORBall-35-style PMW connector side/orientation/pin-order/mechanical relationship;
-- the required local PCB support tongue and 2 × 22 open-edge notch;
+- the KLORBall-35-style open-edge trackball cavity, right-side PMW peninsula, support tongue, and 2 × 22 service notch;
 - the Task-3 allowed/forbidden geometry boundary.
 
 Passing evidence is recorded in `TASK2D_RESULT.md`.

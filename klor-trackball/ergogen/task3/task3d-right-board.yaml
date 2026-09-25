@@ -1,5 +1,5 @@
 status: task3d_complete
-revision: 2
+revision: 3
 
 authority:
   geometry_freeze: ../task2/task2d-freeze.yaml
@@ -12,7 +12,7 @@ board:
   pcb: task3d_right_production
   half: right
   geometry: trackball_board
-  geometry_revision: task2d_revision_2_connector_right
+  geometry_revision: task2d_revision_3_open_edge_cavity
   ball_center_local: [16.5, -28.000147]
   connector_side: positive_canonical_x
   assembly_side_for_single_side_smd: F
@@ -191,6 +191,8 @@ gate:
   exact_local_footprints: required
   exact_matrix_positions: 20
   frozen_trackball_outline: required
+  open_edge_trackball_cavity: required
+  minimum_ball_center_edge_clearance_mm: 9.5
   frozen_pmw_geometry_pin_order_and_right_side_orientation: required
   removed_R34_site_absent: required
   intentionally_unrouted: true

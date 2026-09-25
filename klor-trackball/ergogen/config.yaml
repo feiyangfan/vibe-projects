@@ -888,6 +888,25 @@ outlines:
       where: pmw_header_center
       size: [pmw_header_body_w, pmw_header_body_h]
 
+  # Task 2 revision 3: KLORBall-35-style open-edge cavity.
+  # These ball-relative points reproduce the reference topology while adapting
+  # the left lip to preserve the retained MX R33/SW21 envelope.
+  #
+  # The top edge sits ~13 mm above the ball center, the inner PMW-peninsula
+  # wall sits ~10 mm to the right, and the polygon extends far below the stock
+  # lower edge so the result is an open cavity rather than a closed internal slot.
+  trackball_cavity:
+    - what: polygon
+      points:
+        - {ref: ball_center, shift: [-21.5, 13.0]}
+        - {ref: ball_center, shift: [-5.0, 12.94]}
+        - {ref: ball_center, shift: [9.93, 12.36]}
+        - {ref: ball_center, shift: [11.85, 10.19]}
+        - {ref: ball_center, shift: [9.31, -19.37]}
+        - {ref: ball_center, shift: [11.17, -21.54]}
+        - {ref: ball_center, shift: [11.17, -40.0]}
+        - {ref: ball_center, shift: [-21.5, -40.0]}
+
   # The locked 1x7 mating row overhangs the stock lower edge. This small local
   # rectangle is the declarative equivalent of the old Task-3D support tongue.
   pmw_support_tongue:
@@ -899,6 +918,8 @@ outlines:
     - name: stock_board
     - name: pmw_support_tongue
       operation: add
+    - name: trackball_cavity
+      operation: subtract
     - name: breakout_service_slot
       operation: subtract
 
