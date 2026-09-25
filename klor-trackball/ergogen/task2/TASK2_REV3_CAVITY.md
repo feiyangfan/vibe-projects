@@ -2,7 +2,7 @@
 
 ## Status
 
-**OPEN — revision 2 cavity assumption invalidated.**
+**PASS — revision 3 cavity implemented and frozen.**
 
 ## Problem
 
@@ -45,6 +45,20 @@ The revised board shall use KLORBall-35 **topology**, not an arbitrary larger ci
 - SW22/D22/R34 remain absent;
 - right RGB chain remains 19 devices;
 - right encoder remains A -> GP29 and B -> GP28.
+
+## Qualified result
+
+Revision 3 uses an explicit ball-relative polygon with a **10.934113 mm** minimum design-space distance from the ball center to the cavity boundary.
+
+After boolean composition with the stock board, support tongue and service slot, the regenerated production PCB measures **12.323043 mm** from the ball center to the nearest actual Edge.Cuts.
+
+For comparison, the checked-in KLORBall-35 reference measures approximately **9.658 mm** using the inferred ball center from its J2/PMW relationship.
+
+The left cavity lip is adapted from the KLORBall-35 reference (approximately -24.285 mm) to **-21.5 mm** relative to the ball so the retained MX R33/SW21 envelope remains clear.
+
+Qualification head: `1a6c90f3596c2b6f648c0c1663069b5713215388`.
+
+All Tasks 2B, 2C, 2D, 3A, 3B, 3C and regenerated 3D pass on that head.
 
 ## Gate before re-freeze
 
