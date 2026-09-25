@@ -1,131 +1,77 @@
-# Task 2C Result — Connector-Right Trackball Delta
+# Task 2C Result — Trackball Delta Revision 3
 
 ## Status
 
-**PASS — Task 2C revision 2 is complete.**
+**PASS — Task 2C revision 3 is complete.**
 
-Revision 2 supersedes the original left-side breakout orientation. The canonical trackball assembly now matches the handedness of the checked-in KLORBall-35 right PCB: the Kivipallur/keyboard connector is on the **right / positive canonical X side of the ball**.
+Revision 3 preserves the revision-2 connector-right Type-C/Kivipallur placement and corrects the PCB clearance topology around the trackball.
 
-## Why the ball center moved
+## Corrected PCB delta
 
-A direct 180 degree flip around the previous ball center `(22.261644, -28.000147)` puts the conservative Type-C housing envelope into retained SW16.
+Revision 2 incorrectly treated the 2 x 22 mm breakout/service corridor as the complete PCB clearance feature. That left substantial stock FR-4 under and around the trackball.
 
-The minimum-change correction is an inward X shift only:
-
-```text
-prior ball center   = (22.261644, -28.000147)
-revision-2 center   = (16.500000, -28.000147)
-delta               = (-5.761644, 0)
-```
-
-This preserves:
-
-- all 19 retained right MX positions;
-- R32 / SW20 and R33 / SW21;
-- the stock right encoder;
-- MCU and TRRS datums;
-- all nine stock PCB mounting holes;
-- all stock case/switchplate structural axes.
-
-The conservative housing-to-key gate passes with SW16 as the limiting retained key at approximately **2.580294 mm**.
-
-The connector-right 2 x 22 service notch also clears stock MH8 by approximately **3.354275 mm edge-to-drill**.
-
-## Canonical revision-2 relationships
-
-```text
-ball_center
-    = (16.5, -28.000147)
-
-housing_center
-    = ball_center + (9.165901, 0.000812)
-
-housing_screw_midpoint
-    = ball_center + (6.212, 0)
-
-housing_screw_1 / 2
-    = midpoint + (0, +/-7.98)
-
-breakout_center
-    = ball_center + (19.212, 0)
-
-pmw_header_center
-    = breakout_center + (-4.613622, 0)
-```
-
-Therefore:
-
-```text
-breakout_center   = (35.712, -28.000147)
-pmw_header_center = (31.098378, -28.000147)
-```
-
-Both remain to the right of the ball.
-
-## PMW connector handedness
-
-The checked-in KLORBall-35 right PCB was audited directly.
-
-Its keyboard-side J2 order is:
-
-1. CS
-2. MISO
-3. MOSI
-4. SCK
-5. NC / MOTION
-6. 3V3
-7. GND
-
-In the canonical frame, **pin 1 / CS is at positive Y** and **pin 7 / GND is at negative Y**.
-
-Revision 2 adopts that physical direction while preserving the verified Kivipallur mating rule:
-
-`breakout pin N -> keyboard pin 8-N`.
-
-## PCB delta
-
-The target right PCB remains:
+Revision 3 uses:
 
 ```text
 stock_board
 + pmw_support_tongue
+- trackball_cavity
 - breakout_service_slot
 = trackball_board
 ```
 
-The connector-right header now sits over the sloped lower stock edge, so the support tongue is re-derived rather than mirrored blindly.
+The new `trackball_cavity` is an open-edge polygon based on the checked-in KLORBall-35 right-PCB topology.
 
-Frozen tongue:
+## Cavity geometry
+
+Ball-relative cavity vertices in canonical coordinates:
 
 ```text
-center_from_breakout = (-3.9444785, -0.0894995)
-size                 = 5.888957 x 18.825007 mm
+(-21.50, +13.00)
+( -5.00, +12.94)
+( +9.93, +12.36)
+(+11.85, +10.19)
+( +9.31, -19.37)
+(+11.17, -21.54)
+(+11.17, -40.00)
+(-21.50, -40.00)
 ```
 
-At the header center, the body extends approximately **18.092963 mm** beyond the stock lower edge. The tongue joins the stock edge at its inner X side and terminates at the negative-X edge of the service notch.
+The KLORBall-35 reference left lip is approximately `-24.285 mm` from the inferred ball center. Revision 3 pulls that lip inward to `-21.5 mm` to preserve the retained MX R33/SW21 envelope.
 
-The 2 x 22 service opening is now a separate connector-right corridor; the removed SW22/R34 aperture remains preserved as already-open switchplate material rather than being treated as a merged corridor.
+The explicit cavity polygon gives **10.934113 mm** minimum ball-center-to-cavity-boundary distance. The generated production board's nearest actual Edge.Cuts is **12.323043 mm** from the ball center. The corresponding KLORBall-35 reference measurement is approximately **9.658 mm**.
+
+The ball center lies inside the removed cavity. The PMW header, R33/SW21 and stock MH8 remain outside it.
+
+## Unchanged revision-2 placement
+
+- ball center: `(16.5, -28.000147)`;
+- housing center from ball: `(+9.165901, +0.000812)`;
+- breakout center from ball: `(+19.212, 0)`;
+- PMW header center from breakout: `(-4.613622, 0)`;
+- connector remains on +X / right side of the ball;
+- PMW physical pin direction remains KLORBall-35-compatible.
+
+The limiting conservative retained-key/housing clearance remains SW16 at approximately **2.580294 mm**.
+
+The 2 x 22 service notch still clears MH8 by approximately **3.354275 mm edge-to-drill**.
 
 ## Qualification
 
 Qualification head:
 
-`53db19fc1d0049b4bcc4f311a69ae30ba4713313`
+`1a6c90f3596c2b6f648c0c1663069b5713215388`
 
 Passing workflow:
 
 - `KLOR Task 2C - trackball delta`
-- run ID: `35948524860`
+- run ID: `36090754209`
 - conclusion: **success**
 
 Artifact:
 
 - `klor-task2c-trackball-geometry`
-- artifact ID: `10787711234`
-- SHA-256: `8486ccbcb33b3323aa8ef57ea031fdc385d98d102f68f1591fa900ea35afa52f`
+- artifact ID: `10845079830`
+- SHA-256: `03cc151e9558abd916f74acd277e2d2d3d913078c4aff299e87d314510822dba`
 
-The workflow also re-ran and passed the complete Task-2B stock-preservation gate.
-
-## Conclusion
-
-Task 2C revision 2 preserves the fixed Konrad controls and stock mounting system while changing only the trackball placement/orientation and the local connector-support geometry required to put the PMW connector on the right side of the ball.
+Task 2B also passed on the same head.
