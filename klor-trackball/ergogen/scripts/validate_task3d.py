@@ -234,10 +234,11 @@ def main():
     if task2d["pcb_geometry"]["composition"] != [
         {"outline": "stock_board", "operation": "add"},
         {"outline": "pmw_support_tongue", "operation": "add"},
+        {"outline": "trackball_cavity", "operation": "subtract"},
         {"outline": "breakout_service_slot", "operation": "subtract"},
     ]:
         raise AssertionError("Task-2D frozen trackball composition changed")
-    print("PASS frozen stock + support tongue - service notch right-board geometry")
+    print("PASS frozen stock + support tongue - open cavity - service notch right-board geometry")
 
     # Non-reversible production policy: right SMD populations use the qualified
     # front-side variants; the PMW header is also frozen to F.Cu.
