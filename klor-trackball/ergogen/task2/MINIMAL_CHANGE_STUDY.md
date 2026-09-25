@@ -476,3 +476,42 @@ Task 2 is complete when:
 - the final PMW header can either fit inside the stock board outline or any required local support addition is explicitly justified;
 - the final right-thumb architecture is frozen for Task 3.
 
+
+---
+
+# Revision 3 correction — PCB trackball cavity
+
+Revision 2 proved the connector handedness and the Type-C/Kivipallur placement, but it preserved too much of the stock PCB around the ball.
+
+The revision-2 board composition was:
+
+```text
+stock_board
++ pmw_support_tongue
+- breakout_service_slot   # 2 x 22 mm only
+```
+
+That model treats the Type-C housing envelope as a reference drawing only; it never subtracts a mechanical cavity from the PCB. The resulting right PCB therefore leaves substantial FR-4 under/around the trackball housing.
+
+The checked-in KLORBall-35 right PCB uses a different topology: a **large open-edge cavity** around the ball/housing, while a narrow right-side peninsula carries the PMW connector. This is the mechanical topology Revision 3 must reproduce.
+
+## Invalidated assumption
+
+The earlier statement that the old implementation proved the stock Edge.Cuts could remain unchanged except for the 2 x 22 mm service notch is no longer accepted as the production geometry contract.
+
+The 2 x 22 mm corridor remains useful as the breakout/service datum, but it is insufficient as the complete PCB clearance feature.
+
+## Revision-3 requirements
+
+Revision 3 must:
+
+- keep the revision-2 ball, housing, breakout, and PMW connector handedness/relative placement unless the new cavity proves a local conflict;
+- retain R32/SW20 and R33/SW21;
+- keep R34/SW22/D22 removed;
+- retain the right encoder, MCU, TRRS, and structural mounting axes where mechanically valid;
+- replace the notch-only PCB delta with an open-edge cavity derived from the Type-C housing and checked against KLORBall-35 topology;
+- retain a mechanically valid right-side PMW connector peninsula/support region;
+- validate explicit FR-4 clearance around the ball/housing rather than relying on a reference outline;
+- re-run Task 2B/2C/2D and Task 3D generation after the cavity is frozen.
+
+The cavity is a mechanical change only. Task-3 electrical ownership and PMW pin order remain unchanged.
