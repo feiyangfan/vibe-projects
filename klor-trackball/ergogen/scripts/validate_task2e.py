@@ -536,6 +536,22 @@ def main():
         }
     print("STRUCTURAL_CLEARANCES " + json.dumps(structural_clearances, sort_keys=True))
 
+    # Diagnostic-only sweep: translate the exact mesh-derived local reliefs
+    # inward/left to determine whether a small ball/housing X shift can
+    # preserve case_mount_2 without changing the relief topology.
+    mount2 = Point(float(canonical_mounts[1][0]), float(canonical_mounts[1][1]))
+    shift_sweep = {}
+    for dx in (0.0, -0.5, -1.0, -1.5, -2.0, -2.5, -3.0):
+        shifted_plate = affinity.translate(plate_relief, xoff=dx)
+        shifted_case = affinity.translate(case_relief, xoff=dx)
+        shift_sweep[f"{dx:+.1f}"] = {
+            "plate_relief_distance_mm": float(shifted_plate.distance(mount2)),
+            "plate_boundary_distance_mm": float(shifted_plate.boundary.distance(mount2)),
+            "case_relief_distance_mm": float(shifted_case.distance(mount2)),
+            "case_boundary_distance_mm": float(shifted_case.boundary.distance(mount2)),
+        }
+    print("MOUNT2_X_SHIFT_SWEEP " + json.dumps(shift_sweep, sort_keys=True))
+
     for name, values in structural_clearances.items():
         if values["tolerance_plate_relief_mm"] < min_structural:
             raise AssertionError(
