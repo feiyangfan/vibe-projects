@@ -19,8 +19,9 @@ from pathlib import Path
 import numpy as np
 import trimesh
 import yaml
-from shapely.geometry import LineString, MultiLineString, Point
+from shapely.geometry import LineString, MultiLineString, Point, MultiPoint, box
 from shapely.ops import polygonize, unary_union
+from shapely.affinity import translate as shp_translate
 
 ERGOGEN = Path(__file__).resolve().parents[1]
 KLOR = ERGOGEN.parent
@@ -408,6 +409,82 @@ def main():
         )
     z_scan_best = sorted(z_scan, key=lambda row: row["housing_vs_pcb_mm3"])[:8]
     print("TASK2E_Z_SCAN " + json.dumps(z_scan_best, sort_keys=True))
+
+    # Search small nearby XY changes for a cavity derived from the real housing
+    # section while preserving all retained keys and stock PCB holes.
+    relative_section = (
+        shp_translate(pcb_slice_keepout, xoff=-ball_x, yoff=-ball_y)
+        if pcb_slice_keepout is not None
+        else None
+    )
+    sphere_slice_r = 0.0
+    nearest_z = min(
+        [pcb_top - pcb_thickness, pcb_top],
+        key=lambda z: abs(z - ball_z),
+    )
+    dz_sphere = abs(nearest_z - ball_z)
+    sphere_keep_r = radius + float(contract["clearance"]["ball_radial"])
+    if dz_sphere < sphere_keep_r:
+        sphere_slice_r = math.sqrt(sphere_keep_r**2 - dz_sphere**2)
+    relative_relief = (
+        relative_section.union(Point(0.0, 0.0).buffer(sphere_slice_r))
+        if relative_section is not None
+        else Point(0.0, 0.0).buffer(sphere_slice_r)
+    )
+
+    housing_projection_rel = MultiPoint(
+        [tuple(map(float, p[:2])) for p in housing_local.vertices]
+    ).convex_hull.buffer(float(contract["clearance"]["housing_xy"]))
+
+    retained_names = [*(f"sw{i}" for i in range(1, 18)), "sw20", "sw21"]
+    key_keepouts = []
+    for name in retained_names:
+        sx, sy = map(float, cfg["points"]["zones"][name]["anchor"]["shift"])
+        key_keepouts.append((name, box(sx - 9.5, sy - 9.5, sx + 9.5, sy + 9.5)))
+
+    hole_keepouts = []
+    for i in range(1, 10):
+        hx, hy = map(float, cfg["points"]["zones"][f"mh{i}"]["anchor"]["shift"])
+        hole_keepouts.append(
+            (
+                f"mh{i}",
+                Point(hx, hy).buffer(
+                    float(cfg["units"]["pcb_m3_hole"]) / 2.0 + 0.5
+                ),
+            )
+        )
+
+    candidates = []
+    for dx in np.arange(-8.0, 4.01, 0.5):
+        for dy in np.arange(-10.0, 0.01, 0.5):
+            cx, cy = ball_x + float(dx), ball_y + float(dy)
+            relief = shp_translate(relative_relief, xoff=cx, yoff=cy)
+            housing_proj = shp_translate(housing_projection_rel, xoff=cx, yoff=cy)
+            key_hits = [
+                name for name, keep in key_keepouts
+                if relief.intersects(keep) or housing_proj.intersects(keep)
+            ]
+            hole_hits = [name for name, keep in hole_keepouts if relief.intersects(keep)]
+            if key_hits or hole_hits:
+                continue
+            nearest_key = min(
+                math.hypot(
+                    float(cfg["points"]["zones"][name]["anchor"]["shift"][0]) - cx,
+                    float(cfg["points"]["zones"][name]["anchor"]["shift"][1]) - cy,
+                )
+                for name in retained_names
+            )
+            candidates.append(
+                {
+                    "ball_xy": [cx, cy],
+                    "shift_xy": [float(dx), float(dy)],
+                    "shift_norm": math.hypot(dx, dy),
+                    "nearest_key_center_mm": nearest_key,
+                    "relief_bounds": list(map(float, relief.bounds)),
+                }
+            )
+    candidates.sort(key=lambda row: (row["shift_norm"], -row["nearest_key_center_mm"]))
+    print("TASK2E_XY_CANDIDATES " + json.dumps(candidates[:12], sort_keys=True))
 
     print(
         "TASK2E_DIAGNOSTIC "
