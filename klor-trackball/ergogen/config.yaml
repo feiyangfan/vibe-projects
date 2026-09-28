@@ -869,6 +869,11 @@ outlines:
       where: /^housing_screw_[12]$/
       radius: housing_axis_marker / 2
 
+  pmw_header_envelope:
+    - what: rectangle
+      where: pmw_header_center
+      size: [pmw_header_body_w, pmw_header_body_h]
+
   # Task 2 revision 4: PCB relief derived from the actual Type-C housing
   # section through the PCB slab, plus the 25 mm sphere clearance. The
   # ball-relative polygon is a 0.35 mm simplified version of the measured
