@@ -1,0 +1,46 @@
+status: task2e_candidate
+revision: 1
+
+frame:
+  xy_origin: stock_SW13
+  canonical_x: source_kicad_positive_x
+  canonical_y: reflected_source_kicad_y
+  switchplate_transform_source: validate_task2b.py
+  housing_local_origin: ball_center
+
+z_stack:
+  switchplate_bottom_z: 0.0
+  pcb_top_z: -5.0
+  pcb_thickness: 1.6
+  case_top_aligns_to_switchplate_top: true
+  pcb_top_source_status: engineering_datum_not_source_validated
+
+trackball:
+  ball_xy: [16.5, -28.000147]
+  ball_diameter: 25.0
+  minimum_pcb_clearance: 0.5
+  housing_z_search_step: 0.25
+  maximum_ball_center_z: 5.0
+
+clearance:
+  housing_xy: 0.5
+  housing_z: 0.3
+  ball_radial: 0.3
+
+mounting:
+  screw_midpoint_from_ball: [6.212, 0.0]
+  screw_y_offsets: [7.98, -7.98]
+  screw_hole_diameter: 2.1
+  minimum_support_radius: 2.5
+
+sources:
+  housing: ../Keyball 25mm Trackball Case Type C - 6719828/files/keyball_trackball_case_25mm_type_c_right.stl
+  switchplate: ../klor1.4/case/3DP/konrad/switchplate/KLOR_konrad_3DP_switchplate.stl
+  right_case: ../klor1.4/case/3DP/konrad/regular/KLOR_konrad_case_R.stl
+  stock_pcb: ../klor1.4/PCB/klor1_4/klor1_4.kicad_pcb
+
+outputs:
+  relieved_switchplate: task2e_konrad_switchplate_trackball.stl
+  relieved_right_case: task2e_konrad_case_right_trackball.stl
+  assembly_scene: task2e_trackball_assembly.glb
+  result_json: task2e_mechanical_result.json
