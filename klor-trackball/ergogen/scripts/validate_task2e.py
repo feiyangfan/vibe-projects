@@ -1,0 +1,536 @@
+#!/usr/bin/env python3
+"""
+Task 2E: put the real Type-C housing, 25 mm sphere, generated Rev-3 PCB,
+stock Konrad switchplate, and stock Konrad right case in one 3D frame.
+
+The script writes relieved plate/case STLs, a GLB assembly scene, and a JSON
+qualification report. It intentionally fails if the real housing/ball still
+intersects the PCB or relieved stock parts.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import math
+import re
+from pathlib import Path
+
+import numpy as np
+import trimesh
+import yaml
+from shapely.geometry import LineString, MultiLineString, Point
+from shapely.ops import polygonize
+
+ERGOGEN = Path(__file__).resolve().parents[1]
+KLOR = ERGOGEN.parent
+CONTRACT = ERGOGEN / "task2" / "task2e-mechanical.yaml"
+CONFIG = ERGOGEN / "config.yaml"
+
+HOUSING = KLOR / "Keyball 25mm Trackball Case Type C - 6719828/files/keyball_trackball_case_25mm_type_c_right.stl"
+SWITCHPLATE = KLOR / "klor1.4/case/3DP/konrad/switchplate/KLOR_konrad_3DP_switchplate.stl"
+RIGHT_CASE = KLOR / "klor1.4/case/3DP/konrad/regular/KLOR_konrad_case_R.stl"
+STOCK_PCB = KLOR / "klor1.4/PCB/klor1_4/klor1_4.kicad_pcb"
+
+# Source-validated Task-2B stock KiCad -> switchplate-native XY transform.
+R_KP = np.array(
+    [
+        [0.999999991, 0.000131877],
+        [0.000131877, -0.999999991],
+    ],
+    dtype=float,
+)
+T_KP = np.array([-80.655587, 153.995244], dtype=float)
+
+EPS = 1e-6
+INTERSECTION_VOLUME_TOL = 0.01
+
+
+def balanced_blocks(text: str, token: str) -> list[str]:
+    out: list[str] = []
+    needle = "(" + token
+    pos = 0
+    while True:
+        start = text.find(needle, pos)
+        if start < 0:
+            return out
+        depth = 0
+        quoted = False
+        escaped = False
+        end = None
+        for i in range(start, len(text)):
+            ch = text[i]
+            if quoted:
+                if escaped:
+                    escaped = False
+                elif ch == "\\":
+                    escaped = True
+                elif ch == '"':
+                    quoted = False
+                continue
+            if ch == '"':
+                quoted = True
+            elif ch == "(":
+                depth += 1
+            elif ch == ")":
+                depth -= 1
+                if depth == 0:
+                    end = i + 1
+                    break
+        if end is None:
+            raise AssertionError(f"unterminated {token} block")
+        out.append(text[start:end])
+        pos = end
+
+
+def stock_footprint_origin(text: str, ref: str) -> tuple[float, float, float]:
+    for fp in balanced_blocks(text, "footprint") + balanced_blocks(text, "module"):
+        rm = re.search(r'\(property "Reference" "([^"]+)"', fp)
+        if not rm:
+            rm = re.search(r'\(fp_text reference\s+"?([^"\s\)]+)"?', fp)
+        if not rm or rm.group(1) != ref:
+            continue
+        at = re.search(r"\(at\s+([-\d.]+)\s+([-\d.]+)(?:\s+([-\d.]+))?\)", fp)
+        if not at:
+            raise AssertionError(f"{ref}: footprint has no at()")
+        return float(at.group(1)), float(at.group(2)), float(at.group(3) or 0)
+    raise AssertionError(f"stock footprint {ref} not found")
+
+
+def local_from_source_kicad(x: np.ndarray, y: np.ndarray, origin: tuple[float, float, float]):
+    return x - origin[0], origin[1] - y
+
+
+def transform_switchplate_to_canonical(mesh: trimesh.Trimesh, origin):
+    v = mesh.vertices.copy()
+    q = v[:, :2] - T_KP
+    # Inverse of orthonormal R_KP is its transpose.
+    k = q @ R_KP
+    cx, cy = local_from_source_kicad(k[:, 0], k[:, 1], origin)
+    v[:, 0] = cx
+    v[:, 1] = cy
+    v[:, 2] -= v[:, 2].min()
+    out = trimesh.Trimesh(vertices=v, faces=mesh.faces.copy(), process=True)
+    return out
+
+
+def transform_case_to_canonical(mesh: trimesh.Trimesh, origin, plate_top_z: float):
+    v = mesh.vertices.copy()
+    cx, cy = local_from_source_kicad(v[:, 0], v[:, 1], origin)
+    v[:, 0] = cx
+    v[:, 1] = cy
+    # Align the stock case top with the stock switchplate top.
+    v[:, 2] += plate_top_z - v[:, 2].max()
+    return trimesh.Trimesh(vertices=v, faces=mesh.faces.copy(), process=True)
+
+
+def circle_from_three(p1, p2, p3):
+    x1, y1 = p1
+    x2, y2 = p2
+    x3, y3 = p3
+    d = 2 * (x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2))
+    if abs(d) < 1e-12:
+        return None
+    ux = (
+        (x1 * x1 + y1 * y1) * (y2 - y3)
+        + (x2 * x2 + y2 * y2) * (y3 - y1)
+        + (x3 * x3 + y3 * y3) * (y1 - y2)
+    ) / d
+    uy = (
+        (x1 * x1 + y1 * y1) * (x3 - x2)
+        + (x2 * x2 + y2 * y2) * (x1 - x3)
+        + (x3 * x3 + y3 * y3) * (x2 - x1)
+    ) / d
+    return ux, uy, math.hypot(x1 - ux, y1 - uy)
+
+
+def arc_points(start, mid, end, count=48):
+    c = circle_from_three(start, mid, end)
+    if c is None:
+        return [start, end]
+    cx, cy, r = c
+
+    def angle(p):
+        return math.atan2(p[1] - cy, p[0] - cx)
+
+    a1, am, a2 = angle(start), angle(mid), angle(end)
+    tw = 2 * math.pi
+    ccw_total = (a2 - a1 + tw) % tw
+    ccw_mid = (am - a1 + tw) % tw
+    if ccw_mid <= ccw_total + 1e-9:
+        angles = [a1 + ccw_total * i / (count - 1) for i in range(count)]
+    else:
+        cw_total = (a1 - a2 + tw) % tw
+        angles = [a1 - cw_total * i / (count - 1) for i in range(count)]
+    return [(cx + r * math.cos(a), cy + r * math.sin(a)) for a in angles]
+
+
+def kicad_edge_segments(text: str):
+    segs: list[tuple[tuple[float, float], tuple[float, float]]] = []
+
+    for b in balanced_blocks(text, "gr_line"):
+        if "Edge.Cuts" not in b:
+            continue
+        s = re.search(r"\(start\s+([-\d.]+)\s+([-\d.]+)\)", b)
+        e = re.search(r"\(end\s+([-\d.]+)\s+([-\d.]+)\)", b)
+        if s and e:
+            # Generated Ergogen KiCad frame is canonical X with Y reflected.
+            segs.append(
+                (
+                    (float(s.group(1)), -float(s.group(2))),
+                    (float(e.group(1)), -float(e.group(2))),
+                )
+            )
+
+    for b in balanced_blocks(text, "gr_arc"):
+        if "Edge.Cuts" not in b:
+            continue
+        s = re.search(r"\(start\s+([-\d.]+)\s+([-\d.]+)\)", b)
+        m = re.search(r"\(mid\s+([-\d.]+)\s+([-\d.]+)\)", b)
+        e = re.search(r"\(end\s+([-\d.]+)\s+([-\d.]+)\)", b)
+        if s and m and e:
+            pts = arc_points(
+                (float(s.group(1)), -float(s.group(2))),
+                (float(m.group(1)), -float(m.group(2))),
+                (float(e.group(1)), -float(e.group(2))),
+            )
+            segs.extend(zip(pts[:-1], pts[1:]))
+
+    # Edge cuts can also be emitted inside footprints.
+    for fp in balanced_blocks(text, "footprint") + balanced_blocks(text, "module"):
+        at = re.search(r"\(at\s+([-\d.]+)\s+([-\d.]+)(?:\s+([-\d.]+))?\)", fp)
+        if not at:
+            continue
+        ox, oy, rot = float(at.group(1)), float(at.group(2)), float(at.group(3) or 0)
+        a = math.radians(rot)
+        co, si = math.cos(a), math.sin(a)
+
+        def tf(x, y):
+            kx = ox + x * co - y * si
+            ky = oy + x * si + y * co
+            return kx, -ky
+
+        for b in balanced_blocks(fp, "fp_line"):
+            if "Edge.Cuts" not in b:
+                continue
+            s = re.search(r"\(start\s+([-\d.]+)\s+([-\d.]+)\)", b)
+            e = re.search(r"\(end\s+([-\d.]+)\s+([-\d.]+)\)", b)
+            if s and e:
+                segs.append((tf(float(s.group(1)), float(s.group(2))),
+                             tf(float(e.group(1)), float(e.group(2)))))
+
+    if not segs:
+        raise AssertionError("no generated PCB Edge.Cuts found")
+    return segs
+
+
+def board_polygon_from_kicad(text: str):
+    lines = [LineString([a, b]) for a, b in kicad_edge_segments(text)]
+    polys = list(polygonize(MultiLineString(lines)))
+    if not polys:
+        raise AssertionError("generated PCB Edge.Cuts did not polygonize")
+    outer = max(polys, key=lambda p: p.area)
+    board = outer
+    for p in sorted(polys, key=lambda q: q.area, reverse=True):
+        if p.equals(outer):
+            continue
+        if outer.contains(p.representative_point()):
+            board = board.difference(p)
+    if board.is_empty:
+        raise AssertionError("generated PCB solid is empty")
+    return board
+
+
+def extrude_board(poly, bottom_z: float, thickness: float):
+    mesh = trimesh.creation.extrude_polygon(poly, height=thickness, engine="earcut")
+    mesh.apply_translation([0, 0, bottom_z])
+    return mesh
+
+
+def mesh_volume(mesh) -> float:
+    if mesh is None:
+        return 0.0
+    if isinstance(mesh, trimesh.Scene):
+        vals = [abs(g.volume) for g in mesh.geometry.values() if isinstance(g, trimesh.Trimesh)]
+        return float(sum(vals))
+    if isinstance(mesh, (list, tuple)):
+        return float(sum(abs(m.volume) for m in mesh if m is not None))
+    return float(abs(mesh.volume))
+
+
+def intersection_volume(a: trimesh.Trimesh, b: trimesh.Trimesh) -> float:
+    inter = trimesh.boolean.intersection([a, b], engine="manifold", check_volume=False)
+    return mesh_volume(inter)
+
+
+def subtract(base: trimesh.Trimesh, cutter: trimesh.Trimesh) -> trimesh.Trimesh:
+    out = trimesh.boolean.difference([base, cutter], engine="manifold", check_volume=False)
+    if out is None:
+        return base.copy()
+    if isinstance(out, trimesh.Scene):
+        meshes = [g for g in out.geometry.values() if isinstance(g, trimesh.Trimesh)]
+        return trimesh.util.concatenate(meshes)
+    return out
+
+
+def translated_housing(base: trimesh.Trimesh, ball_xyz, scale_xyz=None):
+    mesh = base.copy()
+    if scale_xyz is not None:
+        mat = np.eye(4)
+        mat[0, 0], mat[1, 1], mat[2, 2] = scale_xyz
+        mesh.apply_transform(mat)
+    mesh.apply_translation(ball_xyz)
+    return mesh
+
+
+def support_fraction(mesh: trimesh.Trimesh, xy, z, radius: float, samples=24):
+    pts = []
+    for i in range(samples):
+        a = 2 * math.pi * i / samples
+        pts.append([xy[0] + radius * math.cos(a), xy[1] + radius * math.sin(a), z])
+    inside = mesh.contains(np.array(pts))
+    return float(np.count_nonzero(inside)) / samples
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("generated", type=Path)
+    ap.add_argument("--output", type=Path, default=ERGOGEN / "task2e-output")
+    args = ap.parse_args()
+
+    contract = yaml.safe_load(CONTRACT.read_text(encoding="utf-8"))
+    cfg = yaml.safe_load(CONFIG.read_text(encoding="utf-8"))
+    args.output.mkdir(parents=True, exist_ok=True)
+
+    board_file = args.generated / "pcbs/task3d_right_production.kicad_pcb"
+    if not board_file.exists():
+        raise AssertionError(f"missing generated Rev-3 PCB: {board_file}")
+
+    stock_text = STOCK_PCB.read_text(encoding="utf-8")
+    origin = stock_footprint_origin(stock_text, "SW13")
+
+    plate_native = trimesh.load_mesh(SWITCHPLATE, process=True)
+    case_native = trimesh.load_mesh(RIGHT_CASE, process=True)
+    housing_local = trimesh.load_mesh(HOUSING, process=True)
+
+    if not all(isinstance(m, trimesh.Trimesh) for m in [plate_native, case_native, housing_local]):
+        raise AssertionError("one or more source STLs did not load as a single mesh")
+
+    plate = transform_switchplate_to_canonical(plate_native, origin)
+    plate_bottom = float(contract["z_stack"]["switchplate_bottom_z"])
+    plate.apply_translation([0, 0, plate_bottom - plate.bounds[0, 2]])
+    plate_top = float(plate.bounds[1, 2])
+
+    case = transform_case_to_canonical(case_native, origin, plate_top)
+
+    board_poly = board_polygon_from_kicad(board_file.read_text(encoding="utf-8"))
+    pcb_top = float(contract["z_stack"]["pcb_top_z"])
+    pcb_thickness = float(contract["z_stack"]["pcb_thickness"])
+    pcb = extrude_board(board_poly, pcb_top - pcb_thickness, pcb_thickness)
+
+    ball_x, ball_y = map(float, contract["trackball"]["ball_xy"])
+    radius = float(contract["trackball"]["ball_diameter"]) / 2
+    min_clearance = float(contract["trackball"]["minimum_pcb_clearance"])
+
+    ball_pt = Point(ball_x, ball_y)
+    dxy = float(ball_pt.distance(board_poly))
+    target_r = radius + min_clearance
+    if dxy >= target_r:
+        dz_required = 0.0
+    else:
+        dz_required = math.sqrt(max(0.0, target_r * target_r - dxy * dxy))
+
+    ball_z = pcb_top + dz_required
+
+    # Raise only if the real housing still hits the actual generated PCB.
+    step = float(contract["trackball"]["housing_z_search_step"])
+    max_z = float(contract["trackball"]["maximum_ball_center_z"])
+    housing_pcb_volume = None
+    while ball_z <= max_z + EPS:
+        housing = translated_housing(housing_local, [ball_x, ball_y, ball_z])
+        housing_pcb_volume = intersection_volume(housing, pcb)
+        if housing_pcb_volume <= INTERSECTION_VOLUME_TOL:
+            break
+        ball_z += step
+    else:
+        raise AssertionError("no housing Z in the allowed search range clears the PCB")
+
+    sphere = trimesh.creation.icosphere(subdivisions=4, radius=radius)
+    sphere.apply_translation([ball_x, ball_y, ball_z])
+
+    sphere_pcb_volume = intersection_volume(sphere, pcb)
+    if sphere_pcb_volume > INTERSECTION_VOLUME_TOL:
+        raise AssertionError(f"25 mm sphere still intersects PCB: {sphere_pcb_volume} mm^3")
+
+    # Build a manufacturing keepout by expanding the actual housing about the
+    # ball-centered local origin. This is intentionally conservative.
+    hxy = float(contract["clearance"]["housing_xy"])
+    hz = float(contract["clearance"]["housing_z"])
+    max_abs = np.max(np.abs(housing_local.vertices), axis=0)
+    scale_xyz = (
+        1.0 + hxy / max_abs[0],
+        1.0 + hxy / max_abs[1],
+        1.0 + hz / max_abs[2],
+    )
+    housing_keepout = translated_housing(
+        housing_local, [ball_x, ball_y, ball_z], scale_xyz=scale_xyz
+    )
+    sphere_keepout = trimesh.creation.icosphere(
+        subdivisions=4, radius=radius + float(contract["clearance"]["ball_radial"])
+    )
+    sphere_keepout.apply_translation([ball_x, ball_y, ball_z])
+
+    relieved_plate = subtract(plate, housing_keepout)
+    relieved_plate = subtract(relieved_plate, sphere_keepout)
+
+    # Add the two explicit M2 mounting holes through the relieved plate.
+    screw_mid_x = ball_x + float(contract["mounting"]["screw_midpoint_from_ball"][0])
+    screw_mid_y = ball_y + float(contract["mounting"]["screw_midpoint_from_ball"][1])
+    screw_r = float(contract["mounting"]["screw_hole_diameter"]) / 2
+    screw_axes = [
+        (screw_mid_x, screw_mid_y + float(dy))
+        for dy in contract["mounting"]["screw_y_offsets"]
+    ]
+    for sx, sy in screw_axes:
+        cyl = trimesh.creation.cylinder(
+            radius=screw_r,
+            height=max(5.0, plate_top - plate_bottom + 2.0),
+            sections=48,
+        )
+        cyl.apply_translation([sx, sy, (plate_top + plate_bottom) / 2])
+        relieved_plate = subtract(relieved_plate, cyl)
+
+    relieved_case = subtract(case, housing_keepout)
+    relieved_case = subtract(relieved_case, sphere_keepout)
+
+    checks = {
+        "sphere_vs_pcb_mm3": sphere_pcb_volume,
+        "housing_vs_pcb_mm3": float(housing_pcb_volume),
+        "housing_vs_relief_plate_mm3": intersection_volume(housing, relieved_plate),
+        "sphere_vs_relief_plate_mm3": intersection_volume(sphere, relieved_plate),
+        "housing_vs_relief_case_mm3": intersection_volume(housing, relieved_case),
+        "sphere_vs_relief_case_mm3": intersection_volume(sphere, relieved_case),
+    }
+    bad = {k: v for k, v in checks.items() if v > INTERSECTION_VOLUME_TOL}
+    if bad:
+        raise AssertionError(f"residual 3D intersections remain: {bad}")
+
+    plate_mid = (plate_bottom + plate_top) / 2
+    support_radius = float(contract["mounting"]["minimum_support_radius"])
+    support = [
+        support_fraction(relieved_plate, axis, plate_mid, support_radius)
+        for axis in screw_axes
+    ]
+
+    # Do not claim a usable screw mount if the cut removed nearly all plate
+    # material around an axis.
+    if min(support) < 0.50:
+        raise AssertionError(
+            f"housing mounting support lost around screw axis: fractions={support}"
+        )
+
+    components = relieved_plate.split(only_watertight=False)
+    if len(components) > 1:
+        largest = max(abs(m.volume) for m in components)
+        total = sum(abs(m.volume) for m in components)
+        if total > EPS and largest / total < 0.98:
+            raise AssertionError(
+                f"relieved switchplate fragmented: {len(components)} components, "
+                f"largest fraction={largest/total:.6f}"
+            )
+
+    ball_exposure = ball_z + radius - plate_top
+
+    # Quantify retained key reach in canonical XY.
+    retained = []
+    zones = cfg["points"]["zones"]
+    for name in [*(f"sw{i}" for i in range(1, 18)), "sw20", "sw21"]:
+        shift = zones[name]["anchor"]["shift"]
+        retained.append(
+            {
+                "key": name,
+                "center_distance_mm": math.hypot(
+                    float(shift[0]) - ball_x, float(shift[1]) - ball_y
+                ),
+            }
+        )
+    retained.sort(key=lambda x: x["center_distance_mm"])
+
+    # Visual scene.
+    pcb.visual.face_colors = [50, 110, 65, 220]
+    relieved_plate.visual.face_colors = [145, 145, 150, 180]
+    relieved_case.visual.face_colors = [90, 90, 95, 120]
+    housing.visual.face_colors = [60, 110, 190, 230]
+    sphere.visual.face_colors = [210, 210, 215, 220]
+
+    scene = trimesh.Scene()
+    scene.add_geometry(relieved_case, geom_name="right_case_relief")
+    scene.add_geometry(relieved_plate, geom_name="switchplate_relief")
+    scene.add_geometry(pcb, geom_name="rev3_pcb")
+    scene.add_geometry(housing, geom_name="type_c_housing")
+    scene.add_geometry(sphere, geom_name="25mm_ball")
+
+    plate_out = args.output / contract["outputs"]["relieved_switchplate"]
+    case_out = args.output / contract["outputs"]["relieved_right_case"]
+    scene_out = args.output / contract["outputs"]["assembly_scene"]
+    json_out = args.output / contract["outputs"]["result_json"]
+
+    relieved_plate.export(plate_out)
+    relieved_case.export(case_out)
+    scene.export(scene_out)
+
+    result = {
+        "status": "pass",
+        "frame": {
+            "origin_stock_ref": "SW13",
+            "origin_source_kicad": list(origin),
+            "plate_bottom_z_mm": plate_bottom,
+            "plate_top_z_mm": plate_top,
+            "case_top_z_mm": float(case.bounds[1, 2]),
+            "pcb_top_z_mm": pcb_top,
+            "pcb_bottom_z_mm": pcb_top - pcb_thickness,
+        },
+        "source_meshes": {
+            "housing_watertight": bool(housing_local.is_watertight),
+            "switchplate_watertight": bool(plate_native.is_watertight),
+            "right_case_watertight": bool(case_native.is_watertight),
+            "housing_local_bounds_mm": housing_local.bounds.tolist(),
+            "switchplate_canonical_bounds_mm": plate.bounds.tolist(),
+            "right_case_canonical_bounds_mm": case.bounds.tolist(),
+        },
+        "trackball": {
+            "ball_center_xyz_mm": [ball_x, ball_y, ball_z],
+            "ball_radius_mm": radius,
+            "ball_exposure_above_plate_top_mm": ball_exposure,
+            "pcb_xy_material_distance_from_ball_center_mm": dxy,
+            "minimum_requested_pcb_clearance_mm": min_clearance,
+            "housing_keepout_scale_xyz": list(scale_xyz),
+        },
+        "intersections_mm3": checks,
+        "mounting": {
+            "screw_axes_xy_mm": [list(p) for p in screw_axes],
+            "support_radius_mm": support_radius,
+            "support_fraction_at_radius": support,
+        },
+        "ergonomic_geometry": {
+            "nearest_retained_keys": retained[:6],
+            "note": "geometric access only; subjective comfort requires a physical mock-up",
+        },
+        "assumptions": {
+            "pcb_top_z": contract["z_stack"]["pcb_top_source_status"],
+            "case_z_alignment": "source case top aligned to switchplate top",
+        },
+        "outputs": {
+            "relieved_switchplate": str(plate_out),
+            "relieved_right_case": str(case_out),
+            "assembly_scene": str(scene_out),
+        },
+    }
+    json_out.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
+
+    print(json.dumps(result, indent=2))
+    print("PASS Task 2E common-frame 3D mechanical integration")
+
+
+if __name__ == "__main__":
+    main()
