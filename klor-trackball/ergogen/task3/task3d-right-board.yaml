@@ -194,6 +194,7 @@ gate:
   exact_matrix_positions: 20
   frozen_trackball_outline: required
   actual_housing_derived_trackball_cavity: required
+  minimum_ball_center_edge_clearance_mm: 10.0
   frozen_pmw_pin_order_and_cabled_interface: required
   removed_R34_site_absent: required
   intentionally_unrouted: true
