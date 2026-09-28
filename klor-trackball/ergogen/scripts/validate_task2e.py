@@ -408,6 +408,32 @@ def main():
         )
     plate_relief = clean_polygonal(plate_relief)
 
+    # Keep a nominal-position relief for diagnostics. This distinguishes a
+    # fundamental housing/mount conflict from one introduced only by the
+    # qualified +/- Z tolerance envelope.
+    nominal_plate_local_z_min = plate_bottom - housing_center_z
+    nominal_plate_local_z_max = plate_top - housing_center_z
+    nominal_plate_relief = projected_band(
+        housing_raw, nominal_plate_local_z_min, nominal_plate_local_z_max
+    ).buffer(housing_xy_clearance, join_style=2)
+    nominal_plate_relief = affinity.translate(
+        nominal_plate_relief,
+        xoff=float(ball_xy[0]),
+        yoff=float(ball_xy[1]),
+    )
+    nominal_ball_r = sphere_projection_radius(
+        ball_radius + ball_clearance,
+        housing_center_z,
+        housing_center_z,
+        plate_bottom,
+        plate_top,
+    )
+    if nominal_ball_r > 0:
+        nominal_plate_relief = unary_union(
+            [nominal_plate_relief, Point(*ball_xy).buffer(nominal_ball_r)]
+        )
+    nominal_plate_relief = clean_polygonal(nominal_plate_relief)
+
     plate_cutter = extrude_geometry(
         plate_relief,
         height=(plate_top - plate_bottom) + 2 * vertical_margin,
@@ -486,20 +512,32 @@ def main():
     modified_case = bool_difference(modified_case, screw_cutter)
 
     # Ensure the new local relief does not consume frozen structural axes.
+    # Print nominal and tolerance-envelope distances first so a failure is
+    # actionable rather than merely a threshold violation.
     min_structural = float(
         contract["gates"]["min_relief_to_structural_axis_clearance_mm"]
     )
-    for mount in canonical_mounts:
+    structural_clearances = {}
+    for index, mount in enumerate(canonical_mounts, start=1):
         p = Point(float(mount[0]), float(mount[1]))
-        if plate_relief.distance(p) < min_structural:
+        structural_clearances[f"case_mount_{index}"] = {
+            "nominal_plate_relief_mm": float(nominal_plate_relief.distance(p)),
+            "tolerance_plate_relief_mm": float(plate_relief.distance(p)),
+            "case_relief_mm": float(case_relief.distance(p)),
+        }
+    print("STRUCTURAL_CLEARANCES " + json.dumps(structural_clearances, sort_keys=True))
+
+    for name, values in structural_clearances.items():
+        if values["tolerance_plate_relief_mm"] < min_structural:
             raise AssertionError(
-                f"plate relief too close to structural axis {mount}: "
-                f"{plate_relief.distance(p)}"
+                f"plate relief too close to structural axis {name}: "
+                f"{values['tolerance_plate_relief_mm']} mm; "
+                f"nominal={values['nominal_plate_relief_mm']} mm"
             )
-        if case_relief.distance(p) < min_structural:
+        if values["case_relief_mm"] < min_structural:
             raise AssertionError(
-                f"case relief too close to structural axis {mount}: "
-                f"{case_relief.distance(p)}"
+                f"case relief too close to structural axis {name}: "
+                f"{values['case_relief_mm']} mm"
             )
 
     # Watertightness is part of the manufacturing gate.
