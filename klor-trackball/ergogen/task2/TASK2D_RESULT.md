@@ -1,12 +1,14 @@
-# Task 2D Result — Geometry Freeze Revision 3
+# Task 2D Result — Geometry Freeze Revision 4
 
 ## Status
 
-**PASS — Task 2D revision 3 is frozen.**
+**PASS — Task 2D revision 4 is frozen.**
 
-Revision 3 supersedes the revision-2 PCB cavity assumption. Product controls, trackball placement, connector handedness and electrical interface are unchanged; the right-PCB mechanical clearance now includes an explicit KLORBall-35-style open-edge cavity.
+Revision 4 is the first Task-2 freeze qualified against the real Type-C housing, generated PCB, 25 mm sphere, stock Konrad switchplate and stock right case in one 3D frame.
 
 ## Frozen product geometry
+
+Unchanged:
 
 - KLOR 1.4 MX / fixed Konrad;
 - 20 keys left / 19 keys right / 39 total;
@@ -15,77 +17,94 @@ Revision 3 supersedes the revision-2 PCB cavity assumption. Product controls, tr
 - R34 / SW22 / D22 removed;
 - both encoders retained;
 - 20 left RGB / 19 right RGB;
-- MCU, TRRS and all nine PCB mounting-hole stock positions retained;
-- eight stock case/switchplate structural axes retained.
+- MCU and TRRS stock datums;
+- all nine stock PCB holes;
+- stock structural axes outside the bounded trackball case modification.
 
 ## Frozen trackball placement
 
-Ball center remains:
+Canonical ball XY:
 
-`(16.5, -28.000147)`
+**`(15.5, -31.000147)`**
 
-Connector-right relationships remain:
+This is a `(-1,-3) mm` correction from revision 3, derived by a real-housing interference search while preserving all retained keys and PCB holes.
+
+Frozen Type-C relations:
 
 - housing center from ball: `(+9.165901, +0.000812)`;
-- screw midpoint from ball: `(+6.212, 0)`;
+- housing screw midpoint from ball: `(+6.212, 0)`;
+- housing screw offsets: `(0,+7.98)` and `(0,-7.98)`;
 - breakout center from ball: `(+19.212, 0)`;
-- PMW header center from breakout: `(-4.613622, 0)`.
-
-PMW physical pin direction and mating rule remain unchanged from revision 2.
+- Kivipallur connector remains on +X / right side.
 
 ## Frozen PCB composition
 
 ```text
 stock_board
-+ pmw_support_tongue
 - trackball_cavity
-- breakout_service_slot
 = trackball_board
 ```
 
-The cavity is explicitly open to the lower edge. It removes the ball/housing region while retaining the right-side PMW peninsula.
+The cavity is derived from the actual Type-C housing section at the PCB slab plus ball/manufacturing clearance.
 
-Frozen cavity ball-relative vertices:
+The old revision-3 PMW support tongue and breakout service notch are no longer part of the PCB.
 
-```text
-[-21.5, 13.0]
-[-5.0, 12.94]
-[9.93, 12.36]
-[11.85, 10.19]
-[9.31, -19.37]
-[11.17, -21.54]
-[11.17, -40.0]
-[-21.5, -40.0]
-```
+## Frozen PMW mechanical interface
 
-Minimum design gate: **9.5 mm** ball-center-to-cavity-edge.
+Keyboard-side PMW header:
 
-Qualified cavity polygon: **10.934113 mm**.
+- center: **`(0, -22.022143)`**;
+- F.Cu;
+- 1x7, 2.54 mm pitch;
+- short seven-conductor cable to the Kivipallur breakout.
 
-Qualified generated production Edge.Cuts: **12.323043 mm** from ball center.
+The breakout itself remains on the right side of the ball.
 
-KLORBall-35 reference measurement: approximately **9.658 mm**.
+Pin order and GPIO ownership are unchanged.
+
+## 3D integration boundary
+
+Task 2E additionally qualifies:
+
+- source-backed Cherry MX plate-top to PCB-top spacing of 5.0 mm;
+- actual 1.5 mm Konrad switchplate;
+- actual housing STL;
+- actual stock right-case STL;
+- relieved switchplate;
+- local downward right-case trackball pod;
+- native housing M2 axes supported by pod-bottom bosses.
+
+Qualified ball center XYZ:
+
+`(15.5, -31.000147, 1.938015634)` mm.
+
+Qualified ball exposure above plate:
+
+**12.938 mm**.
+
+The pod extends **5.462 mm below the stock case bottom**.
 
 ## Qualification
 
 Qualification head:
 
-`1a6c90f3596c2b6f648c0c1663069b5713215388`
+`52ea88ad36f9fe31962a599036b09c8a8fdb50d0`
 
-Passing workflow:
+Passing workflows include:
 
-- `KLOR Task 2D - geometry freeze`
-- run ID: `36090754218`
-- conclusion: **success**
+- Task 2B: `36376432620`
+- Task 2C: `36376432637`
+- Task 2D: `36376432640`
+- Task 2E: `36376432664`
+- Tasks 3A / 3B / 3C / 3D also pass on the same head.
 
-Artifact:
+## Downstream boundary
 
-- `klor-task2d-frozen-geometry`
-- artifact ID: `10845566291`
-- SHA-256: `daa6d05baa123d6cc12ddaf840ce49cfa8f13b1733a04d329d71570a64d87182`
+Task 3 and Task 4 may not silently:
 
-Task 2B and revision-3 Task 2C also pass on the same head.
-
-## Task-3 boundary
-
-Task 3 may add electrical implementation/routing detail but may not silently move or resize the frozen cavity, move the ball/housing/breakout/header, change connector handedness, or move retained controls/structural axes.
+- move the revision-4 ball/housing/breakout;
+- change the real-housing-derived cavity;
+- move the cabled PMW board header;
+- reintroduce the rigid PMW peninsula;
+- restore R34/SW22/D22;
+- move retained keys or stock PCB mounting holes.
