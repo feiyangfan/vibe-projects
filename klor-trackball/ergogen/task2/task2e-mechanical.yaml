@@ -10,10 +10,10 @@ frame:
 
 z_stack:
   switchplate_bottom_z: 0.0
-  pcb_top_z: -5.0
+  plate_top_to_pcb_top: 5.0
   pcb_thickness: 1.6
   case_top_aligns_to_switchplate_top: true
-  pcb_top_source_status: engineering_datum_not_source_validated
+  pcb_top_source_status: cherry_mx_mechanical_drawing
 
 trackball:
   ball_xy: [15.5, -31.000147]
