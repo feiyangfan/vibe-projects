@@ -393,6 +393,22 @@ def main():
         else None
     )
 
+    z_scan = []
+    for scan_z in np.arange(-12.0, 15.01, 1.0):
+        scan_housing = translated_housing(
+            housing_local, [ball_x, ball_y, float(scan_z)]
+        )
+        v = intersection_volume(scan_housing, pcb)
+        z_scan.append(
+            {
+                "ball_z_mm": float(scan_z),
+                "housing_vs_pcb_mm3": float(v),
+                "ball_exposure_mm": float(scan_z + radius - plate_top),
+            }
+        )
+    z_scan_best = sorted(z_scan, key=lambda row: row["housing_vs_pcb_mm3"])[:8]
+    print("TASK2E_Z_SCAN " + json.dumps(z_scan_best, sort_keys=True))
+
     print(
         "TASK2E_DIAGNOSTIC "
         + json.dumps(
