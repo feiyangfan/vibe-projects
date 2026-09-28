@@ -43,6 +43,7 @@ jobs:
           manifold3d
           mapbox_earcut
           rtree
+          scipy
 
       - name: Generate Rev-3 geometry and PCB
         run: npx --yes ergogen@4.2.1 . --output generated --clean --svg --debug
