@@ -367,7 +367,7 @@ def main():
     case = transform_case_to_canonical(case_native, origin, plate_top)
 
     board_poly = board_polygon_from_kicad(board_file.read_text(encoding="utf-8"))
-    pcb_top = float(contract["z_stack"]["pcb_top_z"])
+    pcb_top = plate_top - float(contract["z_stack"]["plate_top_to_pcb_top"])
     pcb_thickness = float(contract["z_stack"]["pcb_thickness"])
     pcb = extrude_board(board_poly, pcb_top - pcb_thickness, pcb_thickness)
 
@@ -809,6 +809,7 @@ def main():
         },
         "assumptions": {
             "pcb_top_z": contract["z_stack"]["pcb_top_source_status"],
+            "plate_top_to_pcb_top_mm": float(contract["z_stack"]["plate_top_to_pcb_top"]),
             "case_z_alignment": "source case top aligned to switchplate top",
         },
         "outputs": {
