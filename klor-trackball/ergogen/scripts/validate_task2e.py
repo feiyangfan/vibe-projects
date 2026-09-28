@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Task 2E: put the real Type-C housing, 25 mm sphere, generated Rev-3 PCB,
+Task 2E: put the real Type-C housing, 25 mm sphere, generated Rev-4 PCB,
 stock Konrad switchplate, and stock Konrad right case in one 3D frame.
 
 The script writes relieved plate/case STLs, a GLB assembly scene, and a JSON
@@ -306,6 +306,16 @@ def subtract(base: trimesh.Trimesh, cutter: trimesh.Trimesh) -> trimesh.Trimesh:
     return out
 
 
+def union_meshes(meshes) -> trimesh.Trimesh:
+    out = trimesh.boolean.union(meshes, engine="manifold", check_volume=False)
+    if out is None:
+        raise AssertionError("mesh union failed")
+    if isinstance(out, trimesh.Scene):
+        parts = [g for g in out.geometry.values() if isinstance(g, trimesh.Trimesh)]
+        return trimesh.util.concatenate(parts)
+    return out
+
+
 def translated_housing(base: trimesh.Trimesh, ball_xyz, scale_xyz=None):
     mesh = base.copy()
     if scale_xyz is not None:
@@ -582,7 +592,9 @@ def main():
     relieved_plate = subtract(relieved_plate, housing_keepout)
     relieved_plate = subtract(relieved_plate, sphere_keepout)
 
-    # Add the two explicit M2 mounting holes through the relieved plate.
+    # Revision 4 mounting: the required housing relief consumes the old
+    # switchplate support around both native screw axes. Mount the housing from
+    # below with a local case pod instead of pretending plate material remains.
     screw_mid_x = ball_x + float(contract["mounting"]["screw_midpoint_from_ball"][0])
     screw_mid_y = ball_y + float(contract["mounting"]["screw_midpoint_from_ball"][1])
     screw_r = float(contract["mounting"]["screw_hole_diameter"]) / 2
@@ -590,18 +602,76 @@ def main():
         (screw_mid_x, screw_mid_y + float(dy))
         for dy in contract["mounting"]["screw_y_offsets"]
     ]
-    for sx, sy in screw_axes:
-        cyl = trimesh.creation.cylinder(
-            radius=screw_r,
-            height=max(5.0, plate_top - plate_bottom + 2.0),
-            sections=48,
-        )
-        cyl.apply_translation([sx, sy, (plate_top + plate_bottom) / 2])
-        relieved_plate = subtract(relieved_plate, cyl)
 
+    # Start from a collision-free stock-case relief.
     relieved_case = subtract(case, housing)
     relieved_case = subtract(relieved_case, housing_keepout)
     relieved_case = subtract(relieved_case, sphere_keepout)
+
+    # The usable ball height places the real housing below the stock case
+    # bottom. Build a local downward pod from the real housing + sphere XY
+    # projection, with a deliberate floor and overlap into the stock shell.
+    wall = float(contract["case_pod"]["wall_thickness"])
+    floor = float(contract["case_pod"]["floor_thickness"])
+    overlap = float(contract["case_pod"]["overlap_into_stock_case"])
+
+    housing_xy = MultiPoint(
+        [tuple(map(float, p[:2])) for p in housing.vertices]
+    ).convex_hull
+    ball_xy_shape = Point(ball_x, ball_y).buffer(radius + float(contract["clearance"]["ball_radial"]))
+    pod_outer_poly = unary_union([housing_xy, ball_xy_shape]).convex_hull.buffer(wall)
+
+    inner_bottom = min(float(housing.bounds[0, 2]), float(sphere.bounds[0, 2]))
+    pod_bottom = inner_bottom - floor
+    pod_top = float(case.bounds[0, 2]) + overlap
+    if pod_top <= pod_bottom:
+        raise AssertionError("invalid case-pod Z span")
+
+    pod = trimesh.creation.extrude_polygon(
+        pod_outer_poly,
+        height=pod_top - pod_bottom,
+        engine="earcut",
+    )
+    pod.apply_translation([0.0, 0.0, pod_bottom])
+
+    # Union the pod with the relieved stock case, then hollow it with the same
+    # authoritative housing/sphere keepouts.
+    relieved_case = union_meshes([relieved_case, pod])
+    relieved_case = subtract(relieved_case, housing)
+    relieved_case = subtract(relieved_case, housing_keepout)
+    relieved_case = subtract(relieved_case, sphere_keepout)
+
+    # Add two annular bosses from the pod floor to just below the flat housing
+    # bottom. They intentionally contact the mounting interface rather than
+    # obey the general housing-clearance shell.
+    boss_outer = float(contract["mounting"]["boss_outer_radius"])
+    boss_gap = float(contract["mounting"]["boss_contact_gap"])
+    boss_top = float(housing.bounds[0, 2]) - boss_gap
+    boss_bottom = pod_bottom
+    if boss_top <= boss_bottom:
+        raise AssertionError("housing mounting boss has no positive height")
+
+    bosses = []
+    for sx, sy in screw_axes:
+        outer = trimesh.creation.cylinder(
+            radius=boss_outer,
+            height=boss_top - boss_bottom,
+            sections=64,
+        )
+        outer.apply_translation([sx, sy, (boss_top + boss_bottom) / 2])
+        bosses.append(outer)
+    relieved_case = union_meshes([relieved_case, *bosses])
+
+    # Drill the two M2 through-holes through pod floor/bosses.
+    hole_height = pod_top - pod_bottom + 2.0
+    for sx, sy in screw_axes:
+        hole = trimesh.creation.cylinder(
+            radius=screw_r,
+            height=hole_height,
+            sections=64,
+        )
+        hole.apply_translation([sx, sy, (pod_top + pod_bottom) / 2])
+        relieved_case = subtract(relieved_case, hole)
 
     checks = {
         "sphere_vs_pcb_mm3": sphere_pcb_volume,
@@ -615,19 +685,28 @@ def main():
     if bad:
         raise AssertionError(f"residual 3D intersections remain: {bad}")
 
-    plate_mid = (plate_bottom + plate_top) / 2
-    support_radius = float(contract["mounting"]["minimum_support_radius"])
+    # Verify the two case-pod mounting bosses actually retain annular material
+    # around the M2 hole near their top contact plane.
+    support_z = boss_top - min(0.25, (boss_top - boss_bottom) / 4)
+    support_radius = float(contract["mounting"]["boss_support_check_radius"])
     support = [
-        support_fraction(relieved_plate, axis, plate_mid, support_radius)
+        support_fraction(relieved_case, axis, support_z, support_radius)
         for axis in screw_axes
     ]
-
-    # Do not claim a usable screw mount if the cut removed nearly all plate
-    # material around an axis.
-    if min(support) < 0.50:
+    if min(support) < 0.75:
         raise AssertionError(
-            f"housing mounting support lost around screw axis: fractions={support}"
+            f"case-pod mounting boss support too small: fractions={support}"
         )
+
+    case_components = relieved_case.split(only_watertight=False)
+    if len(case_components) > 1:
+        largest = max(abs(m.volume) for m in case_components)
+        total = sum(abs(m.volume) for m in case_components)
+        if total > EPS and largest / total < 0.98:
+            raise AssertionError(
+                f"relieved case/pod fragmented: {len(case_components)} components, "
+                f"largest fraction={largest/total:.6f}"
+            )
 
     components = relieved_plate.split(only_watertight=False)
     if len(components) > 1:
@@ -666,7 +745,7 @@ def main():
     scene = trimesh.Scene()
     scene.add_geometry(relieved_case, geom_name="right_case_relief")
     scene.add_geometry(relieved_plate, geom_name="switchplate_relief")
-    scene.add_geometry(pcb, geom_name="rev3_pcb")
+    scene.add_geometry(pcb, geom_name="rev4_pcb")
     scene.add_geometry(housing, geom_name="type_c_housing")
     scene.add_geometry(sphere, geom_name="25mm_ball")
 
@@ -708,9 +787,21 @@ def main():
         },
         "intersections_mm3": checks,
         "mounting": {
+            "form": contract["mounting"]["form"],
             "screw_axes_xy_mm": [list(p) for p in screw_axes],
+            "boss_outer_radius_mm": boss_outer,
+            "boss_top_z_mm": boss_top,
+            "boss_bottom_z_mm": boss_bottom,
             "support_radius_mm": support_radius,
             "support_fraction_at_radius": support,
+        },
+        "case_pod": {
+            "stock_case_bottom_z_mm": float(case.bounds[0, 2]),
+            "pod_bottom_z_mm": pod_bottom,
+            "pod_top_z_mm": pod_top,
+            "downward_extension_below_stock_case_mm": float(case.bounds[0, 2]) - pod_bottom,
+            "wall_thickness_mm": wall,
+            "floor_thickness_mm": floor,
         },
         "ergonomic_geometry": {
             "nearest_retained_keys": retained[:6],
