@@ -1,0 +1,69 @@
+status: task2e_candidate
+revision: 1
+
+sources:
+  housing_stl: "Keyball 25mm Trackball Case Type C - 6719828/files/keyball_trackball_case_25mm_type_c_right.stl"
+  switchplate_stl: "klor1.4/case/3DP/konrad/switchplate/KLOR_konrad_3DP_switchplate.stl"
+  case_stl: "klor1.4/case/3DP/konrad/regular/KLOR_konrad_case_R.stl"
+  pcb_outline: "outlines/trackball_board.dxf"
+
+canonical:
+  ball_xy: [16.5, -28.000147]
+  housing_screw_axes_from_ball:
+    - [6.212, 7.98]
+    - [6.212, -7.98]
+  case_mount_axes:
+    - [48.898826, -39.659363]
+    - [34.057332, -40.66635]
+    - [5.295366, -40.620224]
+    - [-56.768833, -40.650845]
+    - [-56.758358, 38.777071]
+    - [27.214179, -8.336892]
+    - [29.903255, 25.310698]
+    - [41.477996, 26.081755]
+
+registration:
+  y_reflected: true
+  switchplate:
+    expected_translation_xy: [59.421, 57.623]
+    slice_z: 0.75
+    hole_area_range_mm2: [2.5, 4.5]
+    max_rms_error_mm: 0.03
+  case:
+    expected_translation_xy: [140.005, 113.573]
+    slice_z: -1.0
+    hole_area_range_mm2: [7.5, 9.5]
+    max_rms_error_mm: 0.03
+
+stack:
+  plate_thickness_mm: 1.5
+  plate_top_datum: case_top
+  mx_plate_top_to_pcb_top_mm: 5.0
+  pcb_thickness_mm: 1.6
+  housing_base_local_z_mm: -18.0
+  ball_diameter_mm: 25.0
+  nominal_ball_to_plate_top_clearance_mm: 0.5
+  case_inner_floor_top_mm: -3.0
+  housing_z_relief_tolerance_mm: 0.5
+
+relief:
+  housing_xy_clearance_mm: 0.4
+  ball_radial_clearance_mm: 0.25
+  cutter_vertical_margin_mm: 0.5
+
+retention:
+  carrier: case
+  boss_outer_diameter_mm: 6.0
+  boss_bottom_overlap_mm: 0.1
+  screw_clearance_diameter_mm: 2.4
+  screw_axis_xy_tolerance_mm: 0.05
+  method: "M2 screw from case underside through clearance boss into Type-C housing pilot"
+
+gates:
+  max_interference_volume_mm3: 0.001
+  min_nominal_ball_to_plate_top_clearance_mm: 0.49
+  min_housing_to_retained_key_xy_clearance_mm: 2.5
+  min_relief_to_structural_axis_clearance_mm: 2.0
+  require_plate_watertight: true
+  require_case_watertight: true
+  require_pcb_watertight: true
