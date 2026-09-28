@@ -486,6 +486,35 @@ def main():
     candidates.sort(key=lambda row: (row["shift_norm"], -row["nearest_key_center_mm"]))
     print("TASK2E_XY_CANDIDATES " + json.dumps(candidates[:12], sort_keys=True))
 
+    if candidates:
+        best = candidates[0]
+        best_relief = shp_translate(
+            relative_relief,
+            xoff=best["ball_xy"][0],
+            yoff=best["ball_xy"][1],
+        )
+        simplified = best_relief.simplify(0.35, preserve_topology=True)
+        if simplified.geom_type == "Polygon":
+            coords = [
+                [float(x), float(y)]
+                for x, y in list(simplified.exterior.coords)[:-1]
+            ]
+            rel_coords = [
+                [x - best["ball_xy"][0], y - best["ball_xy"][1]]
+                for x, y in coords
+            ]
+            print(
+                "TASK2E_BEST_RELIEF "
+                + json.dumps(
+                    {
+                        "ball_xy": best["ball_xy"],
+                        "absolute_polygon": coords,
+                        "ball_relative_polygon": rel_coords,
+                    },
+                    sort_keys=True,
+                )
+            )
+
     print(
         "TASK2E_DIAGNOSTIC "
         + json.dumps(
