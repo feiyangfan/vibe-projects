@@ -575,7 +575,11 @@ def main():
     )
     sphere_keepout.apply_translation([ball_x, ball_y, ball_z])
 
-    relieved_plate = subtract(plate, housing_keepout)
+    # Subtract the authoritative housing first. The radially scaled copy is
+    # an additional clearance shell, but for a concave mesh it is not
+    # guaranteed to contain every original surface.
+    relieved_plate = subtract(plate, housing)
+    relieved_plate = subtract(relieved_plate, housing_keepout)
     relieved_plate = subtract(relieved_plate, sphere_keepout)
 
     # Add the two explicit M2 mounting holes through the relieved plate.
@@ -595,7 +599,8 @@ def main():
         cyl.apply_translation([sx, sy, (plate_top + plate_bottom) / 2])
         relieved_plate = subtract(relieved_plate, cyl)
 
-    relieved_case = subtract(case, housing_keepout)
+    relieved_case = subtract(case, housing)
+    relieved_case = subtract(relieved_case, housing_keepout)
     relieved_case = subtract(relieved_case, sphere_keepout)
 
     checks = {
