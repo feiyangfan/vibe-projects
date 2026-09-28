@@ -267,12 +267,10 @@ def main():
         raise AssertionError("right production PCB must use frozen trackball_board geometry")
     if task2d["pcb_geometry"]["composition"] != [
         {"outline": "stock_board", "operation": "add"},
-        {"outline": "pmw_support_tongue", "operation": "add"},
         {"outline": "trackball_cavity", "operation": "subtract"},
-        {"outline": "breakout_service_slot", "operation": "subtract"},
     ]:
-        raise AssertionError("Task-2D frozen trackball composition changed")
-    print("PASS frozen stock + support tongue - open cavity - service notch right-board geometry")
+        raise AssertionError("Task-2D revision-4 trackball composition changed")
+    print("PASS frozen stock - actual-housing/ball cavity right-board geometry")
 
     # Non-reversible production policy: right SMD populations use the qualified
     # front-side variants; the PMW header is also frozen to F.Cu.
@@ -294,7 +292,7 @@ def main():
             f"{min_ball_edge} < {required_ball_edge}"
         )
     print(
-        f"PASS generated rev3 open cavity: nearest Edge.Cuts is "
+        f"PASS generated rev4 real-housing cavity: nearest Edge.Cuts is "
         f"{min_ball_edge:.6f} mm from ball center"
     )
 
@@ -470,17 +468,19 @@ def main():
     pmw = find_instance(all_fps, config, NAMES["pmw"], contract["pmw3360"]["point"])
     pmw_at = at_xyz(pmw)
     expected_pmw_at = pcb_point(config, contract["pmw3360"]["point"])
-    assert_close("PMW center", pmw_at[:2], expected_pmw_at[:2])
-    assert_angle("PMW rotation", pmw_at[2], expected_pmw_at[2])
+    assert_close("PMW board-header center", pmw_at[:2], expected_pmw_at[:2])
+    assert_angle("PMW board-header rotation", pmw_at[2], expected_pmw_at[2])
 
-    frozen_center = resolve_point(config, contract["pmw3360"]["frozen_center_point"])
+    board_center = resolve_point(config, contract["pmw3360"]["board_header_center_point"])
     prod_center = resolve_point(config, contract["pmw3360"]["point"])
-    assert_close("PMW production center preserves Task-2 center", prod_center[:2], frozen_center[:2])
+    assert_close("PMW production header uses frozen cable-header center", prod_center[:2], board_center[:2])
     assert_angle(
         "PMW canonical production rotation",
         prod_center[2],
         float(contract["pmw3360"]["canonical_rotation"]),
     )
+    if contract["pmw3360"]["connection_form"] != "short_7_conductor_cable":
+        raise AssertionError("PMW connection form must remain the Task-2E cabled interface")
 
     pp = pads(pmw)
     pin_order = {
@@ -493,38 +493,37 @@ def main():
         expected_net = "" if pin_order[n] == "NC" else pin_order[n]
         if p["net"] != expected_net:
             raise AssertionError(f"PMW pin {n}: {p['net']} != {expected_net}")
-        expected_y = frozen_center[1] + (3 - (n - 1)) * pitch
+        expected_y = board_center[1] + (3 - (n - 1)) * pitch
         actual_xy = global_pad_in_canonical(pmw, p)
         assert_close(
-            f"PMW pin {n} frozen physical position",
+            f"PMW pin {n} cable-header physical position",
             actual_xy,
-            (frozen_center[0], expected_y),
+            (board_center[0], expected_y),
             GEOM_TOL,
         )
-    if net_count(all_fps, "PMW_CS") != 2:
-        raise AssertionError("PMW_CS must connect controller and header only")
-    if net_count(all_fps, "PMW_MISO") != 2:
-        raise AssertionError("PMW_MISO must connect controller and header only")
-    if net_count(all_fps, "PMW_MOSI") != 2:
-        raise AssertionError("PMW_MOSI must connect controller and header only")
-    if net_count(all_fps, "PMW_SCK") != 2:
-        raise AssertionError("PMW_SCK must connect controller and header only")
+
+    for net in ("PMW_CS", "PMW_MISO", "PMW_MOSI", "PMW_SCK"):
+        if net_count(all_fps, net) != 2:
+            raise AssertionError(f"{net} must connect controller and cable header only")
     if net_count(all_fps, "V3V3") != 2:
-        raise AssertionError("V3V3 must connect Helios pad27 and PMW header pin6 only")
+        raise AssertionError("V3V3 must connect Helios pad27 and PMW cable-header pin6 only")
+
     ball_center = resolve_point(config, "ball_center")
     breakout_center = resolve_point(config, "breakout_center")
-    if not (frozen_center[0] > ball_center[0] and breakout_center[0] > ball_center[0]):
-        raise AssertionError("PMW connector/breakout must remain on +X / right side of ball")
+    if breakout_center[0] <= ball_center[0]:
+        raise AssertionError("Kivipallur breakout connector must remain on +X/right side of ball")
     if contract["pmw3360"]["pin_1_end"] != "positive_canonical_y":
         raise AssertionError("PMW pin 1 must remain at positive canonical Y")
     if contract["pmw3360"]["pin_7_end"] != "negative_canonical_y":
         raise AssertionError("PMW pin 7 must remain at negative canonical Y")
+    if contract["pmw3360"]["mating_rule"] != "cable_maps_breakout_pin_N_to_keyboard_pin_8_minus_N":
+        raise AssertionError("PMW cable mating rule changed")
     assert_close(
-        "Task3D ball center",
+        "Task3D revision-4 ball center",
         ball_center[:2],
         tuple(float(x) for x in contract["board"]["ball_center_local"]),
     )
-    print("PASS KLORBall-35-style right-side PMW center, physical direction, SPI and 3V3 ownership")
+    print("PASS right-side Kivipallur breakout + cabled PMW header pin/SPI/3V3 contract")
 
     for i in range(1, 10):
         mh = find_instance(all_fps, config, NAMES["mount"], f"mh{i}")
