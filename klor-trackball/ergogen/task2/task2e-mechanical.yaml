@@ -27,10 +27,22 @@ clearance:
   ball_radial: 0.3
 
 mounting:
+  form: case_pod_bottom_bosses
   screw_midpoint_from_ball: [6.212, 0.0]
   screw_y_offsets: [7.98, -7.98]
   screw_hole_diameter: 2.1
-  minimum_support_radius: 2.5
+  boss_outer_radius: 3.0
+  boss_contact_gap: 0.05
+  boss_support_check_radius: 2.4
+
+case_pod:
+  wall_thickness: 1.5
+  floor_thickness: 1.5
+  overlap_into_stock_case: 2.0
+  note: >-
+    The actual housing extends below the stock right-case bottom at the chosen
+    ergonomic ball height. A local downward pod encloses it and provides the
+    two native M2 mounting bosses without raising the entire ball.
 
 sources:
   housing: ../Keyball 25mm Trackball Case Type C - 6719828/files/keyball_trackball_case_25mm_type_c_right.stl
