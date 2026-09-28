@@ -91,3 +91,30 @@ Every Task-2 feature should answer one of two questions:
 2. **Is this the smallest explicit delta required by the trackball?**
 
 If neither is true, it should not enter the canonical model.
+
+### 2E — Full 3D assembly fit, plate/case relief, and housing retention
+
+**IN PROGRESS**
+
+Revision 3 proves the right PCB cavity, but it does **not** prove a complete installable trackball assembly.
+
+Task 2E places the real checked-in parts into one coordinate system:
+
+- Keyball 25 mm Type-C right housing STL;
+- a 25 mm trackball sphere;
+- the revision-3 right PCB as a 1.6 mm solid;
+- the stock Konrad 3DP switchplate STL;
+- the stock Konrad right case STL.
+
+The gate is stricter than the Task-2C/2D 2D clearance gate. Task 2E must:
+
+- solve and regression-lock the stock STL -> canonical transforms from real mounting features;
+- define the housing Z datum from the actual Type-C base plane and the stock case/PCB support planes;
+- generate switchplate and case relief from the actual 3D housing/ball envelope, not a bounding-box guess;
+- provide positive retention for the Type-C housing;
+- prove no volumetric interference between housing/ball and the PCB, modified plate, or modified case across the qualified Z tolerance window;
+- preserve the retained MX keys, encoder, PMW connector peninsula, and stock structural mounting axes;
+- emit modified right switchplate/case STLs as reproducible build artifacts.
+
+See `TASK2E_3D_FIT.md`.
+
