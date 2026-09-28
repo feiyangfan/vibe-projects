@@ -271,6 +271,30 @@ def intersection_volume(a: trimesh.Trimesh, b: trimesh.Trimesh) -> float:
     return mesh_volume(inter)
 
 
+def intersection_mesh(a: trimesh.Trimesh, b: trimesh.Trimesh):
+    return trimesh.boolean.intersection([a, b], engine="manifold", check_volume=False)
+
+
+def section_keepout(mesh: trimesh.Trimesh, z_values, buffer_xy: float):
+    polys = []
+    for z in z_values:
+        section = mesh.section(
+            plane_origin=[0.0, 0.0, float(z)],
+            plane_normal=[0.0, 0.0, 1.0],
+        )
+        if section is None or len(section.vertices) < 3:
+            continue
+        pts = [tuple(map(float, p[:2])) for p in section.vertices]
+        from shapely.geometry import MultiPoint
+        hull = MultiPoint(pts).convex_hull
+        if not hull.is_empty:
+            polys.append(hull.buffer(buffer_xy))
+    if not polys:
+        return None
+    from shapely.ops import unary_union as _uu
+    return _uu(polys)
+
+
 def subtract(base: trimesh.Trimesh, cutter: trimesh.Trimesh) -> trimesh.Trimesh:
     out = trimesh.boolean.difference([base, cutter], engine="manifold", check_volume=False)
     if out is None:
@@ -350,18 +374,59 @@ def main():
 
     ball_z = pcb_top + dz_required
 
-    # Raise only if the real housing still hits the actual generated PCB.
-    step = float(contract["trackball"]["housing_z_search_step"])
-    max_z = float(contract["trackball"]["maximum_ball_center_z"])
-    housing_pcb_volume = None
-    while ball_z <= max_z + EPS:
-        housing = translated_housing(housing_local, [ball_x, ball_y, ball_z])
-        housing_pcb_volume = intersection_volume(housing, pcb)
-        if housing_pcb_volume <= INTERSECTION_VOLUME_TOL:
-            break
-        ball_z += step
-    else:
-        raise AssertionError("no housing Z in the allowed search range clears the PCB")
+    # The sphere-derived Z is the lowest mechanically useful candidate. Measure
+    # the real housing there before changing Z: if it intersects PCB material,
+    # that is a PCB-relief defect rather than something to hide by lifting the
+    # whole trackball assembly.
+    housing = translated_housing(housing_local, [ball_x, ball_y, ball_z])
+    housing_intersection = intersection_mesh(housing, pcb)
+    housing_pcb_volume = mesh_volume(housing_intersection)
+
+    pcb_slice_keepout = section_keepout(
+        housing,
+        [pcb_top - pcb_thickness, pcb_top - pcb_thickness / 2.0, pcb_top],
+        float(contract["clearance"]["housing_xy"]),
+    )
+    required_relief = (
+        board_poly.intersection(pcb_slice_keepout)
+        if pcb_slice_keepout is not None
+        else None
+    )
+
+    print(
+        "TASK2E_DIAGNOSTIC "
+        + json.dumps(
+            {
+                "sphere_derived_ball_z_mm": ball_z,
+                "sphere_derived_exposure_mm": ball_z + radius - plate_top,
+                "housing_vs_pcb_mm3": housing_pcb_volume,
+                "housing_pcb_intersection_bounds_mm": (
+                    housing_intersection.bounds.tolist()
+                    if isinstance(housing_intersection, trimesh.Trimesh)
+                    and not housing_intersection.is_empty
+                    else None
+                ),
+                "required_xy_relief_area_mm2": (
+                    float(required_relief.area)
+                    if required_relief is not None and not required_relief.is_empty
+                    else 0.0
+                ),
+                "required_xy_relief_bounds_mm": (
+                    list(map(float, required_relief.bounds))
+                    if required_relief is not None and not required_relief.is_empty
+                    else None
+                ),
+            },
+            sort_keys=True,
+        )
+    )
+
+    if housing_pcb_volume > INTERSECTION_VOLUME_TOL:
+        raise AssertionError(
+            "actual Type-C housing intersects Rev-3 PCB at the sphere-derived "
+            "installation height; PCB cavity must be revised from the measured "
+            "Task-2E housing section"
+        )
 
     sphere = trimesh.creation.icosphere(subdivisions=4, radius=radius)
     sphere.apply_translation([ball_x, ball_y, ball_z])
