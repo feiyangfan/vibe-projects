@@ -25,7 +25,7 @@ import trimesh
 import yaml
 from shapely import affinity
 from shapely.geometry import LineString, Point, Polygon, MultiPolygon
-from shapely.ops import polygonize, unary_union
+from shapely.ops import nearest_points, polygonize, unary_union
 from shapely import set_precision
 
 
@@ -520,10 +520,19 @@ def main():
     structural_clearances = {}
     for index, mount in enumerate(canonical_mounts, start=1):
         p = Point(float(mount[0]), float(mount[1]))
+        nominal_near = nearest_points(p, nominal_plate_relief.boundary)[1]
+        tolerance_near = nearest_points(p, plate_relief.boundary)[1]
+        case_near = nearest_points(p, case_relief.boundary)[1]
         structural_clearances[f"case_mount_{index}"] = {
             "nominal_plate_relief_mm": float(nominal_plate_relief.distance(p)),
+            "nominal_plate_boundary_mm": float(nominal_plate_relief.boundary.distance(p)),
+            "nominal_plate_nearest_xy": [float(nominal_near.x), float(nominal_near.y)],
             "tolerance_plate_relief_mm": float(plate_relief.distance(p)),
+            "tolerance_plate_boundary_mm": float(plate_relief.boundary.distance(p)),
+            "tolerance_plate_nearest_xy": [float(tolerance_near.x), float(tolerance_near.y)],
             "case_relief_mm": float(case_relief.distance(p)),
+            "case_boundary_mm": float(case_relief.boundary.distance(p)),
+            "case_nearest_xy": [float(case_near.x), float(case_near.y)],
         }
     print("STRUCTURAL_CLEARANCES " + json.dumps(structural_clearances, sort_keys=True))
 
