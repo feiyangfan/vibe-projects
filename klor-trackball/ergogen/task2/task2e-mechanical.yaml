@@ -1,5 +1,5 @@
 status: task2e_candidate
-revision: 1
+revision: 2
 
 frame:
   xy_origin: stock_SW13
@@ -16,11 +16,10 @@ z_stack:
   pcb_top_source_status: engineering_datum_not_source_validated
 
 trackball:
-  ball_xy: [16.5, -28.000147]
+  ball_xy: [15.5, -31.000147]
   ball_diameter: 25.0
   minimum_pcb_clearance: 0.5
   housing_z_search_step: 0.25
-  maximum_ball_center_z: 5.0
 
 clearance:
   housing_xy: 0.5
@@ -38,6 +37,13 @@ sources:
   switchplate: ../klor1.4/case/3DP/konrad/switchplate/KLOR_konrad_3DP_switchplate.stl
   right_case: ../klor1.4/case/3DP/konrad/regular/KLOR_konrad_case_R.stl
   stock_pcb: ../klor1.4/PCB/klor1_4/klor1_4.kicad_pcb
+
+revision4:
+  source_revision3_housing_pcb_intersection_mm3: 158.111457
+  rejected_z_only_clearance_ball_exposure_mm: 24.0
+  ball_shift_from_revision3: [-1.0, -3.0]
+  keyboard_pmw_header_center: [0, -22.022143]
+  pmw_connection_form: short_7_conductor_cable
 
 outputs:
   relieved_switchplate: task2e_konrad_switchplate_trackball.stl
