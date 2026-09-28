@@ -66,7 +66,7 @@ Revision-3 passing evidence is recorded in `TASK2C_RESULT.md`; `TASK2_REV3_CAVIT
 
 ### 2D — Geometry freeze
 
-**REVISION 3 — REOPENED**
+**REVISION 3 — COMPLETE**
 
 Revision 3 re-freezes the right-PCB mechanical interface with a validated KLORBall-35-style open-edge trackball cavity.
 
@@ -91,3 +91,22 @@ Every Task-2 feature should answer one of two questions:
 2. **Is this the smallest explicit delta required by the trackball?**
 
 If neither is true, it should not enter the canonical model.
+
+
+### 2E — 3D mechanical integration
+
+**IN PROGRESS**
+
+Revision 3 proves the right-PCB cavity at the PCB plane, but it does **not** by itself prove that the complete 25 mm trackball assembly can be installed.
+
+Task 2E closes that gap by placing these real artifacts in one mechanical frame:
+
+- generated revision-3 right PCB;
+- Keyball 25 mm Type-C right housing STL;
+- 25 mm sphere;
+- stock Konrad switchplate STL;
+- stock Konrad right-case STL.
+
+The stock Task-2B plate transform is reused for XY alignment. Z placement is explicit and regression-checked.
+
+Task 2E owns the trackball-specific switchplate/case relief and the final mesh-level interference check. See `TASK2E_MECHANICAL_INTEGRATION.md`.
