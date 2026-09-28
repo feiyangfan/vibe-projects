@@ -2,26 +2,54 @@
 
 ## Status
 
-**IN PROGRESS**
+**PASS — COMPLETE.**
 
-## Why this task exists
+Task 2E closes the gap between a plausible 2D PCB cavity and an installable 3D trackball assembly.
 
-Task 2 revision 3 corrected the right-PCB trackball cavity. The generated PCB now has an open-edge cavity with 12.323043 mm minimum XY distance from the ball center to actual Edge.Cuts.
+The qualification places the following artifacts in one declared coordinate frame and performs mesh-level boolean/interference checks:
 
-That is necessary, but not sufficient to prove a usable assembly.
+- generated revision-4 right PCB;
+- actual Keyball 25 mm Type-C right housing STL;
+- a 25 mm sphere;
+- stock Konrad switchplate STL;
+- stock Konrad right-case STL.
 
-A 25 mm sphere has a 12.5 mm radius, so ball/PCB clearance depends on the **vertical separation** between the ball center and PCB. More importantly, the current switchplate still contains only the old SW22/service opening; it has not yet been relieved around the real Type-C housing.
+## What Task 2E found
 
-Therefore the complete assembly was not yet proven installable.
+### Revision 3 was not physically valid
 
-## Existing facts retained
+Revision 3 cleared the nominal ball in 2D, but the **actual Type-C housing** intersected the generated PCB by approximately **158.111 mm³** at a useful ball height.
 
-- ball canonical XY: `(16.5, -28.000147)`;
-- Type-C housing local XY is ball-centered;
-- the real housing STL XY bounding-box center is approximately `(+9.16596, -0.01121)`, matching the Ergogen housing-center relation `(+9.165901, +0.000812)`;
-- connector/breakout remain on +X / right side of the ball;
-- PCB cavity topology and PMW peninsula remain Task-2 revision 3;
-- retained electrical architecture is unchanged.
+Trying to solve that collision only by raising the housing did not work ergonomically: the housing cleared only with approximately **24 mm of the 25 mm ball exposed above the plate**.
+
+That invalidated the revision-3 rigid PMW peninsula as a production mechanical interface.
+
+### Minimum revision-4 correction
+
+A local search against the actual housing, all 19 retained keys, and all nine stock PCB holes found a minimum nearby clean placement:
+
+- revision-3 ball XY: `(16.5, -28.000147)`;
+- revision-4 ball XY: **`(15.5, -31.000147)`**;
+- shift: **`(-1, -3) mm`**;
+- shift norm: approximately **3.162 mm**.
+
+All 19 right keys and all nine stock PCB holes remain.
+
+The PCB cavity is now derived from the real housing section through the PCB slab plus sphere/manufacturing clearance, rather than from a nominal rectangle or a KLORBall-35-inspired 2D shape alone.
+
+## PMW mechanical interface
+
+The Kivipallur breakout/connector remains on the **+X / right side of the ball**.
+
+The old rigid keyboard-PCB PMW peninsula occupied the real housing volume and was therefore removed.
+
+Revision 4 uses:
+
+- Kivipallur connector on the right side of the ball;
+- keyboard-side 1x7 header at canonical **`(0, -22.022143)`**, in reclaimed SW22 PCB area;
+- a short seven-conductor cable between them;
+- unchanged signal contract: CS, MISO, MOSI, SCK, NC/MOTION, 3V3, GND;
+- unchanged mating rule: breakout pin N maps to keyboard pin `8-N`.
 
 ## Common coordinate system
 
@@ -31,63 +59,113 @@ Canonical origin remains stock SW13.
 
 - canonical +X = source KiCad +X;
 - canonical +Y = reflected source KiCad Y;
-- stock switchplate native XY uses the already source-validated Task-2B rigid transform;
-- stock right-case XY is converted from its source CAD/KiCad global frame into the same SW13-centered canonical frame;
-- the Type-C housing local origin is the 25 mm ball center and is translated to the frozen canonical ball XY.
+- switchplate uses the existing Task-2B source-validated rigid transform;
+- right-case XY is converted from source CAD/KiCad coordinates to the same SW13-centered frame;
+- housing local XY origin is the ball center.
+
+The real housing STL's XY bounding-box center is approximately `(+9.16596, -0.01121)`, consistent with the frozen housing-center relation `(+9.165901, +0.000812)`.
 
 ### Z
 
-Task 2B only froze 2D geometry. Task 2E therefore makes the stack datums explicit.
+- switchplate bottom: `z=0`;
+- actual switchplate top: `z=1.5 mm`;
+- Cherry MX plate-top to PCB-top stack datum: **5.0 mm**;
+- PCB top: **`z=-3.5 mm`**;
+- PCB thickness: **1.6 mm**;
+- PCB bottom: **`z=-5.1 mm`**;
+- stock right-case top aligned to switchplate top.
 
-- switchplate bottom = `z=0`;
-- switchplate thickness is read from the actual STL (nominally 1.5 mm);
-- right-case Z is translated so its source top surface aligns with the switchplate top;
-- PCB thickness = 1.6 mm;
-- PCB top = `z=-5.0 mm`.
+The 5.0 mm plate-top-to-PCB-top dimension replaces the earlier provisional `PCB top = -5.0 mm` assumption.
 
-The PCB-top value is an explicit MX-stack engineering datum, not a previously source-validated Task-2 value. The Task-2E result must keep this limitation visible.
+## Qualified ball installation
 
-## Ball/housing Z solve
+The solver selects the lowest ball Z that preserves at least 0.5 mm Euclidean ball-to-PCB clearance while the actual housing remains collision-free.
 
-Task 2E does not pick ball height by appearance.
+Qualified ball center:
 
-It starts from the minimum ball center Z that provides at least **0.5 mm Euclidean clearance** between the 25 mm sphere and the generated revision-3 PCB solid.
+**`(15.5, -31.000147, 1.938015634) mm`**
 
-It then raises the housing/ball in 0.25 mm increments only if the **actual housing STL** still intersects the PCB.
+Results:
 
-The selected height must also leave a useful exposed ball cap above the switchplate.
+- ball radius: 12.5 mm;
+- ball exposure above plate top: **12.938 mm**;
+- generated PCB XY material distance from ball center: **11.808 mm**;
+- sphere vs PCB intersection: **0 mm³**;
+- housing vs PCB intersection: **0 mm³**.
 
-## Plate and case relief
+The exposed cap is therefore approximately half the ball diameter rather than the rejected ~24 mm exposure from the revision-3 Z-only workaround.
 
-The trackball-specific relief is generated from the actual Type-C housing mesh, not from the old 37.6 x 30 mm reference rectangle alone.
+## Switchplate and case
 
-Manufacturing keepout:
+The real housing and sphere keepouts are subtracted from the stock Konrad switchplate and right case.
 
-- housing XY clearance: 0.5 mm;
-- housing Z clearance: 0.3 mm;
-- ball radial clearance: 0.3 mm.
+The required plate relief consumes the old plate support around the housing's two native mounting axes. Consequently, Task 2E does **not** claim those screws mount through the plate.
 
-The clearance-expanded housing and ball keepouts are boolean-subtracted from:
+Instead the right case gains a local downward trackball pod:
 
-1. the real Konrad switchplate STL;
-2. the real Konrad right-case STL.
+- wall thickness: 1.5 mm;
+- floor thickness: 1.5 mm;
+- overlap into stock case: 2.0 mm;
+- two native M2-axis bottom bosses;
+- boss outer radius: 3.0 mm;
+- M2 hole diameter: 2.1 mm;
+- boss support check: **100% at both axes**.
 
-Housing mounting axes are then checked so the relief does not silently remove all usable plate support around the intended screw locations.
+The pod extends **5.462 mm below the original stock-case bottom**. This is an intentional modeled enclosure, not an unresolved collision.
 
-## Completion gate
+## Final interference result
 
-Task 2E passes only when:
+At the qualified geometry:
 
-- all five real/generated artifacts share one declared coordinate frame;
-- the sphere does not intersect the generated PCB;
-- the actual Type-C housing does not intersect the generated PCB;
-- relieved switchplate has no intersection with the actual housing or sphere;
-- relieved right case has no intersection with the actual housing or sphere;
-- switchplate remains mechanically connected;
-- both housing mounting axes retain usable surrounding plate material or an explicit replacement mount is designed;
-- generated relieved plate/case STLs and a machine-readable result are produced as CI artifacts;
-- the selected ball height and exposed cap are recorded rather than inferred visually.
+- sphere vs PCB: **0 mm³**;
+- housing vs PCB: **0 mm³**;
+- sphere vs relieved switchplate: **0 mm³**;
+- housing vs relieved switchplate: approximately `5.34e-7 mm³`;
+- sphere vs relieved case: **0 mm³**;
+- housing vs relieved case: approximately `3.41e-7 mm³`.
 
-## Ergonomics boundary
+The non-zero housing values are numerical boolean residue far below the 0.01 mm³ qualification tolerance.
 
-Task 2E can prove geometric access and quantify ball exposure/key distances. It cannot prove subjective comfort for every hand size. A printed mock-up remains the final ergonomic validation.
+All source meshes used by the gate are watertight.
+
+## Ergonomic geometry
+
+Nearest retained key-center distances from the ball center:
+
+- SW21: **34.196 mm**;
+- SW13: 34.659 mm;
+- SW15: 37.339 mm;
+- SW14: 40.157 mm;
+- SW16: 43.433 mm;
+- SW12: 44.413 mm.
+
+This is a mechanically plausible thumb position and gives a useful exposed ball cap. It is **not** proof of subjective comfort for every hand size.
+
+The 5.462 mm local pod depth can also affect flat-on-desk stance. A printed physical mock-up remains the final ergonomic/desk-clearance validation.
+
+## Qualification
+
+Qualification head:
+
+`52ea88ad36f9fe31962a599036b09c8a8fdb50d0`
+
+Passing workflow:
+
+- `KLOR Task 2E - 3D mechanical integration`
+- run ID: `36376432664`
+- conclusion: **success**
+
+Artifact:
+
+- `klor-task2e-3d-mechanical`
+- artifact ID: `10950704578`
+- SHA-256: `2d208bd05d018efb2099c31cfbfd0417193509a0986bcfd9cfa8c683f952fca9`
+
+Artifact contents:
+
+- `task2e_konrad_switchplate_trackball.stl`
+- `task2e_konrad_case_right_trackball.stl`
+- `task2e_trackball_assembly.glb`
+- `task2e_mechanical_result.json`
+
+The same qualification head also passed Tasks 2B, 2C, 2D, 3A, 3B, 3C and 3D.
