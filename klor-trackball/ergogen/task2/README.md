@@ -43,7 +43,7 @@ Passing evidence is recorded in `TASK2B_RESULT.md`.
 
 ### 2C — Trackball delta overlay
 
-**REVISION 3 — COMPLETE**
+**REVISION 4 — COMPLETE**
 
 Add parametrically:
 
@@ -66,9 +66,9 @@ Revision-3 passing evidence is recorded in `TASK2C_RESULT.md`; `TASK2_REV3_CAVIT
 
 ### 2D — Geometry freeze
 
-**REVISION 3 — COMPLETE**
+**REVISION 4 — COMPLETE**
 
-Revision 3 re-freezes the right-PCB mechanical interface with a validated KLORBall-35-style open-edge trackball cavity.
+Revision 4 re-freezes the right-PCB mechanical interface from the actual Type-C housing section and the Task-2E common-frame 3D qualification.
 
 The freeze combines:
 
@@ -78,7 +78,7 @@ The freeze combines:
 - R32/R33 retained and R34 removed;
 - the right encoder retained at stock position;
 - the KLORBall-35-style PMW connector side/orientation/pin-order/mechanical relationship;
-- the KLORBall-35-style open-edge trackball cavity, right-side PMW peninsula, support tongue, and 2 × 22 service notch;
+- the actual-housing-derived PCB cavity and cabled PMW board header;
 - the Task-3 allowed/forbidden geometry boundary.
 
 Passing evidence is recorded in `TASK2D_RESULT.md`.
@@ -95,18 +95,10 @@ If neither is true, it should not enter the canonical model.
 
 ### 2E — 3D mechanical integration
 
-**IN PROGRESS**
+**COMPLETE**
 
-Revision 3 proves the right-PCB cavity at the PCB plane, but it does **not** by itself prove that the complete 25 mm trackball assembly can be installed.
+Task 2E places the generated revision-4 PCB, actual Type-C housing STL, 25 mm sphere, stock Konrad switchplate and stock right case into one source-aligned 3D frame.
 
-Task 2E closes that gap by placing these real artifacts in one mechanical frame:
+It proves zero meaningful housing/ball collision against the PCB and generated plate/case relief, and generates the relieved switchplate, right-case trackball pod, assembly GLB and machine-readable result. The qualified ball center is `(15.5, -31.000147, 1.938016)` mm with approximately 12.938 mm exposed above the plate.
 
-- generated revision-3 right PCB;
-- Keyball 25 mm Type-C right housing STL;
-- 25 mm sphere;
-- stock Konrad switchplate STL;
-- stock Konrad right-case STL.
-
-The stock Task-2B plate transform is reused for XY alignment. Z placement is explicit and regression-checked.
-
-Task 2E owns the trackball-specific switchplate/case relief and the final mesh-level interference check. See `TASK2E_MECHANICAL_INTEGRATION.md`.
+The case pod extends approximately 5.462 mm below the original case bottom. A printed mock-up remains the final subjective ergonomic and desk-stance check. See `TASK2E_MECHANICAL_INTEGRATION.md` and `TASK2E_RESULT.md`.
