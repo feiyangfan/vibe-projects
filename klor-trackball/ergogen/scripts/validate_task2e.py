@@ -20,7 +20,7 @@ import numpy as np
 import trimesh
 import yaml
 from shapely.geometry import LineString, MultiLineString, Point
-from shapely.ops import polygonize
+from shapely.ops import polygonize, unary_union
 
 ERGOGEN = Path(__file__).resolve().parents[1]
 KLOR = ERGOGEN.parent
@@ -225,10 +225,18 @@ def kicad_edge_segments(text: str):
 
 
 def board_polygon_from_kicad(text: str):
-    lines = [LineString([a, b]) for a, b in kicad_edge_segments(text)]
-    polys = list(polygonize(MultiLineString(lines)))
+    # Ergogen/KiCad emits some source-Bezier joins with a few microns of
+    # endpoint noise. Snap only the temporary 3D reconstruction to 0.01 mm;
+    # the production PCB itself remains untouched and is separately validated.
+    snapped = []
+    for a, b in kicad_edge_segments(text):
+        aa = (round(a[0], 2), round(a[1], 2))
+        bb = (round(b[0], 2), round(b[1], 2))
+        if aa != bb:
+            snapped.append(LineString([aa, bb]))
+    polys = list(polygonize(unary_union(snapped)))
     if not polys:
-        raise AssertionError("generated PCB Edge.Cuts did not polygonize")
+        raise AssertionError("generated PCB Edge.Cuts did not polygonize after 0.01 mm construction snap")
     outer = max(polys, key=lambda p: p.area)
     board = outer
     for p in sorted(polys, key=lambda q: q.area, reverse=True):
