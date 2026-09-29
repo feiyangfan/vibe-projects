@@ -31,7 +31,7 @@ housing_mount:
 
 breakout:
   center_from_ball: [19.212, 0]
-  service_slot: [2, 22]
+  service_slot: [2, 26]
   slot_axis: y
   service_direction: positive_x
 
@@ -108,7 +108,7 @@ plate_delta:
   removed_switch: SW22
   service_openings:
     - preserve_stock_SW22_14x14_opening
-    - add_disconnected_2x22_breakout_corridor_on_right_of_ball
+    - add_disconnected_2x26_breakout_corridor_on_right_of_ball
   add_housing_mount_axes: 2
 
 preservation_contract:
