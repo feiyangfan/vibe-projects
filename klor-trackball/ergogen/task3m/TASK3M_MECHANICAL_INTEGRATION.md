@@ -2,7 +2,7 @@
 
 ## Status
 
-**IN PROGRESS — PCB clearance is qualified; full assembly fit is now the gate.**
+**IN PROGRESS — full 3D fit uncovered and is correcting an MH7 conflict.**
 
 ## Why this task exists
 
@@ -14,7 +14,7 @@ A PCB-plane clearance result does **not** prove that the complete stack can be a
 
 Qualified PCB facts:
 
-- ball center: `(16.5, -28.000147)` mm in the canonical SW13 frame;
+- ball center after Task-3M fit correction: `(16.5, -31.500147)` mm in the canonical SW13 frame;
 - PMW connector remains on the +X/right side of the ball;
 - nearest production PCB Edge.Cuts: **12.323043 mm** from the ball center;
 - R32/R33 and the right encoder remain;
@@ -121,3 +121,19 @@ Task 3M is complete only when a clean checkout:
 7. exports a common-frame 3D assembly artifact and a machine-readable fit report.
 
 This task is a prerequisite to treating the trackball assembly as mechanically installable. Task 3E remains the electrical pair freeze and does not substitute for Task 3M.
+
+
+## Revision-4 placement correction
+
+The first common-frame boolean run found a genuine revision-3 conflict: the actual lower Type-C housing profile was only **0.542 mm** from MH7 center. That cannot preserve a 3.2 mm M3 drill plus case-relief allowance.
+
+Task 2 is therefore reopened as revision 4 for one localized change:
+
+- move the complete trackball assembly **3.5 mm downward in canonical Y**;
+- new ball center: `(16.5, -31.500147)`;
+- keep X, connector handedness, keys, encoder, MCU, TRRS and all structural axes unchanged;
+- lengthen the PMW support tongue so it still joins the unchanged stock PCB edge.
+
+At the revision-4 position the actual housing projection is approximately **3.82 mm** from MH7 center, providing room for the 1.6 mm M3 radius, 1.0 mm case relief, and at least 0.5 mm residual structural margin.
+
+This correction was discovered by the 3D gate and is intentionally not waived.
