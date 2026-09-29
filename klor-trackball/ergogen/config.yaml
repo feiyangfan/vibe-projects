@@ -12,7 +12,7 @@ units:
   # Task 2C trackball delta
   ball_diameter: 25
   breakout_slot_w: 2
-  breakout_slot_h: 22
+  breakout_slot_h: 26
   housing_w: 37.594812
   housing_h: 29.998377
   housing_axis_marker: 1
