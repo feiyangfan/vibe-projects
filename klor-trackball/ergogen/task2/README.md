@@ -83,6 +83,16 @@ The freeze combines:
 
 Passing evidence is recorded in `TASK2D_RESULT.md`.
 
+### 2E — 3D assembly validation
+
+**IN PROGRESS**
+
+Validate the complete mechanical stack with the actual Type-C housing STL, 25 mm ball, revision-3 PCB, stock Konrad switchplate and right case in one canonical 3D frame.
+
+See `TASK2E_3D_ASSEMBLY.md`.
+
+This gate owns the plate/case relief and true mesh interference check. Task 3E remains an electrical integration task and must not be used to waive unresolved mechanical collisions.
+
 ## Design rule
 
 Every Task-2 feature should answer one of two questions:
