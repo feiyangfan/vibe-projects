@@ -1,5 +1,5 @@
 status: task2c_geometry_baseline
-revision: 3
+revision: 4
 units: mm
 
 canonical_frame:
@@ -17,7 +17,7 @@ variant:
 
 trackball:
   ball_diameter: 25
-  ball_center_local: [16.5, -28.000147]
+  ball_center_local: [16.5, -31.500147]
   housing_center_from_ball: [9.165901, 0.000812]
   housing_envelope: [37.594812, 29.998377]
 
@@ -60,9 +60,9 @@ support_tongue:
   stock_edge_y_at_header: -18.797184
   stock_edge_y_at_tongue_inner_x: -18.677143
   header_body_bottom_y: -36.890147
-  body_overhang_beyond_stock_edge: 18.092963
-  center_from_breakout: [-3.9444785, -0.0894995]
-  size: [5.888957, 18.825007]
+  body_overhang_beyond_stock_edge: 21.592963
+  center_from_breakout: [-3.9444785, 1.6605005]
+  size: [5.888957, 22.325007]
   note: >-
     Connector-right support is re-derived against the sloped stock lower edge.
     The tongue touches the breakout slot at its negative-X edge and extends only
@@ -70,11 +70,13 @@ support_tongue:
 
 placement_adjustment:
   prior_ball_center_local: [22.261644, -28.000147]
-  revised_ball_center_local: [16.5, -28.000147]
+  revised_ball_center_local: [16.5, -31.500147]
   inward_shift_x: -5.761644
+  downward_shift_y: -3.5
   reason:
     - preserve_2_5mm_conservative_housing_clearance_to_retained_SW16
     - preserve_stock_MH8_clearance_from_connector_right_service_notch
+    - preserve_MH7_after_actual_Type_C_housing_3D_interference_check
 
 pcb_cavity:
   topology: klorball35_style_open_edge
