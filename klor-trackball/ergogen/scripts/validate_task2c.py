@@ -158,12 +158,15 @@ def main():
     tongue = point(generated, "pmw_support_tongue_center")
 
     expected_ball = tuple(float(x) for x in baseline["trackball"]["ball_center_local"])
-    assert_xy("Task-2 rev3 ball placement", ball, expected_ball, HIST_TOL)
+    assert_xy("Task-2 rev4 ball placement", ball, expected_ball, HIST_TOL)
 
     prior_ball = tuple(float(x) for x in baseline["placement_adjustment"]["prior_ball_center_local"])
-    expected_shift = float(baseline["placement_adjustment"]["inward_shift_x"])
+    expected_shift = (
+        float(baseline["placement_adjustment"]["inward_shift_x"]),
+        float(baseline["placement_adjustment"].get("downward_shift_y", 0.0)),
+    )
     actual_shift = (ball[0] - prior_ball[0], ball[1] - prior_ball[1])
-    assert_xy("connector-right inward placement shift", actual_shift, (expected_shift, 0.0), HIST_TOL)
+    assert_xy("connector-right 3D-fit placement shift", actual_shift, expected_shift, HIST_TOL)
 
     assert_delta(
         "housing center from ball",
@@ -270,7 +273,7 @@ def main():
     if point_in_polygon(sw21_rel, cavity_points):
         raise AssertionError("retained R33/SW21 fell inside the trackball cavity")
     print(
-        f"PASS rev3 KLORBall-35-style open cavity: "
+        f"PASS rev4 KLORBall-35-style open cavity: "
         f"ball-center edge clearance = {cavity_clearance:.6f} mm"
     )
 
@@ -344,7 +347,7 @@ def main():
         raise AssertionError("Task 2C right-thumb architecture changed")
 
     print("PASS Task 2B stock geometry remains a separately generated/validated source layer")
-    print("Task 2C revision-3 cavity regression passed")
+    print("Task 2C revision-4 3D-fit geometry regression passed")
     return 0
 
 
