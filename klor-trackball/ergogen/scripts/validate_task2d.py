@@ -170,7 +170,7 @@ def main():
         pxy(points, "ball_center")[1] - prior_ball[1],
     )
     assert_close(
-        "Task-2 rev3 retained ball shift from historical placement",
+        "Task-2 rev4 retained ball shift from historical placement",
         actual_shift,
         (float(pcb["placement_adjustment"]["inward_shift_x"]), 0.0),
     )
