@@ -240,6 +240,11 @@ def main():
             f"areas={[round(x['area'],2) for x in candidates]}"
         )
 
+    print("MX-like section candidates:", json.dumps(candidates, indent=2))
+    print("canonical MX targets:", json.dumps({
+        k: [float(target[i,0]), float(target[i,1])]
+        for i,k in enumerate(EXPECTED_SWITCHES)
+    }, indent=2))
     fit=rigid_fit(source,target)
     matched={EXPECTED_SWITCHES[i] for i in fit["assignment"]}
     unmatched=[x for x in EXPECTED_SWITCHES if x not in matched]
