@@ -219,9 +219,13 @@ A short authoritative requirements document exists, and any geometry-dependent p
 
 ## Task 2 — Reconstruct the complete KLOR/Konrad geometry in Ergogen
 
-**Status: COMPLETE**
+**Status: COMPLETE — REVISION 4 MECHANICALLY QUALIFIED**
 
 Task 2 begins with a minimal-change study before full reconstruction. The selected implementation baseline is to remove R34/SW22/D22 only, retain R32/R33 and the right encoder, preserve all structural interfaces, and keep PCB/plate/case changes local to the trackball region. See `ergogen/task2/MINIMAL_CHANGE_STUDY.md`.
+
+The current frozen geometry is **revision 4**. Full 3D integration against the actual Type-C housing, 25 mm ball, generated PCB, stock Konrad switchplate, and stock right case is qualified in `ergogen/task2/TASK2E_RESULT.md`. The ball center is `(15.5, -31.000147)` in the canonical XY frame, with approximately `12.938 mm` exposed above the plate. The PMW breakout remains on the right/+X side of the ball; the board-side 1x7 header moves into the reclaimed SW22 area and connects by a short seven-conductor cable.
+
+The digital geometry is collision-free within the Task-2E tolerance, but subjective ergonomics, assembly path, cable behavior, ball retention/motion, and the local case-pod desk stance still require a physical right-half mock-up before the mechanical design is treated as production-final.
 
 Build the actual canonical geometric model.
 
@@ -274,15 +278,15 @@ The generated canonical geometry numerically reproduces all intentionally preser
 Task 3 is split into explicit electrical gates:
 
 ```text
-3A  electrical architecture
+3A  electrical architecture          COMPLETE
  ↓
-3B  production footprints
+3B  production footprints            COMPLETE
  ↓
-3C  left unrouted PCB
+3C  left unrouted PCB                COMPLETE
  ↓
-3D  right unrouted PCB + PMW
+3D  right unrouted PCB + PMW Rev 4   COMPLETE
  ↓
-3E  cross-board electrical freeze
+3E  cross-board electrical freeze    NEXT
  ↓
 Task 4 routing
 ```
@@ -533,6 +537,13 @@ Generated output should never become the only place where design intent exists.
 
 ## Current work
 
-**Task 3B — Qualify production footprints.**
+**Canonical design baseline: Task-2 revision 4 + Task 3D revision 4.**
 
-Task 3A is complete and frozen in `ergogen/task3/task3a-electrical-contract.yaml`, with passing evidence in `ergogen/task3/TASK3A_RESULT.md`. Production footprints must now implement that electrical contract without altering Task-2 geometry.
+Tasks 3A–3D are complete. The left and right production-intent PCBs regenerate deterministically and remain intentionally unrouted. The right board consumes the full-3D-qualified revision-4 trackball geometry.
+
+There are now two distinct next gates:
+
+1. **Physical mechanical validation:** build the documented right-half mock-up from `ergogen/task2/TASK2E_RESULT.md` and verify real thumb reach, ball motion/retention, housing assembly, cable routing, fasteners, and the 5.462 mm local case-pod extension. Any geometry change discovered here reopens Task 2.
+2. **Task 3E — cross-board electrical integration and freeze:** validate the generated left/right boards together, freeze pair-level matrix/RGB/split/PMW ownership, and authorize Task 4 routing if no electrical mismatch is found.
+
+Do not treat the design as fabrication-ready until the physical mechanical validation has passed.
