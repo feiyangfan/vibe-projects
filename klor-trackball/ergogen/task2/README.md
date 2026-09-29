@@ -102,3 +102,5 @@ Task 2E places the generated revision-4 PCB, actual Type-C housing STL, 25 mm sp
 It proves zero meaningful housing/ball collision against the PCB and generated plate/case relief, and generates the relieved switchplate, right-case trackball pod, assembly GLB and machine-readable result. The qualified ball center is `(15.5, -31.000147, 1.938016)` mm with approximately 12.938 mm exposed above the plate.
 
 The case pod extends approximately 5.462 mm below the original case bottom. A printed mock-up remains the final subjective ergonomic and desk-stance check. See `TASK2E_MECHANICAL_INTEGRATION.md` and `TASK2E_RESULT.md`.
+
+**Physical-validation hold:** before production routing/fabrication is treated as mechanically final, build the documented right-half mock-up and verify housing assembly path, ball motion/retention, PMW3360 optical stack, cable routing, key/thumb interference, fasteners, and desk stance. Do not start that work until explicitly resumed.
