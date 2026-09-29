@@ -126,19 +126,16 @@ def switch_hole_candidates(mesh: trimesh.Trimesh) -> tuple[float, list[dict]]:
 
 
 def rigid_fit(source: np.ndarray, target: np.ndarray) -> dict:
-    """Fit source point set to target with optional reflection + free rotation.
+    """Fit source points to a same-or-larger target set.
 
-    Source may contain fewer points than target.  Rectangular Hungarian
-    assignment identifies the matching canonical subset; Kabsch rotation is
-    then iterated from several dihedral initializations.
+    Assignment is solved in absolute coordinates, then the matched subset is
+    re-centered for Kabsch rotation.  This avoids centroid bias when one stock
+    plate aperture is non-MX-shaped and therefore absent from the source set.
     """
     if len(source) > len(target):
         raise ValueError(f"source has more points than target: {len(source)} > {len(target)}")
 
-    src0 = source - source.mean(axis=0)
-    tgt0 = target - target.mean(axis=0)
     best = None
-
     seeds = []
     for reflect in (False, True):
         F = np.array([[-1.0,0.0],[0.0,1.0]]) if reflect else np.eye(2)
@@ -149,37 +146,41 @@ def rigid_fit(source: np.ndarray, target: np.ndarray) -> dict:
 
     for seed in seeds:
         M = seed.copy()
+        t = target.mean(axis=0) - source.mean(axis=0) @ M.T
         assignment = None
-        for _ in range(20):
-            moved = src0 @ M.T
-            cost = np.linalg.norm(moved[:,None,:] - tgt0[None,:,:], axis=2)
+        for _ in range(30):
+            moved = source @ M.T + t
+            cost = np.linalg.norm(moved[:,None,:] - target[None,:,:], axis=2)
             rows, cols = linear_sum_assignment(cost)
             order = np.argsort(rows)
-            assignment = cols[order]
-            A = src0[rows[order]]
-            B = tgt0[assignment]
-            H = A.T @ B
+            rows, cols = rows[order], cols[order]
+            A = source[rows]
+            B = target[cols]
+            ac, bc = A.mean(axis=0), B.mean(axis=0)
+            A0, B0 = A-ac, B-bc
+            H = A0.T @ B0
             U,S,Vt = np.linalg.svd(H)
             R = Vt.T @ U.T
-            # Allow reflection because right-half source files can be mirrored
-            # relative to the canonical Ergogen frame.
-            if np.linalg.det(seed) < 0 and np.linalg.det(R) > 0:
+            want_det = -1.0 if np.linalg.det(seed) < 0 else 1.0
+            if np.linalg.det(R) * want_det < 0:
                 Vt[-1,:] *= -1
                 R = Vt.T @ U.T
-            elif np.linalg.det(seed) > 0 and np.linalg.det(R) < 0:
-                Vt[-1,:] *= -1
-                R = Vt.T @ U.T
-            if np.linalg.norm(R-M) < 1e-10:
-                M=R
+            nt = bc - ac @ R.T
+            assignment = cols
+            if np.linalg.norm(R-M) < 1e-11 and np.linalg.norm(nt-t) < 1e-9:
+                M, t = R, nt
                 break
-            M=R
+            M, t = R, nt
 
-        moved=src0 @ M.T
-        err=np.linalg.norm(moved - tgt0[assignment], axis=1)
-        scale=np.sqrt(np.mean(np.sum(tgt0[assignment]**2,axis=1))/np.mean(np.sum(moved**2,axis=1)))
-        # Source CAD is expected to be true millimetres; report scale but don't
-        # silently apply a non-unit scaling.
-        t = target.mean(axis=0) - source.mean(axis=0) @ M.T
+        moved = source @ M.T + t
+        err = np.linalg.norm(moved - target[assignment], axis=1)
+        A0 = source - source.mean(axis=0)
+        Bmatch = target[assignment]
+        B0 = Bmatch - Bmatch.mean(axis=0)
+        scale = np.sqrt(
+            np.mean(np.sum(B0**2,axis=1)) /
+            np.mean(np.sum(A0**2,axis=1))
+        )
         result={
             "matrix_2x2":M.tolist(),
             "translation_xy":t.tolist(),
@@ -242,6 +243,7 @@ def main():
     fit=rigid_fit(source,target)
     matched={EXPECTED_SWITCHES[i] for i in fit["assignment"]}
     unmatched=[x for x in EXPECTED_SWITCHES if x not in matched]
+    print("switchplate XY fit:", json.dumps(fit, indent=2))
     if abs(fit["inferred_scale"]-1.0) > 0.005:
         raise AssertionError(f"switchplate source scale is not 1:1 mm: {fit['inferred_scale']}")
     if fit["rms_mm"] > 0.25 or fit["max_mm"] > 0.6:
