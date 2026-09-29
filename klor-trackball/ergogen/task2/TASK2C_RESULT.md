@@ -1,77 +1,90 @@
-# Task 2C Result — Trackball Delta Revision 3
+# Task 2C Result — Trackball Delta Revision 4
 
 ## Status
 
-**PASS — Task 2C revision 3 is complete.**
+**PASS — Task 2C revision 4 is complete.**
 
-Revision 3 preserves the revision-2 connector-right Type-C/Kivipallur placement and corrects the PCB clearance topology around the trackball.
+Revision 4 supersedes the revision-3 2D-only cavity after Task 2E tested the actual Type-C housing in 3D.
 
-## Corrected PCB delta
+## Why revision 4 was required
 
-Revision 2 incorrectly treated the 2 x 22 mm breakout/service corridor as the complete PCB clearance feature. That left substantial stock FR-4 under and around the trackball.
+Revision 3 gave the nominal ball a large open PCB cavity, but the actual Type-C housing still intersected the generated PCB by approximately **158.111 mm³** at a useful installation height.
 
-Revision 3 uses:
+A Z-only workaround required approximately 24 mm of ball exposure above the plate and was rejected.
+
+Task 2E found the minimum nearby clean XY placement that preserves all 19 retained right keys and all nine stock PCB holes:
+
+```text
+revision-3 ball = (16.5, -28.000147)
+revision-4 ball = (15.5, -31.000147)
+delta           = (-1.0, -3.0) mm
+```
+
+## Revision-4 PCB delta
+
+The right PCB is now:
 
 ```text
 stock_board
-+ pmw_support_tongue
-- trackball_cavity
-- breakout_service_slot
+- actual_housing_and_ball_cavity
 = trackball_board
 ```
 
-The new `trackball_cavity` is an open-edge polygon based on the checked-in KLORBall-35 right-PCB topology.
+The cavity is derived from the real Type-C housing section through the PCB slab, a 25 mm sphere and manufacturing clearance.
 
-## Cavity geometry
+The obsolete rigid PMW support tongue and 2 x 22 service-notch architecture are removed.
 
-Ball-relative cavity vertices in canonical coordinates:
+The generated revision-4 production PCB has approximately **11.806 mm** minimum Edge.Cuts distance from the ball center and passes the full Task-2E mesh-level PCB/housing check.
 
-```text
-(-21.50, +13.00)
-( -5.00, +12.94)
-( +9.93, +12.36)
-(+11.85, +10.19)
-( +9.31, -19.37)
-(+11.17, -21.54)
-(+11.17, -40.00)
-(-21.50, -40.00)
-```
+## PMW interface
 
-The KLORBall-35 reference left lip is approximately `-24.285 mm` from the inferred ball center. Revision 3 pulls that lip inward to `-21.5 mm` to preserve the retained MX R33/SW21 envelope.
+The Kivipallur breakout remains on the **right / +X side** of the ball:
 
-The explicit cavity polygon gives **10.934113 mm** minimum ball-center-to-cavity-boundary distance. The generated production board's nearest actual Edge.Cuts is **12.323043 mm** from the ball center. The corresponding KLORBall-35 reference measurement is approximately **9.658 mm**.
-
-The ball center lies inside the removed cavity. The PMW header, R33/SW21 and stock MH8 remain outside it.
-
-## Unchanged revision-2 placement
-
-- ball center: `(16.5, -28.000147)`;
 - housing center from ball: `(+9.165901, +0.000812)`;
-- breakout center from ball: `(+19.212, 0)`;
-- PMW header center from breakout: `(-4.613622, 0)`;
-- connector remains on +X / right side of the ball;
-- PMW physical pin direction remains KLORBall-35-compatible.
+- breakout center from ball: `(+19.212, 0)`.
 
-The limiting conservative retained-key/housing clearance remains SW16 at approximately **2.580294 mm**.
+The keyboard-side PMW header is moved to reclaimed SW22 PCB area at:
 
-The 2 x 22 service notch still clears MH8 by approximately **3.354275 mm edge-to-drill**.
+`(0, -22.022143)`
+
+It connects to the Kivipallur breakout with a short seven-conductor cable.
+
+The electrical/physical pin contract remains:
+
+1. CS
+2. MISO
+3. MOSI
+4. SCK
+5. NC / MOTION
+6. 3V3
+7. GND
+
+and cable mapping remains breakout pin `N` to keyboard pin `8-N`.
+
+## Preserved geometry
+
+Revision 4 retains:
+
+- R32 / SW20;
+- R33 / SW21;
+- right encoder;
+- MCU and TRRS;
+- all 19 active right MX positions;
+- all nine stock PCB holes;
+- stock geometry outside the bounded real-housing trackball delta.
+
+R34 / SW22 / D22 remain electrically absent.
 
 ## Qualification
 
 Qualification head:
 
-`1a6c90f3596c2b6f648c0c1663069b5713215388`
+`52ea88ad36f9fe31962a599036b09c8a8fdb50d0`
 
 Passing workflow:
 
 - `KLOR Task 2C - trackball delta`
-- run ID: `36090754209`
+- run ID: `36376432637`
 - conclusion: **success**
 
-Artifact:
-
-- `klor-task2c-trackball-geometry`
-- artifact ID: `10845079830`
-- SHA-256: `03cc151e9558abd916f74acd277e2d2d3d913078c4aff299e87d314510822dba`
-
-Task 2B also passed on the same head.
+The same head passes Task 2E's full 3D integration gate.

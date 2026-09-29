@@ -1,5 +1,5 @@
 status: task2c_geometry_baseline
-revision: 3
+revision: 4
 units: mm
 
 canonical_frame:
@@ -17,7 +17,7 @@ variant:
 
 trackball:
   ball_diameter: 25
-  ball_center_local: [16.5, -28.000147]
+  ball_center_local: [15.5, -31.000147]
   housing_center_from_ball: [9.165901, 0.000812]
   housing_envelope: [37.594812, 29.998377]
 
@@ -31,16 +31,16 @@ housing_mount:
 
 breakout:
   center_from_ball: [19.212, 0]
-  service_slot: [2, 22]
-  slot_axis: y
-  service_direction: positive_x
+  connector_side: positive_x
+  note: actual_Kivipallur_connector_remains_on_right_side_of_ball
 
 pmw_header_reference:
   connector: PinHeader_1x07_P2.54mm_Vertical
   keyboard_side: F.Cu
   pitch: 2.54
   body_reference_envelope: [2.54, 17.78]
-  center_from_breakout: [-4.613622, 0]
+  board_center_local: [0, -22.022143]
+  connection_form: short_7_conductor_cable
   row_axis: y
   orientation_reference: klorball35_right
   pin_1_end: positive_canonical_y
@@ -55,58 +55,61 @@ pmw_header_reference:
     7: GND
 
 support_tongue:
-  required: true
-  reason: locked_header_mating_envelope_overhangs_stock_lower_edge
-  stock_edge_y_at_header: -18.797184
-  stock_edge_y_at_tongue_inner_x: -18.677143
-  header_body_bottom_y: -36.890147
-  body_overhang_beyond_stock_edge: 18.092963
-  center_from_breakout: [-3.9444785, -0.0894995]
-  size: [5.888957, 18.825007]
-  note: >-
-    Connector-right support is re-derived against the sloped stock lower edge.
-    The tongue touches the breakout slot at its negative-X edge and extends only
-    far enough to support the frozen 1x7 header body plus the prior 0.612 mm margin.
+  required: false
+  reason: rejected_by_task2e_real_housing_interference
 
 placement_adjustment:
-  prior_ball_center_local: [22.261644, -28.000147]
-  revised_ball_center_local: [16.5, -28.000147]
-  inward_shift_x: -5.761644
+  prior_ball_center_local: [16.5, -28.000147]
+  revised_ball_center_local: [15.5, -31.000147]
+  shift_xy: [-1.0, -3.0]
+  shift_norm: 3.162278
   reason:
-    - preserve_2_5mm_conservative_housing_clearance_to_retained_SW16
-    - preserve_stock_MH8_clearance_from_connector_right_service_notch
+    - real_Type_C_housing_intersected_revision3_PCB_by_158_111mm3
+    - minimum_clean_candidate_preserves_all_19_keys_and_9_PCB_holes
+    - nearest_retained_key_center_remains_34_196mm
 
 pcb_cavity:
-  topology: klorball35_style_open_edge
-  reference: checked_in_klorball35_right_edge_cuts
-  klorball35_reference_min_ball_center_edge_distance: 9.658
-  required_min_ball_center_edge_distance: 9.5
+  topology: actual_type_c_housing_section_plus_ball_clearance
+  source: Task2E_real_mesh_interference_scan
+  manufacturing_clearance_xy: 0.5
+  ball_radial_clearance: 0.3
+  simplification_tolerance: 0.35
   points_from_ball:
-    - [-21.5, 13.0]
-    - [-5.0, 12.94]
-    - [9.93, 12.36]
-    - [11.85, 10.19]
-    - [9.31, -19.37]
-    - [11.17, -21.54]
-    - [11.17, -40.0]
-    - [-21.5, -40.0]
-  adaptation:
-    original_reference_left_lip_x: -24.285
-    revised_left_lip_x: -21.5
-    reason: preserve_retained_R33_SW21_MX_envelope
-  pmw_peninsula:
-    header_center_from_ball: [14.598378, 0]
-    must_remain_outside_cavity: true
-  ball_center_must_be_inside_cavity: true
-  open_to_lower_board_edge: true
+    - [-3.397674, -12.995708]
+    - [-4.012645, -11.409311]
+    - [-6.727274, -10.068077]
+    - [-9.360209, -7.681725]
+    - [-11.876107, -2.362305]
+    - [-11.876107, 2.362305]
+    - [-9.706553, 7.214733]
+    - [-10.125556, 9.731904]
+    - [-9.097836, 11.812018]
+    - [-5.204447, 13.975684]
+    - [-0.005989, 14.910524]
+    - [21.423979, 13.373324]
+    - [24.221360, 12.356466]
+    - [26.604957, 10.304514]
+    - [28.409315, 5.956341]
+    - [28.412217, -5.923751]
+    - [27.333568, -9.233634]
+    - [25.267819, -11.641650]
+    - [20.930460, -13.444568]
+    - [0.918644, -14.869125]
+    - [-1.754294, -14.689407]
+  board_header:
+    center_local: [0, -22.022143]
+    outside_cavity: true
+    connection: short_7_conductor_cable
+  all_nine_stock_pcb_holes_preserved: true
+  all_19_retained_keys_preserved: true
 
 plate_delta:
   preserve_outer_perimeter: true
   retained_switch_cutouts: 19
   removed_switch: SW22
   service_openings:
-    - preserve_stock_SW22_14x14_opening
-    - add_disconnected_2x22_breakout_corridor_on_right_of_ball
+    - preserve_stock_SW22_14x14_opening_for_cable_header_access
+    - subtract_actual_housing_and_ball_relief
   add_housing_mount_axes: 2
 
 preservation_contract:
@@ -119,5 +122,5 @@ preservation_contract:
     - TRRS
     - MH1_through_MH9
     - all_eight_case_mount_axes
-    - stock_board_geometry_outside_cavity_notch_and_support_tongue
+    - stock_board_geometry_outside_actual_housing_cavity
     - stock_switchplate_outer_perimeter

@@ -1,0 +1,75 @@
+name: KLOR Task 2E - 3D mechanical integration
+
+on:
+  pull_request:
+    paths:
+      - "klor-trackball/ergogen/**"
+      - "klor-trackball/Keyball 25mm Trackball Case Type C - 6719828/**"
+      - "klor-trackball/klor1.4/case/3DP/konrad/**"
+      - "klor-trackball/klor1.4/PCB/klor1_4/**"
+      - ".github/workflows/klor-ergogen-task2e.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate-3d-mechanical:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: klor-trackball/ergogen
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python geometry dependencies
+        run: >-
+          python -m pip install
+          PyYAML
+          numpy
+          shapely
+          trimesh
+          manifold3d
+          mapbox_earcut
+          rtree
+          scipy
+
+      - name: Generate Rev-4 geometry and PCB
+        run: npx --yes ergogen@4.2.1 . --output generated --clean --svg --debug
+
+      - name: Re-run Task 2B
+        run: python scripts/validate_task2b.py --generated generated
+
+      - name: Re-run Task 2C
+        run: python scripts/validate_task2c.py --generated generated
+
+      - name: Re-run Task 2D
+        run: python scripts/validate_task2d.py --generated generated
+
+      - name: Re-run Task 3D
+        run: python scripts/validate_task3d.py generated
+
+      - name: Run common-frame 3D integration
+        run: python scripts/validate_task2e.py generated --output task2e-output
+
+      - name: Upload 3D mechanical outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: klor-task2e-3d-mechanical
+          path: |
+            klor-trackball/ergogen/task2e-output/task2e_konrad_switchplate_trackball.stl
+            klor-trackball/ergogen/task2e-output/task2e_konrad_case_right_trackball.stl
+            klor-trackball/ergogen/task2e-output/task2e_trackball_assembly.glb
+            klor-trackball/ergogen/task2e-output/task2e_mechanical_result.json
+          if-no-files-found: error

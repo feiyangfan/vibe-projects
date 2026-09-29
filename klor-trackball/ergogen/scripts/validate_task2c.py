@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Task 2C regression gate for the minimal KLOR trackball geometry delta."""
+"""Task 2C regression gate for the frozen KLOR trackball mechanical delta."""
 
 from __future__ import annotations
 
@@ -10,24 +10,14 @@ from pathlib import Path
 
 import yaml
 
-from validate_task2b import (
-    local_from_kicad,
-    parse_footprints,
-    top_edge_primitives,
-)
-
-
 HERE = Path(__file__).resolve()
 ERGOGEN = HERE.parents[1]
-KLOR = HERE.parents[2]
 CONFIG = ERGOGEN / "config.yaml"
 BASELINE = ERGOGEN / "task2/task2c-baseline.yaml"
-STOCK_PCB = KLOR / "klor1.4/PCB/klor1_4/klor1_4.kicad_pcb"
 
 TOL = 2e-6
 HIST_TOL = 1e-4
 MIN_HOUSING_KEY_GAP = 2.5
-MIN_NOTCH_TO_MH8_EDGE_GAP = 0.5
 
 
 def point(generated, name):
@@ -39,7 +29,7 @@ def assert_xy(name, actual, expected, tol=TOL):
     d = math.dist(actual[:2], expected[:2])
     if d > tol:
         raise AssertionError(f"{name}: actual={actual[:2]} expected={expected[:2]} delta={d}")
-    print(f"PASS {name:26s} x={actual[0]:10.6f} y={actual[1]:10.6f}")
+    print(f"PASS {name:34s} x={actual[0]:10.6f} y={actual[1]:10.6f}")
 
 
 def assert_delta(name, a, b, expected, tol=TOL):
@@ -55,27 +45,6 @@ def selector_names(config, outline_name, generated):
         raise AssertionError(f"{outline_name}: expected regex selector, got {where!r}")
     rx = re.compile(where[1:-1])
     return sorted(name for name in generated if rx.fullmatch(name))
-
-
-def stock_lower_edge_y_at_x(pcb_text, origin, x):
-    """Return the lowest stock Edge.Cuts line intersection at canonical X."""
-    ys = []
-    for prim in top_edge_primitives(pcb_text):
-        if prim["type"] != "gr_line":
-            continue
-        (x1, y1), (x2, y2) = prim["pts"]
-        a = local_from_kicad((x1, y1, 0.0), origin)
-        b = local_from_kicad((x2, y2, 0.0), origin)
-        if not (min(a[0], b[0]) - TOL <= x <= max(a[0], b[0]) + TOL):
-            continue
-        dx = b[0] - a[0]
-        if abs(dx) <= TOL:
-            continue
-        t = (x - a[0]) / dx
-        ys.append(a[1] + t * (b[1] - a[1]))
-    if not ys:
-        raise AssertionError(f"no stock Edge.Cuts line covers x={x}")
-    return min(ys)
 
 
 def rect_gap(a_lo, a_hi, center, half=9.0):
@@ -144,9 +113,9 @@ def main():
     generated = yaml.safe_load(
         (args.generated / "points/points.yaml").read_text(encoding="utf-8")
     )
-    pcb_text = STOCK_PCB.read_text(encoding="utf-8")
-    fps = parse_footprints(pcb_text)
-    origin = fps["SW13"]
+
+    if baseline["revision"] != 4:
+        raise AssertionError("Task 2C must remain at mechanical revision 4")
 
     ball = point(generated, "ball_center")
     breakout = point(generated, "breakout_center")
@@ -155,177 +124,111 @@ def main():
     screw_1 = point(generated, "housing_screw_1")
     screw_2 = point(generated, "housing_screw_2")
     header = point(generated, "pmw_header_center")
-    tongue = point(generated, "pmw_support_tongue_center")
 
     expected_ball = tuple(float(x) for x in baseline["trackball"]["ball_center_local"])
-    assert_xy("Task-2 rev3 ball placement", ball, expected_ball, HIST_TOL)
+    assert_xy("Task-2 rev4 ball placement", ball, expected_ball, HIST_TOL)
 
     prior_ball = tuple(float(x) for x in baseline["placement_adjustment"]["prior_ball_center_local"])
-    expected_shift = float(baseline["placement_adjustment"]["inward_shift_x"])
+    expected_shift = tuple(float(x) for x in baseline["placement_adjustment"]["shift_xy"])
     actual_shift = (ball[0] - prior_ball[0], ball[1] - prior_ball[1])
-    assert_xy("connector-right inward placement shift", actual_shift, (expected_shift, 0.0), HIST_TOL)
+    assert_xy("real-housing placement correction", actual_shift, expected_shift, HIST_TOL)
 
     assert_delta(
-        "housing center from ball",
-        housing,
-        ball,
+        "housing center from ball", housing, ball,
         tuple(float(x) for x in baseline["trackball"]["housing_center_from_ball"]),
     )
     assert_delta(
-        "housing screw midpoint from ball",
-        screw_mid,
-        ball,
+        "housing screw midpoint from ball", screw_mid, ball,
         tuple(float(x) for x in baseline["housing_mount"]["midpoint_from_ball"]),
     )
     assert_delta("housing screw 1 from midpoint", screw_1, screw_mid, (0.0, 7.98))
     assert_delta("housing screw 2 from midpoint", screw_2, screw_mid, (0.0, -7.98))
     assert_delta(
-        "breakout center from ball",
-        breakout,
-        ball,
+        "breakout center from ball", breakout, ball,
         tuple(float(x) for x in baseline["breakout"]["center_from_ball"]),
     )
-    assert_delta(
-        "PMW header from breakout",
+    assert_xy(
+        "cabled keyboard PMW header",
         header,
-        breakout,
-        tuple(float(x) for x in baseline["pmw_header_reference"]["center_from_breakout"]),
+        tuple(float(x) for x in baseline["pmw_header_reference"]["board_center_local"]),
     )
-    if not (housing[0] > ball[0] and breakout[0] > ball[0] and header[0] > ball[0]):
-        raise AssertionError("connector-right orientation regressed: housing/breakout/header must be +X of ball")
-    print("PASS KLORBall-35 handedness: connector assembly is on +X / right side of ball")
+
+    if not (housing[0] > ball[0] and breakout[0] > ball[0]):
+        raise AssertionError("Type-C/Kivipallur connector handedness regressed")
+    if baseline["pmw_header_reference"]["connection_form"] != "short_7_conductor_cable":
+        raise AssertionError("revision-4 cabled PMW interface changed")
+    print("PASS Kivipallur connector remains +X/right; keyboard header is cabled")
+
     if abs(math.dist(screw_1[:2], screw_2[:2]) - 15.96) > TOL:
         raise AssertionError("housing screw pair spacing changed")
     print("PASS housing screw spacing = 15.96 mm source geometry")
 
     retained = selector_names(config, "trackball_konrad_switch_cutouts", generated)
-    expected_retained = [*(f"sw{i}" for i in range(1, 18)), "sw20", "sw21"]
-    if retained != sorted(expected_retained):
+    expected_retained = sorted([*(f"sw{i}" for i in range(1, 18)), "sw20", "sw21"])
+    if retained != expected_retained:
         raise AssertionError(f"retained key selector mismatch: {retained}")
-    if "sw22" in retained:
-        raise AssertionError("SW22/R34 must be suppressed in Task 2C")
-    print("PASS 19-key right-half target geometry suppresses SW22/R34 only")
+    print("PASS exactly 19 right keys retained; SW22/R34 remains absent")
 
-    board_parts = config["outlines"]["trackball_board"]
     board_contract = [
         (part.get("name"), part.get("operation", "add"))
-        for part in board_parts
+        for part in config["outlines"]["trackball_board"]
     ]
-    expected_board_contract = [
-        ("stock_board", "add"),
-        ("pmw_support_tongue", "add"),
-        ("trackball_cavity", "subtract"),
-        ("breakout_service_slot", "subtract"),
-    ]
-    if board_contract != expected_board_contract:
-        raise AssertionError(f"trackball board composition changed: {board_contract}")
-    print("PASS board delta = stock + PMW tongue - open trackball cavity - 2x22 service notch")
+    if board_contract != [("stock_board", "add"), ("trackball_cavity", "subtract")]:
+        raise AssertionError(f"revision-4 board composition changed: {board_contract}")
+    print("PASS board delta = stock board - actual-housing/ball cavity")
 
     plate_parts = config["outlines"]["trackball_plate_service_opening"]
     if plate_parts[0].get("where") != "sw22":
-        raise AssertionError("plate service opening must reuse stock SW22 aperture")
-    if plate_parts[1].get("name") != "breakout_service_slot":
-        raise AssertionError("plate service opening must merge with breakout slot")
-    print("PASS plate preserves R34 opening and adds connector-right 2x22 corridor")
+        raise AssertionError("plate must preserve SW22 aperture for cable/header access")
+    if plate_parts[1].get("name") != "trackball_cavity":
+        raise AssertionError("plate preview must include real-housing cavity")
+    print("PASS plate delta uses SW22 cable access plus actual-housing relief")
 
-    units = config["units"]
-    if float(units["ball_diameter"]) != 25:
+    if float(config["units"]["ball_diameter"]) != 25:
         raise AssertionError("ball diameter changed")
-    if [float(units["breakout_slot_w"]), float(units["breakout_slot_h"])] != [2.0, 22.0]:
-        raise AssertionError("breakout service envelope changed")
 
     cavity_spec = baseline["pcb_cavity"]
     cavity_cfg = config["outlines"]["trackball_cavity"]
     if len(cavity_cfg) != 1 or cavity_cfg[0].get("what") != "polygon":
         raise AssertionError("trackball cavity must be one explicit polygon")
-    cavity_points = [
+    actual_points = [
         (float(p["shift"][0]), float(p["shift"][1]))
         for p in cavity_cfg[0]["points"]
     ]
-    expected_cavity = [
-        (float(p[0]), float(p[1]))
-        for p in cavity_spec["points_from_ball"]
+    expected_points = [
+        (float(p[0]), float(p[1])) for p in cavity_spec["points_from_ball"]
     ]
-    if len(cavity_points) != len(expected_cavity):
+    if len(actual_points) != len(expected_points):
         raise AssertionError("trackball cavity vertex count changed")
-    for actual, expected in zip(cavity_points, expected_cavity):
-        assert_xy("cavity vertex", actual, expected, HIST_TOL)
+    for actual, expected in zip(actual_points, expected_points):
+        assert_xy("real-housing cavity vertex", actual, expected, HIST_TOL)
 
-    if not point_in_polygon((0.0, 0.0), cavity_points):
-        raise AssertionError("ball center is not inside the explicit PCB cavity")
-    cavity_clearance = polygon_edge_distance((0.0, 0.0), cavity_points)
-    required_cavity_clearance = float(cavity_spec["required_min_ball_center_edge_distance"])
-    if cavity_clearance < required_cavity_clearance:
-        raise AssertionError(
-            f"ball-center/cavity-edge clearance too small: {cavity_clearance}"
-        )
+    if not point_in_polygon((0.0, 0.0), actual_points):
+        raise AssertionError("ball center must lie inside PCB cavity")
+    clearance = polygon_edge_distance((0.0, 0.0), actual_points)
+    print(f"PASS real-housing/ball cavity surrounds ball; nearest boundary={clearance:.6f} mm")
 
-    header_rel = (header[0] - ball[0], header[1] - ball[1])
-    if point_in_polygon(header_rel, cavity_points):
-        raise AssertionError("PMW header center fell inside the trackball cavity")
-    mh8_rel = (point(generated, "mh8")[0] - ball[0], point(generated, "mh8")[1] - ball[1])
-    if point_in_polygon(mh8_rel, cavity_points):
-        raise AssertionError("stock MH8 fell inside the trackball cavity")
-    sw21_rel = (point(generated, "sw21")[0] - ball[0], point(generated, "sw21")[1] - ball[1])
-    if point_in_polygon(sw21_rel, cavity_points):
-        raise AssertionError("retained R33/SW21 fell inside the trackball cavity")
-    print(
-        f"PASS rev3 KLORBall-35-style open cavity: "
-        f"ball-center edge clearance = {cavity_clearance:.6f} mm"
-    )
+    # Header body and every retained datum must stay out of the cavity.
+    header_w = float(config["units"]["pmw_header_body_w"])
+    header_h = float(config["units"]["pmw_header_body_h"])
+    header_corners = [
+        (header[0] + sx * header_w / 2, header[1] + sy * header_h / 2)
+        for sx in (-1, 1) for sy in (-1, 1)
+    ]
+    for corner in header_corners:
+        rel = (corner[0] - ball[0], corner[1] - ball[1])
+        if point_in_polygon(rel, actual_points):
+            raise AssertionError(f"cabled PMW header overlaps actual-housing cavity: {corner}")
 
-    edge_y = stock_lower_edge_y_at_x(pcb_text, origin, header[0])
-    header_w = float(units["pmw_header_body_w"])
-    header_h = float(units["pmw_header_body_h"])
-    header_bottom = header[1] - header_h / 2
-    overhang = edge_y - header_bottom
-    expected_overhang = float(baseline["support_tongue"]["body_overhang_beyond_stock_edge"])
-    if abs(overhang - expected_overhang) > HIST_TOL:
-        raise AssertionError(f"header overhang regression changed: {overhang}")
-    print(f"PASS connector-right PMW header overhangs stock edge by {overhang:.6f} mm")
+    for name in [*(f"sw{i}" for i in range(1, 18)), "sw20", "sw21", *(f"mh{i}" for i in range(1, 10))]:
+        p = point(generated, name)
+        rel = (p[0] - ball[0], p[1] - ball[1])
+        if point_in_polygon(rel, actual_points):
+            raise AssertionError(f"retained datum {name} lies inside revision-4 cavity")
+    print("PASS cabled PMW header, 19 keys and 9 PCB holes remain outside cavity")
 
-    tongue_w = float(units["pmw_support_tongue_w"])
-    tongue_h = float(units["pmw_support_tongue_h"])
-    tongue_lo = (tongue[0] - tongue_w / 2, tongue[1] - tongue_h / 2)
-    tongue_hi = (tongue[0] + tongue_w / 2, tongue[1] + tongue_h / 2)
-    header_lo = (header[0] - header_w / 2, header[1] - header_h / 2)
-    header_hi = (header[0] + header_w / 2, header[1] + header_h / 2)
-    if tongue_lo[0] > header_lo[0] + TOL or tongue_hi[0] < header_hi[0] - TOL:
-        raise AssertionError("support tongue does not cover PMW header width")
-    if tongue_lo[1] > header_lo[1] + TOL:
-        raise AssertionError("support tongue is not deep enough for PMW header")
-    tongue_join_edge_y = stock_lower_edge_y_at_x(pcb_text, origin, tongue_lo[0])
-    expected_join = float(baseline["support_tongue"]["stock_edge_y_at_tongue_inner_x"])
-    if abs(tongue_join_edge_y - expected_join) > HIST_TOL:
-        raise AssertionError("support-tongue stock-edge join regression changed")
-    if abs(tongue_hi[1] - tongue_join_edge_y) > HIST_TOL:
-        raise AssertionError(
-            f"support tongue does not terminate at sloped stock edge: {tongue_hi[1]} vs {tongue_join_edge_y}"
-        )
-    slot_w = float(units["breakout_slot_w"])
-    if abs(tongue_hi[0] - (breakout[0] - slot_w / 2)) > HIST_TOL:
-        raise AssertionError("connector-right support tongue must terminate at negative-X slot edge")
-    print("PASS re-derived connector-right support tongue joins stock edge and service notch")
-
-    slot_h = float(units["breakout_slot_h"])
-    slot_top = breakout[1] + slot_h / 2
-    slot_bottom = breakout[1] - slot_h / 2
-    breakout_edge_y = stock_lower_edge_y_at_x(pcb_text, origin, breakout[0])
-    if not (slot_bottom < breakout_edge_y < slot_top):
-        raise AssertionError("2x22 breakout slot no longer crosses the stock lower edge")
-
-    mh8 = point(generated, "mh8")
-    slot_lo_x = breakout[0] - slot_w / 2
-    slot_hi_x = breakout[0] + slot_w / 2
-    dx = max(slot_lo_x - mh8[0], mh8[0] - slot_hi_x, 0.0)
-    dy = max(slot_bottom - mh8[1], mh8[1] - slot_top, 0.0)
-    notch_to_mh8_edge = math.hypot(dx, dy) - float(units["pcb_m3_hole"]) / 2
-    if notch_to_mh8_edge < MIN_NOTCH_TO_MH8_EDGE_GAP:
-        raise AssertionError(f"connector-right notch/MH8 clearance too small: {notch_to_mh8_edge}")
-    print(f"PASS stock MH8 retained with {notch_to_mh8_edge:.6f} mm notch-edge clearance")
-
-    housing_w = float(units["housing_w"])
-    housing_h = float(units["housing_h"])
+    housing_w = float(config["units"]["housing_w"])
+    housing_h = float(config["units"]["housing_h"])
     housing_lo = (housing[0] - housing_w / 2, housing[1] - housing_h / 2)
     housing_hi = (housing[0] + housing_w / 2, housing[1] + housing_h / 2)
     gaps = []
@@ -335,16 +238,16 @@ def main():
     gaps.sort()
     min_gap, min_name = gaps[0]
     if min_gap < MIN_HOUSING_KEY_GAP:
-        raise AssertionError(f"housing/key clearance regressed: {min_name} = {min_gap}")
-    print(f"PASS conservative retained-key/housing gap: {min_name} = {min_gap:.6f} mm")
+        raise AssertionError(f"housing/key clearance regressed: {min_name}={min_gap}")
+    print(f"PASS conservative retained-key/housing gap: {min_name}={min_gap:.6f} mm")
 
-    if baseline["support_tongue"]["required"] is not True:
-        raise AssertionError("Task 2C baseline no longer records support tongue as required")
+    if baseline["support_tongue"]["required"] is not False:
+        raise AssertionError("obsolete rigid PMW support tongue returned")
     if baseline["variant"]["removed_right_thumb"] != ["R34"]:
         raise AssertionError("Task 2C right-thumb architecture changed")
 
     print("PASS Task 2B stock geometry remains a separately generated/validated source layer")
-    print("Task 2C revision-3 cavity regression passed")
+    print("Task 2C revision-4 real-housing geometry regression passed")
     return 0
 
 

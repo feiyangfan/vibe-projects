@@ -88,9 +88,9 @@ Gate:
 
 ### Task 3D — Generate the right production-intent PCB
 
-**REVISION 3 — COMPLETE**
+**REVISION 4 — COMPLETE**
 
-Generate the right PCB on the frozen Task-2D revision-3 trackball geometry.
+Generate the right PCB on the frozen Task-2D revision-4 trackball geometry.
 
 Expected electrical content:
 
@@ -101,7 +101,7 @@ Expected electrical content:
 - controller;
 - TRRS half-duplex split;
 - reset;
-- connector-right PMW 1x7 on F.Cu, matching KLORBall-35 handedness and physical pin direction;
+- cabled PMW 1x7 board header on F.Cu; the Kivipallur breakout remains on the right side of the ball;
 - PMW3360 SPI/power nets.
 
 Gate:
@@ -109,9 +109,10 @@ Gate:
 - R32/R33 remain;
 - R34/SW22/D22 and its RGB device are absent;
 - the RGB chain bypasses R34 logically;
-- the PMW connector sits on the right/+X side of the ball and matches Task-2D revision 3 exactly;
-- the generated PCB includes the frozen open-edge trackball cavity and preserves the right-side PMW peninsula;
-- generated Edge.Cuts maintain at least 9.5 mm ball-center clearance;
+- the Kivipallur breakout remains on the right/+X side of the ball;
+- the board-side PMW header remains at the frozen reclaimed-SW22 cable-header datum;
+- the generated PCB uses the frozen actual-housing-derived cavity;
+- Task 2E proves zero meaningful housing/sphere intersection with the generated PCB;
 - the right PCB is electrically coherent and intentionally unrouted.
 
 ### Task 3E — Cross-board electrical integration and freeze

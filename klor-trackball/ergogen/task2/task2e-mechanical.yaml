@@ -1,0 +1,64 @@
+status: task2e_complete
+revision: 2
+
+frame:
+  xy_origin: stock_SW13
+  canonical_x: source_kicad_positive_x
+  canonical_y: reflected_source_kicad_y
+  switchplate_transform_source: validate_task2b.py
+  housing_local_origin: ball_center
+
+z_stack:
+  switchplate_bottom_z: 0.0
+  plate_top_to_pcb_top: 5.0
+  pcb_thickness: 1.6
+  case_top_aligns_to_switchplate_top: true
+  pcb_top_source_status: cherry_mx_mechanical_drawing
+
+trackball:
+  ball_xy: [15.5, -31.000147]
+  ball_diameter: 25.0
+  minimum_pcb_clearance: 0.5
+  housing_z_search_step: 0.25
+
+clearance:
+  housing_xy: 0.5
+  housing_z: 0.3
+  ball_radial: 0.3
+
+mounting:
+  form: case_pod_bottom_bosses
+  screw_midpoint_from_ball: [6.212, 0.0]
+  screw_y_offsets: [7.98, -7.98]
+  screw_hole_diameter: 2.1
+  boss_outer_radius: 3.0
+  boss_contact_gap: 0.05
+  boss_support_check_radius: 2.4
+
+case_pod:
+  wall_thickness: 1.5
+  floor_thickness: 1.5
+  overlap_into_stock_case: 2.0
+  note: >-
+    The actual housing extends below the stock right-case bottom at the chosen
+    ergonomic ball height. A local downward pod encloses it and provides the
+    two native M2 mounting bosses without raising the entire ball.
+
+sources:
+  housing: ../Keyball 25mm Trackball Case Type C - 6719828/files/keyball_trackball_case_25mm_type_c_right.stl
+  switchplate: ../klor1.4/case/3DP/konrad/switchplate/KLOR_konrad_3DP_switchplate.stl
+  right_case: ../klor1.4/case/3DP/konrad/regular/KLOR_konrad_case_R.stl
+  stock_pcb: ../klor1.4/PCB/klor1_4/klor1_4.kicad_pcb
+
+revision4:
+  source_revision3_housing_pcb_intersection_mm3: 158.111457
+  rejected_z_only_clearance_ball_exposure_mm: 24.0
+  ball_shift_from_revision3: [-1.0, -3.0]
+  keyboard_pmw_header_center: [0, -22.022143]
+  pmw_connection_form: short_7_conductor_cable
+
+outputs:
+  relieved_switchplate: task2e_konrad_switchplate_trackball.stl
+  relieved_right_case: task2e_konrad_case_right_trackball.stl
+  assembly_scene: task2e_trackball_assembly.glb
+  result_json: task2e_mechanical_result.json

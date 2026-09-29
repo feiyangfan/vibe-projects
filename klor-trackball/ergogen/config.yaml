@@ -9,18 +9,14 @@ units:
   pcb_m3_hole: 3.2
   case_m2_hole: 2.1
 
-  # Task 2C trackball delta
+  # Task 2 trackball mechanical delta
   ball_diameter: 25
-  breakout_slot_w: 2
-  breakout_slot_h: 22
   housing_w: 37.594812
   housing_h: 29.998377
   housing_axis_marker: 1
   pmw_header_pitch: 2.54
   pmw_header_body_w: 2.54
   pmw_header_body_h: 17.78
-  pmw_support_tongue_w: 5.888957
-  pmw_support_tongue_h: 18.825007
 
 # Task 2B canonical stock frame:
 # - origin = stock SW13 center
@@ -173,7 +169,7 @@ points:
     # historical KiCad/Gerber transform are treated as transform noise.
     ball_center:
       anchor:
-        shift: [16.5, -28.000147]
+        shift: [15.5, -31.000147]
     housing_center:
       anchor:
         ref: ball_center
@@ -194,18 +190,13 @@ points:
       anchor:
         ref: ball_center
         shift: [19.212, 0]
+    # Revision 4: the actual Type-C housing occupies the old rigid PMW
+    # peninsula. Keep the Kivipallur connector on the +X/right side of the
+    # ball, but place the keyboard-side 1x7 cable header in reclaimed SW22
+    # board area, safely left of the real housing keepout.
     pmw_header_center:
       anchor:
-        ref: breakout_center
-        shift: [-4.613622, 0]
-    pmw_support_tongue_center:
-      anchor:
-        ref: breakout_center
-        shift: [-3.9444785, -0.0894995]
-
-    # Connector-right orientation copied from the KLORBall-35 right PCB:
-    # keyboard pin 1 / CS is at positive canonical Y and pin 7 / GND at
-    # negative canonical Y. The qualified footprint therefore stays at 0 deg.
+        shift: [0, -22.022143]
     pmw_header_prod:
       anchor:
         ref: pmw_header_center
@@ -878,49 +869,43 @@ outlines:
       where: /^housing_screw_[12]$/
       radius: housing_axis_marker / 2
 
-  breakout_service_slot:
-    - what: rectangle
-      where: breakout_center
-      size: [breakout_slot_w, breakout_slot_h]
-
   pmw_header_envelope:
     - what: rectangle
       where: pmw_header_center
       size: [pmw_header_body_w, pmw_header_body_h]
 
-  # Task 2 revision 3: KLORBall-35-style open-edge cavity.
-  # These ball-relative points reproduce the reference topology while adapting
-  # the left lip to preserve the retained MX R33/SW21 envelope.
-  #
-  # The top edge sits ~13 mm above the ball center, the inner PMW-peninsula
-  # wall sits ~10 mm to the right, and the polygon extends far below the stock
-  # lower edge so the result is an open cavity rather than a closed internal slot.
+  # Task 2 revision 4: PCB relief derived from the actual Type-C housing
+  # section through the PCB slab, plus the 25 mm sphere clearance. The
+  # ball-relative polygon is a 0.35 mm simplified version of the measured
+  # keepout and already includes the Task-2E XY/radial manufacturing margins.
   trackball_cavity:
     - what: polygon
       points:
-        - {ref: ball_center, shift: [-21.5, 13.0]}
-        - {ref: ball_center, shift: [-5.0, 12.94]}
-        - {ref: ball_center, shift: [9.93, 12.36]}
-        - {ref: ball_center, shift: [11.85, 10.19]}
-        - {ref: ball_center, shift: [9.31, -19.37]}
-        - {ref: ball_center, shift: [11.17, -21.54]}
-        - {ref: ball_center, shift: [11.17, -40.0]}
-        - {ref: ball_center, shift: [-21.5, -40.0]}
-
-  # The locked 1x7 mating row overhangs the stock lower edge. This small local
-  # rectangle is the declarative equivalent of the old Task-3D support tongue.
-  pmw_support_tongue:
-    - what: rectangle
-      where: pmw_support_tongue_center
-      size: [pmw_support_tongue_w, pmw_support_tongue_h]
+        - {ref: ball_center, shift: [-3.397674, -12.995708]}
+        - {ref: ball_center, shift: [-4.012645, -11.409311]}
+        - {ref: ball_center, shift: [-6.727274, -10.068077]}
+        - {ref: ball_center, shift: [-9.360209, -7.681725]}
+        - {ref: ball_center, shift: [-11.876107, -2.362305]}
+        - {ref: ball_center, shift: [-11.876107, 2.362305]}
+        - {ref: ball_center, shift: [-9.706553, 7.214733]}
+        - {ref: ball_center, shift: [-10.125556, 9.731904]}
+        - {ref: ball_center, shift: [-9.097836, 11.812018]}
+        - {ref: ball_center, shift: [-5.204447, 13.975684]}
+        - {ref: ball_center, shift: [-0.005989, 14.910524]}
+        - {ref: ball_center, shift: [21.423979, 13.373324]}
+        - {ref: ball_center, shift: [24.221360, 12.356466]}
+        - {ref: ball_center, shift: [26.604957, 10.304514]}
+        - {ref: ball_center, shift: [28.409315, 5.956341]}
+        - {ref: ball_center, shift: [28.412217, -5.923751]}
+        - {ref: ball_center, shift: [27.333568, -9.233634]}
+        - {ref: ball_center, shift: [25.267819, -11.641650]}
+        - {ref: ball_center, shift: [20.930460, -13.444568]}
+        - {ref: ball_center, shift: [0.918644, -14.869125]}
+        - {ref: ball_center, shift: [-1.754294, -14.689407]}
 
   trackball_board:
     - name: stock_board
-    - name: pmw_support_tongue
-      operation: add
     - name: trackball_cavity
-      operation: subtract
-    - name: breakout_service_slot
       operation: subtract
 
   trackball_konrad_switch_cutouts:
@@ -928,14 +913,14 @@ outlines:
       where: /^(sw(?:[1-9]|1[0-7]|20|21))$/
       size: [mx_cutout, mx_cutout]
 
-  # R34 is not retained electrically, but its existing 14x14 plate aperture is
-  # useful material already removed. Merge that opening with the 2x22 service
-  # corridor rather than creating a larger unrelated plate change.
+  # R34/SW22 stays electrically absent. Its existing 14x14 plate aperture
+  # becomes cable/header access; the actual Type-C housing/ball relief is the
+  # same measured Task-2E cavity used by the PCB.
   trackball_plate_service_opening:
     - what: rectangle
       where: sw22
       size: [mx_cutout, mx_cutout]
-    - name: breakout_service_slot
+    - name: trackball_cavity
       operation: add
 
   task2c_preview:
