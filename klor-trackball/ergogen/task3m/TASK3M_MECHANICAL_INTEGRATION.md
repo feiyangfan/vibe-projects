@@ -142,3 +142,11 @@ This correction was discovered by the 3D gate and is intentionally not waived.
 ### Revision-4 service corridor
 
 Moving the trackball assembly downward also moves the breakout center downward. The previous 2 x 22 mm slot then stops short of the unchanged stock lower PCB edge. Revision 4 therefore lengthens only the slot's Y dimension to **2 x 26 mm**. The slot width, breakout X, PMW header relationship, and connector handedness are unchanged. The longer slot still retains comfortable clearance to MH8.
+
+
+## Qualification note
+
+The common-frame mechanical gate is intentionally iterative: any discovered
+collision must be corrected in geometry or relief rather than waived. The final
+Task 3M status is set to PASS only after the exported modified switchplate,
+case, PCB, housing and ball assembly passes the machine interference checks.
