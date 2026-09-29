@@ -205,6 +205,55 @@ def apply_xy(mesh: trimesh.Trimesh, fit: dict) -> trimesh.Trimesh:
     return out
 
 
+def horizontal_face_levels(mesh: trimesh.Trimesh, normal_tol=0.999, round_digits=3):
+    tri=mesh.vertices[mesh.faces]
+    cross=np.cross(tri[:,1]-tri[:,0], tri[:,2]-tri[:,0])
+    norm=np.linalg.norm(cross,axis=1)
+    nz=np.divide(cross[:,2],norm,out=np.zeros_like(norm),where=norm>1e-12)
+    area=norm/2.0
+    levels={}
+    for i in np.where(np.abs(nz)>=normal_tol)[0]:
+        z=round(float(tri[i,:,2].mean()),round_digits)
+        d=levels.setdefault(z,{"total_area":0.0,"up_area":0.0,"down_area":0.0})
+        d["total_area"]+=float(area[i])
+        if nz[i]>0:
+            d["up_area"]+=float(area[i])
+        else:
+            d["down_area"]+=float(area[i])
+    return [
+        {"z":z, **vals}
+        for z,vals in sorted(levels.items(), key=lambda kv: -kv[1]["total_area"])
+    ]
+
+
+def case_mount_candidates(mesh: trimesh.Trimesh):
+    zmin,zmax=mesh.bounds[:,2]
+    best=None
+    # Bottom screw/countersink holes persist through the lower shell.  Search
+    # the lower 40% of the case and select the section with eight near-circular
+    # M2-sized loops.
+    for z in np.linspace(zmin+0.3, zmin+0.42*(zmax-zmin), 28):
+        loops=[]
+        for loop in section_loops_xy(mesh,float(z)):
+            poly=Polygon(loop)
+            if not poly.is_valid or poly.area<=0:
+                continue
+            minx,miny,maxx,maxy=poly.bounds
+            w,h=maxx-minx,maxy-miny
+            area=abs(poly.area)
+            aspect=max(w,h)/max(min(w,h),1e-9)
+            if 2.0 <= w <= 5.5 and 2.0 <= h <= 5.5 and 3.0 <= area <= 24.0 and aspect <= 1.08:
+                loops.append({
+                    "centroid":[float(poly.centroid.x),float(poly.centroid.y)],
+                    "area":float(area),
+                    "bounds":[float(minx),float(miny),float(maxx),float(maxy)],
+                })
+        score=(abs(len(loops)-8), -len(loops))
+        if best is None or score < best[0]:
+            best=(score,float(z),loops)
+    return best[1],best[2]
+
+
 def bounds_dict(mesh):
     return {
         "min":mesh.bounds[0].tolist(),
@@ -284,16 +333,54 @@ def main():
         raise AssertionError(f"switchplate main-grid canonical alignment too loose: {fit}")
 
     plate_a=apply_xy(plate,fit)
-    case_a=apply_xy(case,fit)
 
-    plate_a.export(args.out/"konrad_switchplate_canonical_xy.stl")
-    case_a.export(args.out/"konrad_case_right_canonical_xy.stl")
+    case_mount_names=[f"case_mount_{i}" for i in range(1,9)]
+    case_target=np.array([[pts[x][0],pts[x][1]] for x in case_mount_names],dtype=float)
+    case_z,case_candidates=case_mount_candidates(case)
+    if len(case_candidates) != 8:
+        raise AssertionError(
+            f"expected exactly 8 case M2 holes, found {len(case_candidates)} at z={case_z}: {case_candidates}"
+        )
+    case_source=np.array([x["centroid"] for x in case_candidates],dtype=float)
+    case_fit=rigid_fit(case_source,case_target)
+    print("case XY fit:",json.dumps(case_fit,indent=2))
+    if abs(case_fit["inferred_scale"]-1.0)>0.005:
+        raise AssertionError(f"case source scale is not 1:1 mm: {case_fit['inferred_scale']}")
+    if case_fit["rms_mm"]>0.25 or case_fit["max_mm"]>0.6:
+        raise AssertionError(f"case canonical alignment too loose: {case_fit}")
+    case_a=apply_xy(case,case_fit)
+
+    plate_levels=horizontal_face_levels(plate)
+    case_levels=horizontal_face_levels(case)
+    housing_levels=horizontal_face_levels(housing)
+
+    # Source-derived stock Z stack.
+    case_floor=min(
+        (x for x in case_levels if x["up_area"]>1000),
+        key=lambda x:abs(x["z"]-(-3.0))
+    )["z"]
+    case_top=max(x["z"] for x in case_levels if x["up_area"]>100)
+    plate_bottom=float(plate.bounds[0,2])
+    plate_top=float(plate.bounds[1,2])
+    plate_shift_z=case_top-plate_bottom
+    pcb_bottom=case_floor+7.0
+    pcb_thickness=1.6
+    pcb_top=pcb_bottom+pcb_thickness
+    assembled_plate_bottom=plate_bottom+plate_shift_z
+    assembled_plate_top=plate_top+plate_shift_z
+    plate_top_to_pcb_top=assembled_plate_top-pcb_top
+
+    plate_a.apply_translation([0,0,plate_shift_z])
+
+    plate_a.export(args.out/"konrad_switchplate_canonical_assembled.stl")
+    case_a.export(args.out/"konrad_case_right_canonical.stl")
+    housing.export(args.out/"keyball_type_c_right_source.stl")
 
     hsize=(housing.bounds[1]-housing.bounds[0]).tolist()
     hcenter=((housing.bounds[1]+housing.bounds[0])/2).tolist()
 
     report={
-        "status":"phase1_alignment_pass",
+        "status":"phase2_stock_stack_pass",
         "source":{
             "switchplate":str(PLATE.relative_to(ROOT)),
             "case":str(CASE.relative_to(ROOT)),
@@ -308,6 +395,9 @@ def main():
             "switchplate":bounds_dict(plate),
             "case":bounds_dict(case),
             "housing":bounds_dict(housing),
+            "switchplate_horizontal_levels":plate_levels[:20],
+            "case_horizontal_levels":case_levels[:30],
+            "housing_horizontal_levels":housing_levels[:30],
             "housing_bbox_center":hcenter,
             "housing_bbox_size":hsize,
         },
@@ -317,12 +407,26 @@ def main():
             "candidates":candidates,
         },
         "xy_fit":fit,
+        "case_mount_section":{"z":case_z,"candidates":case_candidates},
+        "case_xy_fit":case_fit,
+        "z_stack":{
+            "case_inner_floor_z":case_floor,
+            "standoff_mm":7.0,
+            "pcb_bottom_z":pcb_bottom,
+            "pcb_thickness_mm":pcb_thickness,
+            "pcb_top_z":pcb_top,
+            "case_top_seating_z":case_top,
+            "plate_bottom_z":assembled_plate_bottom,
+            "plate_top_z":assembled_plate_top,
+            "plate_top_to_pcb_top_mm":plate_top_to_pcb_top,
+        },
         "main_grid_source_indices":best_indices,
         "extra_plate_features":extra_features,
         "unmatched_canonical_switches":unmatched,
         "aligned":{
             "switchplate":bounds_dict(plate_a),
             "case":bounds_dict(case_a),
+            "switchplate_assembled":bounds_dict(plate_a),
         },
     }
     (args.out/"task2e_phase1_report.json").write_text(json.dumps(report,indent=2)+"\n")
