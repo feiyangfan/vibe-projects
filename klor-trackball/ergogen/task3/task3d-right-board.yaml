@@ -1,5 +1,5 @@
 status: task3d_complete
-revision: 3
+revision: 4
 
 authority:
   geometry_freeze: ../task2/task2d-freeze.yaml
@@ -12,8 +12,8 @@ board:
   pcb: task3d_right_production
   half: right
   geometry: trackball_board
-  geometry_revision: task2d_revision_3_open_edge_cavity
-  ball_center_local: [16.5, -28.000147]
+  geometry_revision: task2d_revision_4_3d_fit
+  ball_center_local: [16.5, -31.500147]
   connector_side: positive_canonical_x
   assembly_side_for_single_side_smd: F
   routing: forbidden_until_task4
