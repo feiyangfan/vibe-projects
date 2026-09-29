@@ -1,0 +1,41 @@
+name: KLOR Task 2E - 3D assembly
+
+on:
+  pull_request:
+    paths:
+      - "klor-trackball/ergogen/**"
+      - "klor-trackball/Keyball 25mm Trackball Case Type C - 6719828/**"
+      - "klor-trackball/klor1.4/case/3DP/konrad/**"
+      - ".github/workflows/klor-task2e-3d.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate-3d-assembly:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: klor-trackball
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install geometry dependencies
+        run: python -m pip install "numpy==2.2.6" "scipy==1.15.3" "shapely==2.1.1" "trimesh==4.6.10" "PyYAML==6.0.2"
+
+      - name: Establish canonical 3D source alignment
+        run: python ergogen/scripts/validate_task2e_3d.py --out task2e-generated
+
+      - name: Upload Task 2E geometry audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: klor-task2e-3d-assembly
+          path: klor-trackball/task2e-generated/
+          if-no-files-found: error
