@@ -42,6 +42,7 @@ jobs:
           "manifold3d>=3.1,<4"
           "mapbox-earcut>=1.0,<2"
           "ezdxf>=1.3,<2"
+          "networkx>=3.4,<4"
 
       - name: Generate Ergogen geometry
         run: npx --yes ergogen@4.2.1 . --output generated --clean --svg --debug
