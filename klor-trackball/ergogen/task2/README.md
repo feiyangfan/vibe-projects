@@ -66,7 +66,7 @@ Revision-3 passing evidence is recorded in `TASK2C_RESULT.md`; `TASK2_REV3_CAVIT
 
 ### 2D — Geometry freeze
 
-**REVISION 3 — REOPENED**
+**REVISION 3 — COMPLETE**
 
 Revision 3 re-freezes the right-PCB mechanical interface with a validated KLORBall-35-style open-edge trackball cavity.
 
