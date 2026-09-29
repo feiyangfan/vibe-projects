@@ -1,5 +1,5 @@
 status: task2d_frozen
-revision: 3
+revision: 4
 units: mm
 
 authority:
@@ -40,7 +40,7 @@ canonical_frame:
 
 trackball:
   ball_diameter: 25
-  ball_center_local: [16.5, -28.000147]
+  ball_center_local: [16.5, -31.500147]
   orientation_reference: klorball35_right_connector_on_positive_x_side
   housing_center_from_ball: [9.165901, 0.000812]
   housing_envelope: [37.594812, 29.998377]
@@ -100,15 +100,17 @@ pcb_geometry:
     pmw_peninsula_required: true
   support_tongue:
     required: true
-    center_from_breakout: [-3.9444785, -0.0894995]
-    size: [5.888957, 18.825007]
-    proven_header_overhang_beyond_stock_edge: 18.092963
+    center_from_breakout: [-3.9444785, 1.6605005]
+    size: [5.888957, 22.325007]
+    proven_header_overhang_beyond_stock_edge: 21.592963
   placement_adjustment:
     prior_ball_center_local: [22.261644, -28.000147]
     inward_shift_x: -5.761644
+    downward_shift_y: -3.5
     reason:
       - preserve_conservative_2_5mm_housing_clearance_to_SW16
       - preserve_stock_MH8_clearance
+      - preserve_MH7_against_actual_Type_C_housing_profile
   preserve:
     - stock_geometry_outside_local_cavity_notch_and_support_tongue
     - MH1_through_MH9
@@ -166,6 +168,13 @@ deferred_beyond_task2:
   - fabrication_tolerances_not_already_required_by_mechanical_fit
 
 change_control:
+  revision_4_reason: >-
+    Task 3M placed the actual Type-C housing STL, PCB, switchplate and case in
+    one 3D frame and found the revision-3 housing profile only 0.542 mm from
+    stock MH7, which is incompatible with the M3 drill and case-relief margin.
+    Revision 4 moves the complete trackball assembly 3.5 mm downward in
+    canonical Y, preserving all nine PCB holes and retained keys. The PMW
+    support tongue is lengthened to continue joining the unchanged stock edge.
   revision_3_reason: >-
     Revision 2 left stock FR-4 under and around most of the trackball because
     the 2 x 22 breakout corridor was incorrectly treated as the complete PCB
