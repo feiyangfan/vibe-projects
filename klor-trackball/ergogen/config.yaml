@@ -20,7 +20,7 @@ units:
   pmw_header_body_w: 2.54
   pmw_header_body_h: 17.78
   pmw_support_tongue_w: 5.888957
-  pmw_support_tongue_h: 18.825007
+  pmw_support_tongue_h: 22.325007
 
 # Task 2B canonical stock frame:
 # - origin = stock SW13 center
@@ -173,7 +173,7 @@ points:
     # historical KiCad/Gerber transform are treated as transform noise.
     ball_center:
       anchor:
-        shift: [16.5, -28.000147]
+        shift: [16.5, -31.500147]
     housing_center:
       anchor:
         ref: ball_center
@@ -201,7 +201,7 @@ points:
     pmw_support_tongue_center:
       anchor:
         ref: breakout_center
-        shift: [-3.9444785, -0.0894995]
+        shift: [-3.9444785, 1.6605005]
 
     # Connector-right orientation copied from the KLORBall-35 right PCB:
     # keyboard pin 1 / CS is at positive canonical Y and pin 7 / GND at
