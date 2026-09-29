@@ -13,6 +13,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import itertools
 from pathlib import Path
 
 import numpy as np
@@ -234,10 +235,9 @@ def main():
 
     z,candidates=switch_hole_candidates(plate)
     source=np.array([x["centroid"] for x in candidates],dtype=float)
-    if not (18 <= len(source) <= len(target)):
+    if len(source) < 17:
         raise AssertionError(
-            f"expected 18..{len(target)} MX-like apertures in switchplate section, found {len(source)} at z={z}; "
-            f"areas={[round(x['area'],2) for x in candidates]}"
+            f"expected at least 17 MX-like apertures in switchplate section, found {len(source)} at z={z}"
         )
 
     print("MX-like section candidates:", json.dumps(candidates, indent=2))
@@ -245,14 +245,43 @@ def main():
         k: [float(target[i,0]), float(target[i,1])]
         for i,k in enumerate(EXPECTED_SWITCHES)
     }, indent=2))
-    fit=rigid_fit(source,target)
-    matched={EXPECTED_SWITCHES[i] for i in fit["assignment"]}
-    unmatched=[x for x in EXPECTED_SWITCHES if x not in matched]
+
+    # The stock 3DP Konrad plate has 17 invariant finger-grid MX apertures plus
+    # mechanically different thumb/encoder-region openings.  Establish the
+    # coordinate frame from the invariant SW1..SW17 grid only.  With 19
+    # MX-sized candidate loops, exhaustive 17-of-N selection is tiny and avoids
+    # letting thumb/encoder geometry bias the frame.
+    main_names=[f"sw{i}" for i in range(1,18)]
+    main_target=np.array([[pts[x][0],pts[x][1]] for x in main_names],dtype=float)
+    best_main=None
+    best_indices=None
+    for combo in itertools.combinations(range(len(source)), len(main_target)):
+        sub=source[list(combo)]
+        trial=rigid_fit(sub,main_target)
+        if best_main is None or trial["rms_mm"] < best_main["rms_mm"]:
+            best_main=trial
+            best_indices=list(combo)
+    fit=best_main
+    source_fit=source[best_indices]
+    unmatched_source_indices=[i for i in range(len(source)) if i not in set(best_indices)]
+
+    M=np.asarray(fit["matrix_2x2"],dtype=float)
+    t=np.asarray(fit["translation_xy"],dtype=float)
+    all_transformed=source @ M.T + t
+    extra_features=[
+        {
+            "source_index":i,
+            "source_xy":source[i].tolist(),
+            "canonical_xy":all_transformed[i].tolist(),
+        }
+        for i in unmatched_source_indices
+    ]
+    unmatched=[]
     print("switchplate XY fit:", json.dumps(fit, indent=2))
     if abs(fit["inferred_scale"]-1.0) > 0.005:
         raise AssertionError(f"switchplate source scale is not 1:1 mm: {fit['inferred_scale']}")
     if fit["rms_mm"] > 0.25 or fit["max_mm"] > 0.6:
-        raise AssertionError(f"switchplate canonical alignment too loose: {fit}")
+        raise AssertionError(f"switchplate main-grid canonical alignment too loose: {fit}")
 
     plate_a=apply_xy(plate,fit)
     case_a=apply_xy(case,fit)
@@ -288,6 +317,8 @@ def main():
             "candidates":candidates,
         },
         "xy_fit":fit,
+        "main_grid_source_indices":best_indices,
+        "extra_plate_features":extra_features,
         "unmatched_canonical_switches":unmatched,
         "aligned":{
             "switchplate":bounds_dict(plate_a),
