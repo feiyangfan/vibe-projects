@@ -234,8 +234,8 @@ def main():
     units = config["units"]
     if float(units["ball_diameter"]) != 25:
         raise AssertionError("ball diameter changed")
-    if [float(units["breakout_slot_w"]), float(units["breakout_slot_h"])] != [2.0, 22.0]:
-        raise AssertionError("breakout service envelope changed")
+    if [float(units["breakout_slot_w"]), float(units["breakout_slot_h"])] != [2.0, 26.0]:
+        raise AssertionError("breakout service envelope changed from revision-4 2x26 contract")
 
     cavity_spec = baseline["pcb_cavity"]
     cavity_cfg = config["outlines"]["trackball_cavity"]
@@ -315,7 +315,7 @@ def main():
     slot_bottom = breakout[1] - slot_h / 2
     breakout_edge_y = stock_lower_edge_y_at_x(pcb_text, origin, breakout[0])
     if not (slot_bottom < breakout_edge_y < slot_top):
-        raise AssertionError("2x22 breakout slot no longer crosses the stock lower edge")
+        raise AssertionError("2x26 breakout slot no longer crosses the stock lower edge")
 
     mh8 = point(generated, "mh8")
     slot_lo_x = breakout[0] - slot_w / 2
