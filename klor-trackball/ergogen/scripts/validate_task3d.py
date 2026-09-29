@@ -294,7 +294,7 @@ def main():
             f"{min_ball_edge} < {required_ball_edge}"
         )
     print(
-        f"PASS generated rev3 open cavity: nearest Edge.Cuts is "
+        f"PASS generated rev4 open cavity: nearest Edge.Cuts is "
         f"{min_ball_edge:.6f} mm from ball center"
     )
 
