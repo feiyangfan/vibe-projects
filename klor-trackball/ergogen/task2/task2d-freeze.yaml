@@ -53,7 +53,7 @@ trackball:
 
 breakout:
   center_from_ball: [19.212, 0]
-  service_slot: [2, 22]
+  service_slot: [2, 26]
   long_axis: y
   service_direction: positive_x
   fabrication_form: open_edge_notch
@@ -124,7 +124,7 @@ switchplate_geometry:
   retained_key_openings: 19
   service_openings:
     - preserve_stock_SW22_14x14_opening
-    - add_disconnected_2x22_breakout_corridor_right_of_ball
+    - add_disconnected_2x26_breakout_corridor_right_of_ball
   add_trackball_housing_axes: 2
   thickness_reference: 1.5
 
@@ -152,7 +152,7 @@ task3_change_boundary:
     - move_any_structural_axis
     - move_ball_housing_breakout_or_pmw_header_reference
     - change_trackball_cavity
-    - change_2x22_service_corridor
+    - change_2x26_service_corridor
     - remove_or_resize_support_tongue_without_new_mechanical_proof
     - change_stock_board_geometry_outside_the_frozen_local_delta
     - change_stock_switchplate_outer_perimeter
