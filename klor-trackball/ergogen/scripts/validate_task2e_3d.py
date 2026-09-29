@@ -91,11 +91,18 @@ def section_loops_xy(mesh: trimesh.Trimesh, z: float) -> list[np.ndarray]:
         arr = np.asarray(arr, dtype=float)
         if len(arr) < 4:
             continue
-        # to_2D coordinates are already the source XY basis for a horizontal
-        # section; verify closure and keep only closed rings.
         if np.linalg.norm(arr[0] - arr[-1]) > 0.1:
             continue
-        loops.append(arr[:,:2])
+        # IMPORTANT: Path2D coordinates are in an arbitrary local plane frame.
+        # Map them back to the original STL frame before fitting canonical XY.
+        hom = np.column_stack([
+            arr[:,0],
+            arr[:,1],
+            np.zeros(len(arr)),
+            np.ones(len(arr)),
+        ])
+        raw3 = hom @ np.asarray(to_3d, dtype=float).T
+        loops.append(raw3[:,:2])
     return loops
 
 
@@ -380,7 +387,7 @@ def main():
     hcenter=((housing.bounds[1]+housing.bounds[0])/2).tolist()
 
     report={
-        "status":"phase2_stock_stack_pass",
+        "status":"phase2_raw_stl_stack_pass",
         "source":{
             "switchplate":str(PLATE.relative_to(ROOT)),
             "case":str(CASE.relative_to(ROOT)),
