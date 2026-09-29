@@ -137,3 +137,8 @@ Task 2 is therefore reopened as revision 4 for one localized change:
 At the revision-4 position the actual housing projection is approximately **3.82 mm** from MH7 center, providing room for the 1.6 mm M3 radius, 1.0 mm case relief, and at least 0.5 mm residual structural margin.
 
 This correction was discovered by the 3D gate and is intentionally not waived.
+
+
+### Revision-4 service corridor
+
+Moving the trackball assembly downward also moves the breakout center downward. The previous 2 x 22 mm slot then stops short of the unchanged stock lower PCB edge. Revision 4 therefore lengthens only the slot's Y dimension to **2 x 26 mm**. The slot width, breakout X, PMW header relationship, and connector handedness are unchanged. The longer slot still retains comfortable clearance to MH8.
