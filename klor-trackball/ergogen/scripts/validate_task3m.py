@@ -240,12 +240,11 @@ def main():
             Point(*BALL_XY).buffer(BALL_APERTURE_RADIUS, resolution=96),
         ]
     )
-    case_relief = unary_union(
-        [
-            profile.buffer(CASE_HOUSING_CLEARANCE),
-            Point(*BALL_XY).buffer(BALL_APERTURE_RADIUS, resolution=96),
-        ]
-    )
+    # The case top is at z=5.0 while the 25 mm ball bottom is z=5.5,
+    # so the sphere itself does not intersect the case. Do not cut a redundant
+    # ball cylinder through the case: doing so would unnecessarily consume
+    # stock case_mount_3. The case relief follows only the actual housing mesh.
+    case_relief = profile.buffer(CASE_HOUSING_CLEARANCE)
 
     # Mechanical preservation gate: don't consume retained key apertures.
     retained = [f"sw{i}" for i in range(1, 18)] + ["sw20", "sw21"]
