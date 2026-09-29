@@ -32,7 +32,7 @@ PLATE_STL = (
 )
 CASE_STL = KLOR / "klor1.4/case/3DP/konrad/regular/KLOR_konrad_case_R.stl"
 
-BALL_XY = np.array([16.5, -28.000147])
+BALL_XY = np.array([16.5, -31.500147])
 BALL_RADIUS = 12.5
 BALL_WORLD_Z = 18.0
 PCB_TOP_Z = 0.0
@@ -119,14 +119,22 @@ def transform_housing(mesh: trimesh.Trimesh) -> trimesh.Trimesh:
 
 
 def housing_profile(source_housing: trimesh.Trimesh, z0: float, z1: float):
+    # Project only actual mesh triangles crossing the relevant Z band. Do not
+    # convex-hull the result: the Type-C housing has useful concavities around
+    # structural hardware (notably MH7).
+    from shapely.geometry import Polygon
     triangles = source_housing.triangles
     zmin = triangles[:, :, 2].min(axis=1)
     zmax = triangles[:, :, 2].max(axis=1)
     mask = (zmax >= z0) & (zmin <= z1)
-    points = triangles[mask, :, :2].reshape(-1, 2)
-    if len(points) < 3:
-        raise AssertionError("housing profile band produced fewer than three points")
-    return MultiPoint(points).convex_hull
+    polys = []
+    for tri in triangles[mask]:
+        poly = Polygon(tri[:, :2])
+        if poly.area > 1e-9:
+            polys.append(poly)
+    if not polys:
+        raise AssertionError("housing profile band produced no projected triangles")
+    return unary_union(polys).buffer(0)
 
 
 def prism(poly, z0: float, z1: float) -> trimesh.Trimesh:
@@ -253,7 +261,11 @@ def main():
     axis_gaps = {}
     for name in [f"mh{i}" for i in range(1, 10)] + [f"case_mount_{i}" for i in range(1, 9)]:
         x, y, _ = pxy(points, name)
-        axis = Point(x, y).buffer(1.0)
+        if name.startswith("mh"):
+            radius = 1.6 if name != "mh9" else 1.05
+        else:
+            radius = 1.05
+        axis = Point(x, y).buffer(radius)
         gap = case_relief.distance(axis)
         if case_relief.intersects(axis) or gap < AXIS_RELIEF_GAP_MIN:
             raise AssertionError(f"case relief too close to structural axis {name}: {gap:.3f} mm")
