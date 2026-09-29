@@ -74,7 +74,7 @@ def main():
             raise AssertionError(f"missing/empty frozen geometry output: {path}")
     print("PASS frozen Task-2 generated outputs exist")
 
-    if freeze["revision"] != 3:
+    if freeze["revision"] != 4:
         raise AssertionError("Task 2D freeze revision changed")
     if freeze["status"] not in {"task2d_frozen_candidate", "task2d_frozen"}:
         raise AssertionError(f"unexpected freeze status: {freeze['status']}")
