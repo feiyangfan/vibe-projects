@@ -114,9 +114,34 @@ Gate:
 - generated Edge.Cuts maintain at least 9.5 mm ball-center clearance;
 - the right PCB is electrically coherent and intentionally unrouted.
 
+### Task 3M — Trackball mechanical integration
+
+**IN PROGRESS — prerequisite before treating the right half as mechanically installable**
+
+Place the actual Type-C housing STL, 25 mm ball, generated right PCB, stock Konrad switchplate, and stock right case in one reproducible 3D coordinate system.
+
+Generate:
+
+- a trackball-relieved right switchplate;
+- a locally relieved right case;
+- a common-frame 3D assembly;
+- a machine-readable fit/interference report.
+
+Gate:
+
+- housing mounting face is tied to PCB top rather than an arbitrary Z;
+- actual source STL registration is regression-checked;
+- plate/case relief is derived from the actual housing mesh plus explicit manufacturing margin;
+- a full ball aperture prevents the 0.5 mm nominal stock-plate gap from becoming a rubbing interface;
+- modified plate/case have no unintended intersection with the housing or ball;
+- PCB volume does not intersect the housing below its mounting plane or the 25 mm ball;
+- retained key apertures and structural axes remain outside the relief.
+
+See `../task3m/TASK3M_MECHANICAL_INTEGRATION.md`.
+
 ### Task 3E — Cross-board electrical integration and freeze
 
-**NEXT**
+**NEXT after Task 3M**
 
 Validate the left and right generated boards as one split keyboard.
 
