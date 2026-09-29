@@ -128,11 +128,12 @@ def switch_hole_candidates(mesh: trimesh.Trimesh) -> tuple[float, list[dict]]:
 def rigid_fit(source: np.ndarray, target: np.ndarray) -> dict:
     """Fit source point set to target with optional reflection + free rotation.
 
-    Both sets must have the same cardinality.  Assignment and Kabsch rotation
-    are iterated from several dihedral initializations.
+    Source may contain fewer points than target.  Rectangular Hungarian
+    assignment identifies the matching canonical subset; Kabsch rotation is
+    then iterated from several dihedral initializations.
     """
-    if len(source) != len(target):
-        raise ValueError(f"point-count mismatch source={len(source)} target={len(target)}")
+    if len(source) > len(target):
+        raise ValueError(f"source has more points than target: {len(source)} > {len(target)}")
 
     src0 = source - source.mean(axis=0)
     tgt0 = target - target.mean(axis=0)
@@ -153,8 +154,9 @@ def rigid_fit(source: np.ndarray, target: np.ndarray) -> dict:
             moved = src0 @ M.T
             cost = np.linalg.norm(moved[:,None,:] - tgt0[None,:,:], axis=2)
             rows, cols = linear_sum_assignment(cost)
-            assignment = cols[np.argsort(rows)]
-            A = src0
+            order = np.argsort(rows)
+            assignment = cols[order]
+            A = src0[rows[order]]
             B = tgt0[assignment]
             H = A.T @ B
             U,S,Vt = np.linalg.svd(H)
@@ -231,13 +233,15 @@ def main():
 
     z,candidates=switch_hole_candidates(plate)
     source=np.array([x["centroid"] for x in candidates],dtype=float)
-    if len(source) != len(target):
+    if not (18 <= len(source) <= len(target)):
         raise AssertionError(
-            f"expected {len(target)} MX apertures in switchplate section, found {len(source)} at z={z}; "
+            f"expected 18..{len(target)} MX-like apertures in switchplate section, found {len(source)} at z={z}; "
             f"areas={[round(x['area'],2) for x in candidates]}"
         )
 
     fit=rigid_fit(source,target)
+    matched={EXPECTED_SWITCHES[i] for i in fit["assignment"]}
+    unmatched=[x for x in EXPECTED_SWITCHES if x not in matched]
     if abs(fit["inferred_scale"]-1.0) > 0.005:
         raise AssertionError(f"switchplate source scale is not 1:1 mm: {fit['inferred_scale']}")
     if fit["rms_mm"] > 0.25 or fit["max_mm"] > 0.6:
@@ -277,6 +281,7 @@ def main():
             "candidates":candidates,
         },
         "xy_fit":fit,
+        "unmatched_canonical_switches":unmatched,
         "aligned":{
             "switchplate":bounds_dict(plate_a),
             "case":bounds_dict(case_a),
