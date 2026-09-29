@@ -140,9 +140,17 @@ def housing_profile(source_housing: trimesh.Trimesh, z0: float, z1: float):
 def prism(poly, z0: float, z1: float) -> trimesh.Trimesh:
     if z1 <= z0:
         raise ValueError("invalid extrusion interval")
-    mesh = trimesh.creation.extrude_polygon(poly, z1 - z0, engine="earcut")
-    mesh.apply_translation([0.0, 0.0, z0])
-    return mesh
+    geoms = list(poly.geoms) if poly.geom_type == "MultiPolygon" else [poly]
+    meshes = []
+    for geom in geoms:
+        if geom.is_empty or geom.area <= 1e-9:
+            continue
+        mesh = trimesh.creation.extrude_polygon(geom, z1 - z0, engine="earcut")
+        mesh.apply_translation([0.0, 0.0, z0])
+        meshes.append(mesh)
+    if not meshes:
+        raise AssertionError("relief extrusion produced no solids")
+    return trimesh.util.concatenate(meshes) if len(meshes) > 1 else meshes[0]
 
 
 def boolean_difference(mesh: trimesh.Trimesh, cutter: trimesh.Trimesh) -> trimesh.Trimesh:
