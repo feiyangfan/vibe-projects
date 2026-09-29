@@ -172,7 +172,7 @@ def main():
     assert_close(
         "Task-2 rev4 retained ball shift from historical placement",
         actual_shift,
-        (float(pcb["placement_adjustment"]["inward_shift_x"]), 0.0),
+        (float(pcb["placement_adjustment"]["inward_shift_x"]), float(pcb["placement_adjustment"].get("downward_shift_y", 0.0))),
     )
     assert_delta(
         "housing center from ball",
