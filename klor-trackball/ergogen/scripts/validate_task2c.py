@@ -190,7 +190,7 @@ def main():
         raise AssertionError("plate must preserve SW22 aperture for cable/header access")
     if plate_parts[1].get("name") != "trackball_cavity":
         raise AssertionError("plate preview must include real-housing cavity")
-    print("PASS plate delta uses SW22 cable access plus actual-housing relief")
+    print("PASS plate delta preserves SW22 opening plus actual-housing relief")
 
     if float(config["units"]["ball_diameter"]) != 25:
         raise AssertionError("ball diameter changed")
@@ -219,6 +219,8 @@ def main():
     # Header body and every retained datum must stay out of the cavity.
     header_w = float(config["units"]["pmw_header_body_w"])
     header_h = float(config["units"]["pmw_header_body_h"])
+    if baseline["pmw_header_reference"]["row_axis"] == "x":
+        header_w, header_h = header_h, header_w
     header_corners = [
         (header[0] + sx * header_w / 2, header[1] + sy * header_h / 2)
         for sx in (-1, 1) for sy in (-1, 1)
