@@ -477,8 +477,8 @@ def main():
         )
 
     candidates = []
-    for dx in np.arange(-8.0, 4.01, 0.5):
-        for dy in np.arange(-10.0, 0.01, 0.5):
+    for dx in np.arange(-8.0, 12.01, 0.5):
+        for dy in np.arange(-14.0, 4.01, 0.5):
             cx, cy = ball_x + float(dx), ball_y + float(dy)
             relief = shp_translate(relative_relief, xoff=cx, yoff=cy)
             housing_proj = shp_translate(housing_projection_rel, xoff=cx, yoff=cy)
