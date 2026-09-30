@@ -49,8 +49,8 @@ pmw_header_reference:
   connection_form: short_7_conductor_cable
   row_axis: x
   canonical_rotation: 90
-  pin_1_end: negative_canonical_x
-  pin_7_end: positive_canonical_x
+  pin_1_end: positive_canonical_x
+  pin_7_end: negative_canonical_x
   keyboard_pin_order_pin_1_to_7:
     1: CS
     2: MISO
