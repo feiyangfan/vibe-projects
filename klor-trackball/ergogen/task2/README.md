@@ -43,7 +43,7 @@ Passing evidence is recorded in `TASK2B_RESULT.md`.
 
 ### 2C — Trackball delta overlay
 
-**REVISION 4 — COMPLETE**
+**REVISION 5 — IN PROGRESS (revision 4 handedness invalidated)**
 
 Add parametrically:
 
@@ -66,7 +66,7 @@ Revision-3 passing evidence is recorded in `TASK2C_RESULT.md`; `TASK2_REV3_CAVIT
 
 ### 2D — Geometry freeze
 
-**REVISION 4 — COMPLETE**
+**REVISION 5 — REOPENED**
 
 Revision 4 re-freezes the right-PCB mechanical interface from the actual Type-C housing section and the Task-2E common-frame 3D qualification.
 
@@ -95,12 +95,8 @@ If neither is true, it should not enter the canonical model.
 
 ### 2E — 3D mechanical integration
 
-**COMPLETE**
+**REVISION 5 — IN PROGRESS**
 
-Task 2E places the generated revision-4 PCB, actual Type-C housing STL, 25 mm sphere, stock Konrad switchplate and stock right case into one source-aligned 3D frame.
+Revision 4 used the wrong handed Type-C housing for the right keyboard half. Revision 5 switches the mechanical authority to `keyball_trackball_case_25mm_type_c_left.stl`, so the ball opening faces inward/left toward the thumb cluster and the connector faces outward/right (+X). See `TASK2_REV5_HANDEDNESS.md`.
 
-It proves zero meaningful housing/ball collision against the PCB and generated plate/case relief, and generates the relieved switchplate, right-case trackball pod, assembly GLB and machine-readable result. The qualified ball center is `(15.5, -31.000147, 1.938016)` mm with approximately 12.938 mm exposed above the plate.
-
-The case pod extends approximately 5.462 mm below the original case bottom. A printed mock-up remains the final subjective ergonomic and desk-stance check. See `TASK2E_MECHANICAL_INTEGRATION.md` and `TASK2E_RESULT.md`.
-
-**Physical-validation hold:** before production routing/fabrication is treated as mechanically final, build the documented right-half mock-up and verify housing assembly path, ball motion/retention, PMW3360 optical stack, cable routing, key/thumb interference, fasteners, and desk stance. Do not start that work until explicitly resumed.
+The previous revision-4 collision and ergonomic numbers are superseded until the correctly handed housing passes the full placement, PCB, plate and case qualification again. Task 3E and routing are blocked.
