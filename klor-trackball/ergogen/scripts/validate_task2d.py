@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Task 2D geometry-freeze gate for KLOR trackball revision 4."""
+"""Task 2D geometry-freeze gate for KLOR trackball revision 5."""
 
 from __future__ import annotations
 
@@ -67,8 +67,8 @@ def main():
     points = yaml.safe_load((args.generated / "points/points.yaml").read_text(encoding="utf-8"))
     req = REQUIREMENTS.read_text(encoding="utf-8")
 
-    if freeze["status"] != "task2d_frozen" or freeze["revision"] != 4:
-        raise AssertionError("Task 2D must remain frozen at revision 4")
+    if freeze["status"] != "task2d_frozen" or freeze["revision"] != 5:
+        raise AssertionError("Task 2D must remain frozen at revision 5")
 
     product = freeze["product_geometry"]
     if (product["left_keys"], product["right_keys"], product["total_keys"]) != (20,19,39):
@@ -91,7 +91,7 @@ def main():
 
     trackball = freeze["trackball"]
     assert_close(
-        "revision-4 ball center",
+        "revision-5 ball center",
         pxy(points, "ball_center")[:2],
         tuple(float(x) for x in trackball["ball_center_local"]),
         HIST_TOL,
@@ -113,19 +113,23 @@ def main():
         raise AssertionError("PMW connection must remain cabled")
     if freeze["breakout"]["connector_side"] != "positive_x":
         raise AssertionError("Kivipallur connector side changed")
+    if pxy(points, "housing_center")[0] >= pxy(points, "ball_center")[0]:
+        raise AssertionError("correctly handed housing body must lie toward -X/thumb side")
     if pxy(points, "breakout_center")[0] <= pxy(points, "ball_center")[0]:
-        raise AssertionError("Kivipallur connector is no longer on +X/right side")
-    print("PASS real housing keeps right-side breakout while board header is cabled")
+        raise AssertionError("Kivipallur connector is no longer on +X/outward side")
+    if header["row_axis"] != "x" or int(header["canonical_rotation"]) != 90:
+        raise AssertionError("Rev5 PMW board header must be rotated 90 degrees")
+    print("PASS Rev5 opening/housing faces thumb side; breakout faces outward; board header is rotated/cabled")
 
     expected_pin_order = {
         1:"CS", 2:"MISO", 3:"MOSI", 4:"SCK",
         5:"NC_MOTION", 6:"3V3", 7:"GND",
     }
-    actual_pin_order = {int(k):v for k,v in header["physical_pin_order_positive_y_to_negative_y"].items()}
+    actual_pin_order = {int(k):v for k,v in header["physical_pin_order_pin_1_to_7"].items()}
     if actual_pin_order != expected_pin_order:
         raise AssertionError(f"PMW physical pin order changed: {actual_pin_order}")
     if header["mating_rule"] != "cable_maps_breakout_pin_N_to_keyboard_pin_8_minus_N":
-        raise AssertionError("revision-4 cable mating rule changed")
+        raise AssertionError("revision-5 cable mating rule changed")
     print("PASS PMW electrical/physical pin contract unchanged")
 
     retained = selector_names(config, "trackball_konrad_switch_cutouts", points)
@@ -162,7 +166,7 @@ def main():
     plate = config["outlines"]["trackball_plate_service_opening"]
     if plate[0].get("where") != "sw22" or plate[1].get("name") != "trackball_cavity":
         raise AssertionError("switchplate preview no longer uses SW22 cable access + housing relief")
-    print("PASS switchplate mechanical delta matches revision 4")
+    print("PASS switchplate mechanical delta matches revision 5")
 
     placement = pcb["placement_adjustment"]
     prior = tuple(float(x) for x in placement["prior_ball_center_local"])
@@ -182,10 +186,10 @@ def main():
         "move_keyboard_side_PMW_cable_header",
     }
     if not must.issubset(forbidden):
-        raise AssertionError("revision-4 downstream geometry boundary is incomplete")
+        raise AssertionError("revision-5 downstream geometry boundary is incomplete")
     print("PASS Task-3 forbidden-without-reopening boundary is explicit")
 
-    print("Task 2D revision-4 canonical geometry freeze gate passed")
+    print("Task 2D revision-5 canonical geometry freeze gate passed")
     return 0
 
 
