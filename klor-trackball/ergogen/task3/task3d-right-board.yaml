@@ -13,7 +13,7 @@ board:
   half: right
   geometry: trackball_board
   geometry_revision: task2d_revision_5_correct_handed_housing_cavity
-  ball_center_local: [21.5, -31.000147]
+  ball_center_local: [22.0, -31.000147]
   breakout_connector_side: positive_canonical_x
   keyboard_header_connection: short_7_conductor_cable
   assembly_side_for_single_side_smd: F
