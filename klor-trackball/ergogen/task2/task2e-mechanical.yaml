@@ -23,7 +23,7 @@ z_stack:
   pcb_top_source_status: cherry_mx_mechanical_drawing
 
 trackball:
-  ball_xy: [15.5, -31.000147]
+  ball_xy: [20.0, -31.000147]
   ball_diameter: 25.0
   minimum_pcb_clearance: 0.5
   housing_z_search_step: 0.25
@@ -73,6 +73,9 @@ outputs:
 revision5:
   reason: correct_physical_housing_handedness
   prior_revision: 4
-  placement_status: searching
+  placement_status: selected
   mirrored_housing_screw_midpoint_from_ball: [-6.212, 0.0]
-  geometry_freeze_status: reopened
+  board_header_center: [18.5, -14.5]
+  board_header_rotation_deg: 90
+  ball_shift_from_revision4: [4.5, 0.0]
+  geometry_freeze_status: candidate
