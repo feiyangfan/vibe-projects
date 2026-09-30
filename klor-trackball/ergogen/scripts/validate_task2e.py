@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Task 2E: put the real Type-C housing, 25 mm sphere, generated Rev-4 PCB,
+Task 2E: put the correctly handed Type-C housing, 25 mm sphere, generated PCB,
 stock Konrad switchplate, and stock Konrad right case in one 3D frame.
 
 The script writes relieved plate/case STLs, a GLB assembly scene, and a JSON
@@ -28,7 +28,7 @@ KLOR = ERGOGEN.parent
 CONTRACT = ERGOGEN / "task2" / "task2e-mechanical.yaml"
 CONFIG = ERGOGEN / "config.yaml"
 
-HOUSING = KLOR / "Keyball 25mm Trackball Case Type C - 6719828/files/keyball_trackball_case_25mm_type_c_right.stl"
+HOUSING = KLOR / "Keyball 25mm Trackball Case Type C - 6719828/files/keyball_trackball_case_25mm_type_c_left.stl"
 SWITCHPLATE = KLOR / "klor1.4/case/3DP/konrad/switchplate/KLOR_konrad_3DP_switchplate.stl"
 RIGHT_CASE = KLOR / "klor1.4/case/3DP/konrad/regular/KLOR_konrad_case_R.stl"
 STOCK_PCB = KLOR / "klor1.4/PCB/klor1_4/klor1_4.kicad_pcb"
@@ -358,6 +358,18 @@ def main():
 
     if not all(isinstance(m, trimesh.Trimesh) for m in [plate_native, case_native, housing_local]):
         raise AssertionError("one or more source STLs did not load as a single mesh")
+
+    # Revision 5 handedness regression guard. For the right keyboard half we
+    # intentionally use the source asset named "left": this mirrored housing
+    # puts the ball-access opening toward the thumb cluster (-X) and the
+    # connector/service side toward the outside edge (+X).
+    expected_x = contract["handedness"]["expected_housing_local_x_bounds"]
+    actual_x = [float(housing_local.bounds[0, 0]), float(housing_local.bounds[1, 0])]
+    if not np.allclose(actual_x, expected_x, atol=0.03):
+        raise AssertionError(
+            f"wrong Type-C housing handedness/source: X bounds {actual_x}, "
+            f"expected {expected_x}"
+        )
 
     plate = transform_switchplate_to_canonical(plate_native, origin)
     plate_bottom = float(contract["z_stack"]["switchplate_bottom_z"])
