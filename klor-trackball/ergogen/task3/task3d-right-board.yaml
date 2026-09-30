@@ -161,8 +161,8 @@ pmw3360:
   breakout_connector_side: positive_canonical_x
   canonical_rotation: 90
   row_axis: x
-  pin_1_end: negative_canonical_x
-  pin_7_end: positive_canonical_x
+  pin_1_end: positive_canonical_x
+  pin_7_end: negative_canonical_x
   physical_pin_order_pin_1_to_7:
     1: PMW_CS
     2: PMW_MISO
