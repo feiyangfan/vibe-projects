@@ -219,13 +219,15 @@ A short authoritative requirements document exists, and any geometry-dependent p
 
 ## Task 2 — Reconstruct the complete KLOR/Konrad geometry in Ergogen
 
-**Status: REOPENED — REVISION 5 HOUSING HANDEDNESS CORRECTION**
+**Status: COMPLETE — REVISION 5 DIGITALLY QUALIFIED**
 
 Task 2 begins with a minimal-change study before full reconstruction. The selected implementation baseline is to remove R34/SW22/D22 only, retain R32/R33 and the right encoder, preserve all structural interfaces, and keep PCB/plate/case changes local to the trackball region. See `ergogen/task2/MINIMAL_CHANGE_STUDY.md`.
 
-Revision 4 is **superseded as a mechanical qualification** after a housing-handedness audit. Task 2E hard-coded the checked-in `type_c_right.stl`, whose physical connector faces left/inward on this right keyboard half, while the design contract required the connector to face right/outward. The intended orientation requires the mirrored `type_c_left.stl`, with the ball opening toward the thumb cluster and the connector toward +X/outside. See `ergogen/task2/TASK2_REV5_HANDEDNESS.md`.
+Revision 4 is **superseded as a mechanical qualification** after a housing-handedness audit. It used `type_c_right.stl`, whose physical opening/connector orientation is wrong for the intended right-half installation.
 
-Revision 5 is now re-running the placement/cavity/plate/case qualification with the correctly handed housing. Task 3E and routing are blocked until Tasks 2C/2D/2E and 3D pass again.
+Revision 5 is the current frozen digital geometry. It uses the mirrored `type_c_left.stl` so the **ball opening faces inward / -X toward the thumb cluster** and the **housing/Kivipallur connector faces outward / +X**. The qualified ball center is `(22.0, -31.000147, 1.938015634)` mm. The vertical position remains the Rev-4-qualified stack, giving approximately **12.938 mm** ball exposure above the plate. All 19 retained right keys and all nine PCB holes remain. See `ergogen/task2/TASK2_REV5_HANDEDNESS.md` and `ergogen/task2/TASK2E_RESULT.md`.
+
+The keyboard-side PMW 1x7 is a **separate cabled header**, not the housing connector. It is at `(18.5, -14.5)` mm, rotated 90° with its row on canonical X. A short seven-conductor cable connects it to the outward-facing Kivipallur breakout.
 
 Build the actual canonical geometric model.
 
@@ -284,9 +286,9 @@ Task 3 is split into explicit electrical gates:
  ↓
 3C  left unrouted PCB                COMPLETE
  ↓
-3D  right unrouted PCB + PMW         REOPENED FOR REV 5
+3D  right unrouted PCB + PMW Rev 5   COMPLETE
  ↓
-3E  cross-board electrical freeze    BLOCKED
+3E  cross-board electrical freeze    NEXT
  ↓
 Task 4 routing
 ```
@@ -365,8 +367,8 @@ Generate or parametrically construct:
 
 - MX cutouts;
 - structural mounting holes;
-- trackball housing mounting holes;
 - housing clearance;
+- case-owned trackball mounting-axis references;
 - breakout/service opening;
 - outer plate perimeter.
 
@@ -537,6 +539,8 @@ Generated output should never become the only place where design intent exists.
 
 ## Current work
 
-**Revision 5 housing-handedness correction is in progress.**
+**Task 3E — cross-board electrical integration and freeze.**
 
-Revision 4 is retained as historical evidence but is no longer the canonical mechanical baseline. The current task is to qualify the correctly handed Type-C housing, freeze the resulting right-PCB geometry, and restore Task 3D regression. Task 3E and Task 4 are blocked until that passes.
+Revision 5 is the canonical right-half baseline and Tasks 2B/2C/2D/2E plus 3A/3B/3C/3D pass together. Task 3E may now freeze the left/right pair-level electrical contract.
+
+A **physical right-half mock-up remains required before Task 4 routing is treated as production-final**. The key ergonomic risk is real thumb reach: the correctly handed housing moves the ball outward, and R33/SW21 is now approximately **40.61 mm center-to-center** from the ball. The mock-up must also validate ball motion/retention, cable behavior, fasteners, assembly path, and the **5.462 mm** local case-pod extension.

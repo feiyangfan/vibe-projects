@@ -1,84 +1,74 @@
-# Task 3D Result — Right Production-Intent PCB Revision 4
+# Task 3D Result — Right Production-Intent PCB Revision 5
 
 ## Status
 
-**PASS — Task 3D revision 4 is complete.**
+**PASS — Task 3D revision 5 is complete.**
 
-The generated right production PCB now consumes the Task-2 revision-4 geometry qualified by the full Task-2E 3D mechanical integration gate.
-
-It remains electrically complete and intentionally unrouted.
+The generated right production PCB consumes the frozen Task-2 revision-5 correctly handed trackball geometry. It is electrically complete and intentionally unrouted.
 
 ## Production content
 
 - 19 MX hotswap + SK6812MINI-E sites;
-- 20 COL2ROW matrix diodes: 19 MX + encoder click D18;
+- 20 COL2ROW diodes: 19 MX + encoder click D18;
 - 19 RGB devices;
 - retained right EC11 encoder;
 - 0xCB Helios rev1.0;
-- MJ-4PP-9 TRRS;
+- TRRS;
 - reset;
-- one F.Cu PMW 1x7 keyboard-side cable header;
-- eight M3 + one M2 stock PCB mounting holes;
+- F.Cu PMW 1x7 cabled header;
+- eight M3 + one M2 stock PCB holes;
 - no tracks, vias or copper zones.
 
-SW22 / D22 / R34 remain absent. The right RGB chain contains exactly 19 devices.
+SW22 / D22 / R34 remain absent.
 
-## Revision-4 mechanical geometry
+## Revision-5 mechanical geometry
 
 Ball center:
 
-`(15.5, -31.000147)`
+**`(22.0, -31.000147)`**
 
-Board composition:
+Correct housing orientation:
 
-```text
-stock_board
-- actual_housing_and_ball_cavity
-= trackball_board
-```
+- source left STL on right keyboard half;
+- opening -X / thumb side;
+- housing/Kivipallur connector +X / outward.
 
-The generated PCB's nearest Edge.Cuts is approximately **11.806 mm** from the ball center.
+The generated real-housing cavity has approximately **14.212 mm** XY material distance from the ball center, and Task 2E proves zero sphere/PCB and housing/PCB intersection.
 
-Task 2E proves:
+## PMW board header
 
-- 25 mm sphere vs PCB = 0 mm³;
-- actual Type-C housing vs PCB = 0 mm³.
+Canonical center:
 
-## PMW interface
+**`(18.5, -14.5)`**
 
-The Kivipallur breakout/connector remains on the **right / +X side of the ball**.
+- F.Cu;
+- 90° rotation;
+- row axis X;
+- pin 1 / CS at +X;
+- pin 7 / GND at -X;
+- short seven-conductor cable to the outward Kivipallur breakout.
 
-Because the actual housing occupies the old rigid peninsula, the keyboard-side 1x7 is instead located at canonical:
+Electrical ownership remains:
 
-**`(0, -22.022143)`**
-
-and connects via a short seven-conductor cable.
-
-Electrical ownership is unchanged:
-
-- GP2 / Helios pad 6 -> SCK;
+- GP2 / pad 6 -> SCK;
 - GP3 / pad 7 -> MOSI;
 - GP4 / pad 8 -> MISO;
 - GP9 / pad 13 -> CS;
 - pad 27 -> V3V3;
 - MOTION -> NC / polling.
 
-Physical cable-header order remains CS, MISO, MOSI, SCK, NC, 3V3, GND.
-
 ## Qualification
 
-Qualification head:
+Implementation qualification head:
 
-`52ea88ad36f9fe31962a599036b09c8a8fdb50d0`
+`0b704c8ff85c6b641b796813f49e78124d8e21ec`
 
-Passing workflow:
+Passing Task-3D workflow: `36697008138`.
 
-- `KLOR Task 3D - right production PCB`
-- run ID: `36376432835`
-- conclusion: **success**
-
-The same head also passes Task 2E's real 3D integration gate.
+The same head passes the Task-2E full 3D mechanical integration gate.
 
 ## Next
 
-Proceed to **Task 3E — cross-board electrical integration and freeze** after revision 4 is merged.
+Proceed to **Task 3E — cross-board electrical integration and freeze**.
+
+Task 4 routing should remain behind the physical right-half mechanical mock-up gate.

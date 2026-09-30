@@ -1,4 +1,4 @@
-status: task2e_rev5_candidate
+status: task2e_complete
 revision: 5
 
 handedness:
@@ -80,4 +80,4 @@ revision5:
   board_header_center: [18.5, -14.5]
   board_header_rotation_deg: 90
   ball_shift_from_revision4: [6.5, 0.0]
-  geometry_freeze_status: candidate
+  geometry_freeze_status: frozen

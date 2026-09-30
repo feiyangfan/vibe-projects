@@ -43,7 +43,7 @@ Passing evidence is recorded in `TASK2B_RESULT.md`.
 
 ### 2C — Trackball delta overlay
 
-**REVISION 5 — IN PROGRESS (revision 4 handedness invalidated)**
+**REVISION 5 — COMPLETE**
 
 Add parametrically:
 
@@ -66,9 +66,9 @@ Revision-3 passing evidence is recorded in `TASK2C_RESULT.md`; `TASK2_REV3_CAVIT
 
 ### 2D — Geometry freeze
 
-**REVISION 5 — REOPENED**
+**REVISION 5 — COMPLETE**
 
-Revision 4 re-freezes the right-PCB mechanical interface from the actual Type-C housing section and the Task-2E common-frame 3D qualification.
+Revision 5 freezes the correctly handed right-PCB mechanical interface from the actual mirrored Type-C housing and the Task-2E common-frame 3D qualification.
 
 The freeze combines:
 
@@ -95,8 +95,18 @@ If neither is true, it should not enter the canonical model.
 
 ### 2E — 3D mechanical integration
 
-**REVISION 5 — IN PROGRESS**
+**REVISION 5 — COMPLETE**
 
 Revision 4 used the wrong handed Type-C housing for the right keyboard half. Revision 5 switches the mechanical authority to `keyball_trackball_case_25mm_type_c_left.stl`, so the ball opening faces inward/left toward the thumb cluster and the connector faces outward/right (+X). See `TASK2_REV5_HANDEDNESS.md`.
 
-The previous revision-4 collision and ergonomic numbers are superseded until the correctly handed housing passes the full placement, PCB, plate and case qualification again. Task 3E and routing are blocked.
+Qualified revision-5 geometry:
+
+- ball center: `(22.0, -31.000147, 1.938015634)` mm;
+- ball exposure above plate: approximately **12.938 mm**;
+- correctly handed housing vs PCB: **0 mm³** intersection;
+- sphere vs PCB: **0 mm³** intersection;
+- board-side PMW header: `(18.5, -14.5)`, rotated 90°;
+- all 19 retained right keys and all nine PCB holes preserved;
+- local case pod remains approximately **5.462 mm** below the stock case bottom.
+
+A physical right-half mock-up remains required before routing is treated as production-final, especially because R33/SW21 is approximately **40.61 mm** center-to-center from the ball after the outward handedness correction.

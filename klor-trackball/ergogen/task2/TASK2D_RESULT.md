@@ -1,10 +1,10 @@
-# Task 2D Result — Geometry Freeze Revision 4
+# Task 2D Result — Geometry Freeze Revision 5
 
 ## Status
 
-**PASS — Task 2D revision 4 is frozen.**
+**PASS — Task 2D revision 5 is frozen.**
 
-Revision 4 is the first Task-2 freeze qualified against the real Type-C housing, generated PCB, 25 mm sphere, stock Konrad switchplate and stock right case in one 3D frame.
+Revision 5 is the canonical geometry after correcting the physical handedness of the Type-C housing.
 
 ## Frozen product geometry
 
@@ -18,93 +18,72 @@ Unchanged:
 - both encoders retained;
 - 20 left RGB / 19 right RGB;
 - MCU and TRRS stock datums;
-- all nine stock PCB holes;
-- stock structural axes outside the bounded trackball case modification.
+- all nine stock PCB holes.
 
-## Frozen trackball placement
+## Frozen trackball geometry
 
-Canonical ball XY:
+Ball center XY:
 
-**`(15.5, -31.000147)`**
+**`(22.0, -31.000147)` mm**
 
-This is a `(-1,-3) mm` correction from revision 3, derived by a real-housing interference search while preserving all retained keys and PCB holes.
+Qualified common-frame XYZ:
 
-Frozen Type-C relations:
+**`(22.0, -31.000147, 1.938015634)` mm**
 
-- housing center from ball: `(+9.165901, +0.000812)`;
-- housing screw midpoint from ball: `(+6.212, 0)`;
-- housing screw offsets: `(0,+7.98)` and `(0,-7.98)`;
-- breakout center from ball: `(+19.212, 0)`;
-- Kivipallur connector remains on +X / right side.
+Ball exposure above plate:
 
-## Frozen PCB composition
+**12.938 mm**
 
-```text
-stock_board
-- trackball_cavity
-= trackball_board
-```
+Housing:
 
-The cavity is derived from the actual Type-C housing section at the PCB slab plus ball/manufacturing clearance.
-
-The old revision-3 PMW support tongue and breakout service notch are no longer part of the PCB.
+- source variant: checked-in **left STL** for the right keyboard half;
+- opening: -X / thumb side;
+- connector: +X / outward;
+- center from ball: `(-9.165901, +0.000812)`;
+- screw midpoint from ball: `(-6.212, 0)`;
+- screw offsets: `(0,+7.98)`, `(0,-7.98)`.
 
 ## Frozen PMW mechanical interface
 
-Keyboard-side PMW header:
+Kivipallur/housing connector: **+X / outward**.
 
-- center: **`(0, -22.022143)`**;
+Keyboard-side cabled 1x7:
+
+- center: **`(18.5, -14.5)`**;
 - F.Cu;
-- 1x7, 2.54 mm pitch;
-- short seven-conductor cable to the Kivipallur breakout.
+- 90° rotation;
+- row axis X;
+- pin 1 at +X, pin 7 at -X;
+- cable mapping: breakout pin `N` -> keyboard pin `8-N`.
 
-The breakout itself remains on the right side of the ball.
+## 3D integration
 
-Pin order and GPIO ownership are unchanged.
+Task 2E proves:
 
-## 3D integration boundary
+- sphere vs PCB: **0 mm³**;
+- housing vs PCB: **0 mm³**;
+- sphere vs relieved plate: **0 mm³**;
+- housing vs relieved plate: numerical residue `6.47e-8 mm³`;
+- sphere vs relieved case: **0 mm³**;
+- housing vs relieved case: numerical residue `4.40e-7 mm³`.
 
-Task 2E additionally qualifies:
-
-- source-backed Cherry MX plate-top to PCB-top spacing of 5.0 mm;
-- actual 1.5 mm Konrad switchplate;
-- actual housing STL;
-- actual stock right-case STL;
-- relieved switchplate;
-- local downward right-case trackball pod;
-- native housing M2 axes supported by pod-bottom bosses.
-
-Qualified ball center XYZ:
-
-`(15.5, -31.000147, 1.938015634)` mm.
-
-Qualified ball exposure above plate:
-
-**12.938 mm**.
-
-The pod extends **5.462 mm below the stock case bottom**.
-
-## Qualification
-
-Qualification head:
-
-`52ea88ad36f9fe31962a599036b09c8a8fdb50d0`
-
-Passing workflows include:
-
-- Task 2B: `36376432620`
-- Task 2C: `36376432637`
-- Task 2D: `36376432640`
-- Task 2E: `36376432664`
-- Tasks 3A / 3B / 3C / 3D also pass on the same head.
+The local case pod extends approximately **5.462 mm** below the stock-case bottom. Both M2 boss support checks are 100%.
 
 ## Downstream boundary
 
-Task 3 and Task 4 may not silently:
+Task 3/4 may not silently:
 
-- move the revision-4 ball/housing/breakout;
-- change the real-housing-derived cavity;
-- move the cabled PMW board header;
-- reintroduce the rigid PMW peninsula;
+- change housing handedness;
+- move the ball/housing/breakout;
+- change the actual-housing-derived cavity;
+- move or rotate the board-side PMW header;
 - restore R34/SW22/D22;
-- move retained keys or stock PCB mounting holes.
+- move retained keys or stock PCB holes.
+
+## Qualification
+
+Implementation qualification head:
+
+`0b704c8ff85c6b641b796813f49e78124d8e21ec`
+
+Passing Task-2D workflow: `36697008291`.
