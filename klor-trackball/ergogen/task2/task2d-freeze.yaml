@@ -40,7 +40,7 @@ canonical_frame:
 
 trackball:
   ball_diameter: 25
-  ball_center_local: [20.0, -31.000147]
+  ball_center_local: [21.5, -31.000147]
   orientation_reference: source_left_housing_opening_negative_x_connector_positive_x
   housing_center_from_ball: [-9.165901, 0.000812]
   housing_envelope: [37.594812, 29.998377]
@@ -110,8 +110,8 @@ pcb_geometry:
       - [2.786676, -13.752923]
   placement_adjustment:
     prior_ball_center_local: [15.5, -31.000147]
-    shift_xy: [4.5, 0.0]
-    shift_norm: 4.5
+    shift_xy: [6.0, 0.0]
+    shift_norm: 6.0
     reason:
       - correct_physical_housing_handedness
       - preserve_all_19_keys_and_all_9_PCB_holes
@@ -177,7 +177,7 @@ change_control:
     puts the connector inward/left and the ball opening outward/right on the
     right keyboard half. Revision 5 uses the mirrored source left STL, placing
     the opening toward the thumb cluster (-X) and connector outward (+X).
-    A real-mesh search moves the ball 4.5 mm outward to (20.0, -31.000147),
+    A real-mesh search moves the ball 6.0 mm outward to (21.5, -31.000147),
     mirrors the housing and M2 screw datums, derives a new cavity, and moves the
     same 1x7 board header to (18.5, -14.5) rotated 90 degrees. All 19 retained
     keys and all nine PCB holes remain.
