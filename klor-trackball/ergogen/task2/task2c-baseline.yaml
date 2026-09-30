@@ -17,7 +17,7 @@ variant:
 
 trackball:
   ball_diameter: 25
-  ball_center_local: [20.0, -31.000147]
+  ball_center_local: [21.5, -31.000147]
   housing_center_from_ball: [-9.165901, 0.000812]
   housing_envelope: [37.594812, 29.998377]
 
@@ -66,14 +66,14 @@ support_tongue:
 
 placement_adjustment:
   prior_ball_center_local: [15.5, -31.000147]
-  revised_ball_center_local: [20.0, -31.000147]
-  shift_xy: [4.5, 0.0]
-  shift_norm: 4.5
+  revised_ball_center_local: [21.5, -31.000147]
+  shift_xy: [6.0, 0.0]
+  shift_norm: 6.0
   reason:
     - correct_Type_C_housing_handedness_for_right_keyboard_half
     - mirrored_housing_requires_outward_shift_to_preserve_retained_keys_and_holes
     - minimum_clean_candidate_preserves_all_19_keys_and_9_PCB_holes
-    - nearest_retained_key_center_is_34_784mm
+    - nearest_retained_key_center_is_34_022mm
 pcb_cavity:
   topology: correctly_handed_actual_type_c_housing_section_plus_ball_clearance
   source: Task2E_rev5_real_mesh_interference_scan
