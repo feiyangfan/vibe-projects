@@ -467,7 +467,8 @@ def main():
 
     pmw = find_instance(all_fps, config, NAMES["pmw"], contract["pmw3360"]["point"])
     pmw_at = at_xyz(pmw)
-    expected_pmw_at = pcb_point(config, contract["pmw3360"]["point"])
+    prod_resolved = resolve_point(config, contract["pmw3360"]["point"])
+    expected_pmw_at = (prod_resolved[0], -prod_resolved[1], prod_resolved[2])
     assert_close("PMW board-header center", pmw_at[:2], expected_pmw_at[:2])
     assert_angle("PMW board-header rotation", pmw_at[2], expected_pmw_at[2])
 
@@ -493,7 +494,7 @@ def main():
         expected_net = "" if pin_order[n] == "NC" else pin_order[n]
         if p["net"] != expected_net:
             raise AssertionError(f"PMW pin {n}: {p['net']} != {expected_net}")
-        expected_x = board_center[0] + (n - 4) * pitch
+        expected_x = board_center[0] + (4 - n) * pitch
         actual_xy = global_pad_in_canonical(pmw, p)
         assert_close(
             f"PMW pin {n} cable-header physical position",
@@ -514,10 +515,10 @@ def main():
         raise AssertionError("Kivipallur breakout connector must remain on +X/right side of ball")
     if contract["pmw3360"]["row_axis"] != "x":
         raise AssertionError("Rev5 PMW header row axis must be canonical X")
-    if contract["pmw3360"]["pin_1_end"] != "negative_canonical_x":
-        raise AssertionError("PMW pin 1 must remain at negative canonical X")
-    if contract["pmw3360"]["pin_7_end"] != "positive_canonical_x":
-        raise AssertionError("PMW pin 7 must remain at positive canonical X")
+    if contract["pmw3360"]["pin_1_end"] != "positive_canonical_x":
+        raise AssertionError("PMW pin 1 must remain at positive canonical X")
+    if contract["pmw3360"]["pin_7_end"] != "negative_canonical_x":
+        raise AssertionError("PMW pin 7 must remain at negative canonical X")
     if contract["pmw3360"]["mating_rule"] != "cable_maps_breakout_pin_N_to_keyboard_pin_8_minus_N":
         raise AssertionError("PMW cable mating rule changed")
     assert_close(
