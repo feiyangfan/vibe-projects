@@ -493,6 +493,25 @@ def main():
             hole_hits = [name for name, keep in hole_keepouts if relief.intersects(keep)]
             if key_hits or hole_hits:
                 continue
+
+            # Preserve the historical Task-2 conservative envelope margin in
+            # addition to the authoritative real-mesh checks. This avoids
+            # accepting a mirrored-housing placement that is technically
+            # collision-free but too close to a retained key by the older,
+            # intentionally pessimistic rectangular model.
+            bbox = housing_local.bounds
+            housing_rect = box(
+                cx + float(bbox[0, 0]),
+                cy + float(bbox[0, 1]),
+                cx + float(bbox[1, 0]),
+                cy + float(bbox[1, 1]),
+            )
+            conservative_key_gap = min(
+                housing_rect.distance(keep) for _, keep in key_keepouts
+            )
+            if conservative_key_gap < 2.5:
+                continue
+
             nearest_key = min(
                 math.hypot(
                     float(cfg["points"]["zones"][name]["anchor"]["shift"][0]) - cx,
@@ -506,6 +525,7 @@ def main():
                     "shift_xy": [float(dx), float(dy)],
                     "shift_norm": math.hypot(dx, dy),
                     "nearest_key_center_mm": nearest_key,
+                    "conservative_rect_key_gap_mm": float(conservative_key_gap),
                     "relief_bounds": list(map(float, relief.bounds)),
                 }
             )
