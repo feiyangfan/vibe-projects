@@ -169,7 +169,7 @@ points:
     # historical KiCad/Gerber transform are treated as transform noise.
     ball_center:
       anchor:
-        shift: [20.0, -31.000147]
+        shift: [21.5, -31.000147]
     housing_center:
       anchor:
         ref: ball_center
