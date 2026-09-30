@@ -1,5 +1,7 @@
 # Task 2E Result — Full 3D Mechanical Integration
 
+> **SUPERSEDED / DO NOT USE AS CURRENT QUALIFICATION** — This result validated `keyball_trackball_case_25mm_type_c_right.stl`, which puts the physical connector on the wrong side for the intended right-hand assembly. Revision 5 reopens Task 2 with the mirrored housing. See `TASK2_REV5_HANDEDNESS.md`.
+
 ## Status
 
 **PASS — COMPLETE.**
