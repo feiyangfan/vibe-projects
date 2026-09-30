@@ -88,9 +88,9 @@ Gate:
 
 ### Task 3D — Generate the right production-intent PCB
 
-**REVISION 4 — COMPLETE**
+**REOPENED — waiting for Task-2 revision 5**
 
-Generate the right PCB on the frozen Task-2D revision-4 trackball geometry.
+Regenerate the right PCB after Task-2 revision 5 freezes the correctly handed trackball housing geometry.
 
 Expected electrical content:
 
@@ -117,7 +117,7 @@ Gate:
 
 ### Task 3E — Cross-board electrical integration and freeze
 
-**NEXT**
+**BLOCKED — Task 3D must pass revision 5 first**
 
 Validate the left and right generated boards as one split keyboard.
 
