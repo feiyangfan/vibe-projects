@@ -219,13 +219,13 @@ A short authoritative requirements document exists, and any geometry-dependent p
 
 ## Task 2 — Reconstruct the complete KLOR/Konrad geometry in Ergogen
 
-**Status: COMPLETE — REVISION 4 MECHANICALLY QUALIFIED**
+**Status: REOPENED — REVISION 5 HOUSING HANDEDNESS CORRECTION**
 
 Task 2 begins with a minimal-change study before full reconstruction. The selected implementation baseline is to remove R34/SW22/D22 only, retain R32/R33 and the right encoder, preserve all structural interfaces, and keep PCB/plate/case changes local to the trackball region. See `ergogen/task2/MINIMAL_CHANGE_STUDY.md`.
 
-The current frozen geometry is **revision 4**. Full 3D integration against the actual Type-C housing, 25 mm ball, generated PCB, stock Konrad switchplate, and stock right case is qualified in `ergogen/task2/TASK2E_RESULT.md`. The ball center is `(15.5, -31.000147)` in the canonical XY frame, with approximately `12.938 mm` exposed above the plate. The PMW breakout remains on the right/+X side of the ball; the board-side 1x7 header moves into the reclaimed SW22 area and connects by a short seven-conductor cable.
+Revision 4 is **superseded as a mechanical qualification** after a housing-handedness audit. Task 2E hard-coded the checked-in `type_c_right.stl`, whose physical connector faces left/inward on this right keyboard half, while the design contract required the connector to face right/outward. The intended orientation requires the mirrored `type_c_left.stl`, with the ball opening toward the thumb cluster and the connector toward +X/outside. See `ergogen/task2/TASK2_REV5_HANDEDNESS.md`.
 
-The digital geometry is collision-free within the Task-2E tolerance, but subjective ergonomics, assembly path, cable behavior, ball retention/motion, and the local case-pod desk stance still require a physical right-half mock-up before the mechanical design is treated as production-final.
+Revision 5 is now re-running the placement/cavity/plate/case qualification with the correctly handed housing. Task 3E and routing are blocked until Tasks 2C/2D/2E and 3D pass again.
 
 Build the actual canonical geometric model.
 
@@ -284,9 +284,9 @@ Task 3 is split into explicit electrical gates:
  ↓
 3C  left unrouted PCB                COMPLETE
  ↓
-3D  right unrouted PCB + PMW Rev 4   COMPLETE
+3D  right unrouted PCB + PMW         REOPENED FOR REV 5
  ↓
-3E  cross-board electrical freeze    NEXT
+3E  cross-board electrical freeze    BLOCKED
  ↓
 Task 4 routing
 ```
@@ -537,13 +537,6 @@ Generated output should never become the only place where design intent exists.
 
 ## Current work
 
-**Canonical design baseline: Task-2 revision 4 + Task 3D revision 4.**
+**Revision 5 housing-handedness correction is in progress.**
 
-Tasks 3A–3D are complete. The left and right production-intent PCBs regenerate deterministically and remain intentionally unrouted. The right board consumes the full-3D-qualified revision-4 trackball geometry.
-
-There are now two distinct next gates:
-
-1. **Physical mechanical validation:** build the documented right-half mock-up from `ergogen/task2/TASK2E_RESULT.md` and verify real thumb reach, ball motion/retention, housing assembly, cable routing, fasteners, and the 5.462 mm local case-pod extension. Any geometry change discovered here reopens Task 2.
-2. **Task 3E — cross-board electrical integration and freeze:** validate the generated left/right boards together, freeze pair-level matrix/RGB/split/PMW ownership, and authorize Task 4 routing if no electrical mismatch is found.
-
-Do not treat the design as fabrication-ready until the physical mechanical validation has passed.
+Revision 4 is retained as historical evidence but is no longer the canonical mechanical baseline. The current task is to qualify the correctly handed Type-C housing, freeze the resulting right-PCB geometry, and restore Task 3D regression. Task 3E and Task 4 are blocked until that passes.
