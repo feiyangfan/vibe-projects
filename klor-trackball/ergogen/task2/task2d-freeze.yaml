@@ -1,5 +1,5 @@
 status: task2d_frozen
-revision: 4
+revision: 5
 units: mm
 
 authority:
@@ -40,11 +40,11 @@ canonical_frame:
 
 trackball:
   ball_diameter: 25
-  ball_center_local: [15.5, -31.000147]
-  orientation_reference: klorball35_right_connector_on_positive_x_side
-  housing_center_from_ball: [9.165901, 0.000812]
+  ball_center_local: [20.0, -31.000147]
+  orientation_reference: source_left_housing_opening_negative_x_connector_positive_x
+  housing_center_from_ball: [-9.165901, 0.000812]
   housing_envelope: [37.594812, 29.998377]
-  housing_screw_midpoint_from_ball: [6.212, 0]
+  housing_screw_midpoint_from_ball: [-6.212, 0]
   housing_screw_offsets_from_midpoint:
     - [0, 7.98]
     - [0, -7.98]
@@ -60,14 +60,14 @@ pmw_header:
   family: PinHeader_1x07_P2.54mm_Vertical
   keyboard_side: F.Cu
   pitch: 2.54
-  row_axis: y
-  center_local: [0, -22.022143]
+  row_axis: x
+  center_local: [18.5, -14.5]
   connection_form: short_7_conductor_cable
   body_reference_envelope: [2.54, 17.78]
-  orientation_reference: klorball35_right
-  pin_1_end: positive_canonical_y
-  pin_7_end: negative_canonical_y
-  physical_pin_order_positive_y_to_negative_y:
+  canonical_rotation: 90
+  pin_1_end: negative_canonical_x
+  pin_7_end: positive_canonical_x
+  physical_pin_order_pin_1_to_7:
     1: CS
     2: MISO
     3: MOSI
@@ -82,38 +82,38 @@ pcb_geometry:
     - {outline: stock_board, operation: add}
     - {outline: trackball_cavity, operation: subtract}
   cavity:
-    topology: actual_type_c_housing_section_plus_ball_clearance
+    topology: correctly_handed_actual_type_c_housing_section_plus_ball_clearance
     manufacturing_clearance_xy: 0.5
     ball_radial_clearance: 0.3
     simplification_tolerance: 0.35
     points_from_ball:
-      - [-3.397674, -12.995708]
-      - [-4.012645, -11.409311]
-      - [-6.727274, -10.068077]
-      - [-9.360209, -7.681725]
-      - [-11.876107, -2.362305]
-      - [-11.876107, 2.362305]
-      - [-9.706553, 7.214733]
-      - [-10.125556, 9.731904]
-      - [-9.097836, 11.812018]
-      - [-5.204447, 13.975684]
-      - [-0.005989, 14.910524]
-      - [21.423979, 13.373324]
-      - [24.221360, 12.356466]
-      - [26.604957, 10.304514]
-      - [28.409315, 5.956341]
-      - [28.412217, -5.923751]
-      - [27.333568, -9.233634]
-      - [25.267819, -11.641650]
-      - [20.930460, -13.444568]
-      - [0.918644, -14.869125]
-      - [-1.754294, -14.689407]
+      - [-0.840834, -14.623011]
+      - [-20.930460, -13.444568]
+      - [-23.638597, -12.664143]
+      - [-25.988800, -10.994649]
+      - [-27.613115, -8.704704]
+      - [-28.335949, -6.465247]
+      - [-28.463306, 5.000000]
+      - [-27.873642, 8.105098]
+      - [-25.957956, 11.025493]
+      - [-23.668010, 12.649809]
+      - [-20.930460, 13.444568]
+      - [0.327880, 14.459083]
+      - [5.591239, 13.342473]
+      - [9.168056, 11.192182]
+      - [10.095306, 9.092415]
+      - [9.629447, 6.444535]
+      - [11.531610, 1.135764]
+      - [10.705368, -4.434308]
+      - [8.193534, -8.193534]
+      - [4.379507, -10.724976]
+      - [2.786676, -13.752923]
   placement_adjustment:
-    prior_ball_center_local: [16.5, -28.000147]
-    shift_xy: [-1.0, -3.0]
-    shift_norm: 3.162278
+    prior_ball_center_local: [15.5, -31.000147]
+    shift_xy: [4.5, 0.0]
+    shift_norm: 4.5
     reason:
-      - eliminate_real_housing_PCB_intersection
+      - correct_physical_housing_handedness
       - preserve_all_19_keys_and_all_9_PCB_holes
   preserve:
     - stock_geometry_outside_actual_housing_cavity
@@ -127,7 +127,7 @@ switchplate_geometry:
   preserve_eight_structural_axes: true
   retained_key_openings: 19
   service_openings:
-    - preserve_stock_SW22_14x14_opening_for_cable_header_access
+    - preserve_stock_SW22_14x14_opening_as_existing_plate_geometry
     - subtract_actual_housing_and_ball_relief
   add_trackball_housing_axes: 2
   thickness_reference: 1.5
@@ -155,11 +155,12 @@ task3_change_boundary:
     - move_MCU_or_TRRS_geometry
     - move_any_structural_axis
     - move_ball_housing_or_breakout
+    - change_housing_handedness
     - change_actual_housing_derived_trackball_cavity
     - move_keyboard_side_PMW_cable_header
     - change_stock_board_geometry_outside_the_frozen_local_delta
     - change_stock_switchplate_outer_perimeter
-    - change_pmw_header_side_row_axis_or_physical_pin_order
+    - change_pmw_header_side_row_axis_rotation_or_physical_pin_order
 
 deferred_beyond_task2:
   - production_housing_mount_hole_diameter
@@ -171,6 +172,15 @@ deferred_beyond_task2:
   - fabrication_tolerances_not_already_required_by_mechanical_fit
 
 change_control:
+  revision_5_reason: >-
+    Revision 4 qualified the source right STL even though that physical housing
+    puts the connector inward/left and the ball opening outward/right on the
+    right keyboard half. Revision 5 uses the mirrored source left STL, placing
+    the opening toward the thumb cluster (-X) and connector outward (+X).
+    A real-mesh search moves the ball 4.5 mm outward to (20.0, -31.000147),
+    mirrors the housing and M2 screw datums, derives a new cavity, and moves the
+    same 1x7 board header to (18.5, -14.5) rotated 90 degrees. All 19 retained
+    keys and all nine PCB holes remain.
   revision_4_reason: >-
     Task 2E placed the real Type-C housing, 25 mm sphere, generated Rev-3 PCB,
     stock switchplate and stock right case into one 3D frame. Rev 3 showed
