@@ -572,33 +572,38 @@ def main():
             component_keepouts.append(box(px - 3.5, py - 2.5, px + 3.5, py + 2.5))
 
         header_candidates = []
-        for hx in np.arange(-15.0, 60.01, 1.0):
-            for hy in np.arange(-35.0, 15.01, 1.0):
-                rect = box(
-                    hx - header_w / 2.0,
-                    hy - header_h / 2.0,
-                    hx + header_w / 2.0,
-                    hy + header_h / 2.0,
-                )
-                if not board_safe.contains(rect):
-                    continue
-                if rect.intersects(best_relief):
-                    continue
-                if any(rect.intersects(keep) for keep in component_keepouts):
-                    continue
-                header_candidates.append(
-                    {
-                        "center": [float(hx), float(hy)],
-                        "distance_to_breakout_mm": math.hypot(
-                            float(hx) - breakout_xy[0],
-                            float(hy) - breakout_xy[1],
-                        ),
-                        "distance_from_old_header_mm": math.hypot(
-                            float(hx),
-                            float(hy) + 22.022143,
-                        ),
-                    }
-                )
+        for rotation_deg, (rect_w, rect_h) in {
+            0: (header_w, header_h),
+            90: (header_h, header_w),
+        }.items():
+            for hx in np.arange(-15.0, 60.01, 0.5):
+                for hy in np.arange(-35.0, 15.01, 0.5):
+                    rect = box(
+                        hx - rect_w / 2.0,
+                        hy - rect_h / 2.0,
+                        hx + rect_w / 2.0,
+                        hy + rect_h / 2.0,
+                    )
+                    if not board_safe.contains(rect):
+                        continue
+                    if rect.intersects(best_relief):
+                        continue
+                    if any(rect.intersects(keep) for keep in component_keepouts):
+                        continue
+                    header_candidates.append(
+                        {
+                            "center": [float(hx), float(hy)],
+                            "rotation_deg": rotation_deg,
+                            "distance_to_breakout_mm": math.hypot(
+                                float(hx) - breakout_xy[0],
+                                float(hy) - breakout_xy[1],
+                            ),
+                            "distance_from_old_header_mm": math.hypot(
+                                float(hx),
+                                float(hy) + 22.022143,
+                            ),
+                        }
+                    )
         header_candidates.sort(
             key=lambda row: (
                 row["distance_to_breakout_mm"],
