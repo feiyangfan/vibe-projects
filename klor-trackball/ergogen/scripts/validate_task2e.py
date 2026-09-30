@@ -537,6 +537,74 @@ def main():
                 )
             )
 
+        # The mirrored Rev-5 cavity consumes the old SW22-area board header.
+        # Search conservative F.Cu 1x7 header placements on material that
+        # already exists in the current generated board, outside the new relief
+        # and retained production footprints. This is intentionally
+        # conservative: a candidate found here is guaranteed not to rely on
+        # material that only appears after replacing the old cavity.
+        breakout_xy = (
+            float(best["ball_xy"][0]) + 19.212,
+            float(best["ball_xy"][1]),
+        )
+        header_w = float(cfg["units"]["pmw_header_body_w"])
+        header_h = float(cfg["units"]["pmw_header_body_h"])
+        board_safe = board_poly.buffer(-0.5)
+        component_keepouts = [keep for _, keep in key_keepouts]
+        component_keepouts.extend(keep for _, keep in hole_keepouts)
+
+        conservative_parts = {
+            "encoder_ref": (7.0, 7.0),
+            "mcu_ref": (10.0, 18.0),
+            "trrs_ref": (7.0, 4.0),
+            "reset_ref": (4.0, 4.0),
+        }
+        for name, (hx, hy) in conservative_parts.items():
+            px, py = map(float, cfg["points"]["zones"][name]["anchor"]["shift"][:2])
+            component_keepouts.append(box(px - hx, py - hy, px + hx, py + hy))
+        for name in [*(f"d{i}" for i in range(1, 19)), "d20", "d21"]:
+            px, py = map(float, cfg["points"]["zones"][name]["anchor"]["shift"][:2])
+            component_keepouts.append(box(px - 3.5, py - 2.5, px + 3.5, py + 2.5))
+
+        header_candidates = []
+        for hx in np.arange(-15.0, 60.01, 1.0):
+            for hy in np.arange(-35.0, 15.01, 1.0):
+                rect = box(
+                    hx - header_w / 2.0,
+                    hy - header_h / 2.0,
+                    hx + header_w / 2.0,
+                    hy + header_h / 2.0,
+                )
+                if not board_safe.contains(rect):
+                    continue
+                if rect.intersects(best_relief):
+                    continue
+                if any(rect.intersects(keep) for keep in component_keepouts):
+                    continue
+                header_candidates.append(
+                    {
+                        "center": [float(hx), float(hy)],
+                        "distance_to_breakout_mm": math.hypot(
+                            float(hx) - breakout_xy[0],
+                            float(hy) - breakout_xy[1],
+                        ),
+                        "distance_from_old_header_mm": math.hypot(
+                            float(hx),
+                            float(hy) + 22.022143,
+                        ),
+                    }
+                )
+        header_candidates.sort(
+            key=lambda row: (
+                row["distance_to_breakout_mm"],
+                row["distance_from_old_header_mm"],
+            )
+        )
+        print(
+            "TASK2E_HEADER_CANDIDATES "
+            + json.dumps(header_candidates[:20], sort_keys=True)
+        )
+
     print(
         "TASK2E_DIAGNOSTIC "
         + json.dumps(
