@@ -114,8 +114,8 @@ def main():
         (args.generated / "points/points.yaml").read_text(encoding="utf-8")
     )
 
-    if baseline["revision"] != 4:
-        raise AssertionError("Task 2C must remain at mechanical revision 4")
+    if baseline["revision"] != 5:
+        raise AssertionError("Task 2C must remain at mechanical revision 5")
 
     ball = point(generated, "ball_center")
     breakout = point(generated, "breakout_center")
@@ -126,7 +126,7 @@ def main():
     header = point(generated, "pmw_header_center")
 
     expected_ball = tuple(float(x) for x in baseline["trackball"]["ball_center_local"])
-    assert_xy("Task-2 rev4 ball placement", ball, expected_ball, HIST_TOL)
+    assert_xy("Task-2 rev5 ball placement", ball, expected_ball, HIST_TOL)
 
     prior_ball = tuple(float(x) for x in baseline["placement_adjustment"]["prior_ball_center_local"])
     expected_shift = tuple(float(x) for x in baseline["placement_adjustment"]["shift_xy"])
@@ -153,11 +153,19 @@ def main():
         tuple(float(x) for x in baseline["pmw_header_reference"]["board_center_local"]),
     )
 
-    if not (housing[0] > ball[0] and breakout[0] > ball[0]):
-        raise AssertionError("Type-C/Kivipallur connector handedness regressed")
-    if baseline["pmw_header_reference"]["connection_form"] != "short_7_conductor_cable":
-        raise AssertionError("revision-4 cabled PMW interface changed")
-    print("PASS Kivipallur connector remains +X/right; keyboard header is cabled")
+    if not (housing[0] < ball[0] and breakout[0] > ball[0]):
+        raise AssertionError("Rev5 housing/opening/connector handedness regressed")
+    handed = baseline["handedness"]
+    if handed["housing_source_variant"] != "left" or handed["opening_side"] != "negative_x" or handed["connector_side"] != "positive_x":
+        raise AssertionError("Rev5 physical housing handedness contract changed")
+    header_contract = baseline["pmw_header_reference"]
+    if header_contract["connection_form"] != "short_7_conductor_cable":
+        raise AssertionError("Rev5 cabled PMW interface changed")
+    if header_contract["row_axis"] != "x" or int(header_contract["canonical_rotation"]) != 90:
+        raise AssertionError("Rev5 rotated PMW board-header geometry changed")
+    if header_contract["pin_1_end"] != "positive_canonical_x" or header_contract["pin_7_end"] != "negative_canonical_x":
+        raise AssertionError("Rev5 PMW header endpoint orientation changed")
+    print("PASS opening faces -X/thumb side; connector faces +X/outward; board header is rotated/cabled")
 
     if abs(math.dist(screw_1[:2], screw_2[:2]) - 15.96) > TOL:
         raise AssertionError("housing screw pair spacing changed")
@@ -174,7 +182,7 @@ def main():
         for part in config["outlines"]["trackball_board"]
     ]
     if board_contract != [("stock_board", "add"), ("trackball_cavity", "subtract")]:
-        raise AssertionError(f"revision-4 board composition changed: {board_contract}")
+        raise AssertionError(f"revision-5 board composition changed: {board_contract}")
     print("PASS board delta = stock board - actual-housing/ball cavity")
 
     plate_parts = config["outlines"]["trackball_plate_service_opening"]
@@ -182,7 +190,7 @@ def main():
         raise AssertionError("plate must preserve SW22 aperture for cable/header access")
     if plate_parts[1].get("name") != "trackball_cavity":
         raise AssertionError("plate preview must include real-housing cavity")
-    print("PASS plate delta uses SW22 cable access plus actual-housing relief")
+    print("PASS plate delta preserves SW22 opening plus actual-housing relief")
 
     if float(config["units"]["ball_diameter"]) != 25:
         raise AssertionError("ball diameter changed")
@@ -211,6 +219,8 @@ def main():
     # Header body and every retained datum must stay out of the cavity.
     header_w = float(config["units"]["pmw_header_body_w"])
     header_h = float(config["units"]["pmw_header_body_h"])
+    if baseline["pmw_header_reference"]["row_axis"] == "x":
+        header_w, header_h = header_h, header_w
     header_corners = [
         (header[0] + sx * header_w / 2, header[1] + sy * header_h / 2)
         for sx in (-1, 1) for sy in (-1, 1)
@@ -224,7 +234,7 @@ def main():
         p = point(generated, name)
         rel = (p[0] - ball[0], p[1] - ball[1])
         if point_in_polygon(rel, actual_points):
-            raise AssertionError(f"retained datum {name} lies inside revision-4 cavity")
+            raise AssertionError(f"retained datum {name} lies inside revision-5 cavity")
     print("PASS cabled PMW header, 19 keys and 9 PCB holes remain outside cavity")
 
     housing_w = float(config["units"]["housing_w"])
@@ -247,7 +257,7 @@ def main():
         raise AssertionError("Task 2C right-thumb architecture changed")
 
     print("PASS Task 2B stock geometry remains a separately generated/validated source layer")
-    print("Task 2C revision-4 real-housing geometry regression passed")
+    print("Task 2C revision-5 correctly-handed real-housing geometry regression passed")
     return 0
 
 

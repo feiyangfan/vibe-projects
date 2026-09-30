@@ -2,7 +2,7 @@
 
 ## Status
 
-**REV 1 PRODUCT + TASK 2 GEOMETRY + TASK 3A ELECTRICAL ARCHITECTURE FROZEN**
+**REV 1 PRODUCT + TASK 2 REVISION 5 GEOMETRY + TASK 3A ELECTRICAL ARCHITECTURE FROZEN**
 
 This document is the authoritative product-requirements freeze for Tasks 2–4.
 
@@ -52,7 +52,9 @@ Task 2 compared the historical R34-only layout with more aggressive thumb/encode
 
 Changing that retained-control set after Task 2D is a geometry/requirements change and requires reopening Task 2 rather than being treated as a Task-3 PCB implementation choice.
 
-Task 2D revision 2 was explicitly reopened to correct trackball handedness. The Type-C/Kivipallur assembly is rotated to put the connector on the right side. A direct flip at the historical ball center would violate the existing conservative housing-clearance rule at retained SW16, so the revised ball center moves **5.761644 mm inward in canonical X**, from x = 22.261644 mm to **x = 16.5 mm**, while keeping Y unchanged. This also keeps the revised service notch clear of stock MH8, so all nine PCB mounting holes remain at their stock positions.
+Task 2 revision 5 is the frozen mechanical geometry. A physical handedness audit found that the checked-in `type_c_right.stl` puts the ball-holder opening outward and the connector inward when used on this right keyboard half. Rev 5 therefore uses `keyball_trackball_case_25mm_type_c_left.stl`, the X-mirrored counterpart: the opening faces **-X / inward toward the thumb**, while the housing/Kivipallur connector faces **+X / outward**.
+
+The qualified canonical ball center is **(22.0, -31.000147) mm**. The qualified common-frame Z is **1.938015634 mm**, preserving approximately **12.938 mm** ball exposure above the 1.5 mm plate. All 19 retained right keys and all nine stock PCB holes are preserved. Changing this placement or housing handedness requires reopening Task 2.
 
 ### PCB architecture
 
@@ -167,25 +169,33 @@ Frozen keyboard-side physical pin order entering Task 3:
 
 The checked-in Kivipallur breakout uses the same seven signals in the opposite numeric order. The verified mate is breakout pin `N` to keyboard pin `8-N`.
 
-**Connector orientation is now explicitly frozen to match the KLORBall-35 right half:** the keyboard-side 1x7 connector sits on the **right / positive-canonical-X side of the ball**. Along the connector row, keyboard pin 1 / CS is at the **positive canonical Y** end and pin 7 / GND is at the **negative canonical Y** end, matching the physical orientation of KLORBall-35 J2.
+The two connector concepts are intentionally distinct:
 
-Task 3 must preserve this right-side connector orientation, physical pin order, keyboard-side F.Cu placement, and mating handedness; exact MCU GPIO ownership remains a Task-3 electrical decision.
+- the **housing/Kivipallur breakout connector** is on the **right / +X / outward** side of the ball;
+- the **keyboard-side 1x7 cable header** is a separate F.Cu connector at canonical **(18.5, -14.5) mm**, rotated 90° with its row on canonical X.
+
+On the keyboard header, pin 1 / CS is at the **positive canonical X** end and pin 7 / GND is at the **negative canonical X** end. The cable mating rule remains breakout pin `N` to keyboard pin `8-N`.
+
+Task 3 must preserve the outward housing/breakout orientation, board-header location/rotation, physical pin numbering, F.Cu placement, and cable mating rule.
 
 ### Trackball mechanical interface
 
 Required:
 
-- housing mounting screws belong to the **switchplate**, not the main PCB;
-- nominal housing screw-pair spacing: **16 mm**;
-- breakout/service opening reference envelope: **2 x 22 mm**;
-- breakout/service path must remain accessible after assembly;
-- trackball position must preserve controller clearance, TRRS clearance, and retained structural mounting axes;
-- R32 / R33 and the right encoder are preserved geometry;
-- R34 / SW22 / D22 is intentionally removed from the Rev-1 target;
-- the Task-2D revision-2 ball, housing, breakout, PMW-header, support-tongue, and structural-axis relationships are frozen canonical geometry;
-- the Type-C/Kivipallur assembly is oriented with its connector on the **right / positive-X side of the ball**, matching KLORBall-35 handedness.
+- right-half housing source: **`keyball_trackball_case_25mm_type_c_left.stl`**;
+- ball opening faces **-X / inward toward the thumb cluster**;
+- housing/Kivipallur connector faces **+X / outward**;
+- canonical ball center: **`(22.0, -31.000147)` mm**;
+- qualified common-frame ball Z: **`1.938015634 mm`**;
+- housing center from ball: **`(-9.165901, +0.000812)` mm**;
+- native housing screw midpoint from ball: **`(-6.212, 0)` mm**, with ±7.98 mm Y offsets;
+- the actual-housing-derived PCB cavity is the mechanical authority;
+- R32 / R33 and the right encoder remain preserved; R34 / SW22 / D22 remain removed;
+- all nine stock PCB holes remain at stock positions;
+- housing M2 retention is owned by the **right-case local pod / bottom bosses**, because the required housing relief removes the old switchplate support at those axes;
+- the board-side PMW header is cabled and may be physically separate from the housing connector.
 
-The prior validated placement has been re-expressed parametrically in Ergogen. After Task 2D, changing those canonical relationships requires reopening Task 2.
+Revision 4 is retained as historical evidence only; its 3D qualification used the wrong handed housing.
 
 ### Structural interfaces and case
 

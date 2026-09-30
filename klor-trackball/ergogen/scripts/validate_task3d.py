@@ -269,7 +269,7 @@ def main():
         {"outline": "stock_board", "operation": "add"},
         {"outline": "trackball_cavity", "operation": "subtract"},
     ]:
-        raise AssertionError("Task-2D revision-4 trackball composition changed")
+        raise AssertionError("Task-2D revision-5 trackball composition changed")
     print("PASS frozen stock - actual-housing/ball cavity right-board geometry")
 
     # Non-reversible production policy: right SMD populations use the qualified
@@ -292,7 +292,7 @@ def main():
             f"{min_ball_edge} < {required_ball_edge}"
         )
     print(
-        f"PASS generated rev4 real-housing cavity: nearest Edge.Cuts is "
+        f"PASS generated rev5 handed real-housing cavity: nearest Edge.Cuts is "
         f"{min_ball_edge:.6f} mm from ball center"
     )
 
@@ -467,7 +467,8 @@ def main():
 
     pmw = find_instance(all_fps, config, NAMES["pmw"], contract["pmw3360"]["point"])
     pmw_at = at_xyz(pmw)
-    expected_pmw_at = pcb_point(config, contract["pmw3360"]["point"])
+    prod_resolved = resolve_point(config, contract["pmw3360"]["point"])
+    expected_pmw_at = (prod_resolved[0], -prod_resolved[1], prod_resolved[2])
     assert_close("PMW board-header center", pmw_at[:2], expected_pmw_at[:2])
     assert_angle("PMW board-header rotation", pmw_at[2], expected_pmw_at[2])
 
@@ -485,7 +486,7 @@ def main():
     pp = pads(pmw)
     pin_order = {
         int(k): v
-        for k, v in contract["pmw3360"]["physical_pin_order_positive_y_to_negative_y"].items()
+        for k, v in contract["pmw3360"]["physical_pin_order_pin_1_to_7"].items()
     }
     pitch = float(contract["pmw3360"]["pitch"])
     for n in range(1, 8):
@@ -493,12 +494,12 @@ def main():
         expected_net = "" if pin_order[n] == "NC" else pin_order[n]
         if p["net"] != expected_net:
             raise AssertionError(f"PMW pin {n}: {p['net']} != {expected_net}")
-        expected_y = board_center[1] + (3 - (n - 1)) * pitch
+        expected_x = board_center[0] + (4 - n) * pitch
         actual_xy = global_pad_in_canonical(pmw, p)
         assert_close(
             f"PMW pin {n} cable-header physical position",
             actual_xy,
-            (board_center[0], expected_y),
+            (expected_x, board_center[1]),
             GEOM_TOL,
         )
 
@@ -512,18 +513,20 @@ def main():
     breakout_center = resolve_point(config, "breakout_center")
     if breakout_center[0] <= ball_center[0]:
         raise AssertionError("Kivipallur breakout connector must remain on +X/right side of ball")
-    if contract["pmw3360"]["pin_1_end"] != "positive_canonical_y":
-        raise AssertionError("PMW pin 1 must remain at positive canonical Y")
-    if contract["pmw3360"]["pin_7_end"] != "negative_canonical_y":
-        raise AssertionError("PMW pin 7 must remain at negative canonical Y")
+    if contract["pmw3360"]["row_axis"] != "x":
+        raise AssertionError("Rev5 PMW header row axis must be canonical X")
+    if contract["pmw3360"]["pin_1_end"] != "positive_canonical_x":
+        raise AssertionError("PMW pin 1 must remain at positive canonical X")
+    if contract["pmw3360"]["pin_7_end"] != "negative_canonical_x":
+        raise AssertionError("PMW pin 7 must remain at negative canonical X")
     if contract["pmw3360"]["mating_rule"] != "cable_maps_breakout_pin_N_to_keyboard_pin_8_minus_N":
         raise AssertionError("PMW cable mating rule changed")
     assert_close(
-        "Task3D revision-4 ball center",
+        "Task3D revision-5 ball center",
         ball_center[:2],
         tuple(float(x) for x in contract["board"]["ball_center_local"]),
     )
-    print("PASS right-side Kivipallur breakout + cabled PMW header pin/SPI/3V3 contract")
+    print("PASS outward Kivipallur breakout + rotated cabled PMW header pin/SPI/3V3 contract")
 
     for i in range(1, 10):
         mh = find_instance(all_fps, config, NAMES["mount"], f"mh{i}")

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Task 2E: put the real Type-C housing, 25 mm sphere, generated Rev-4 PCB,
+Task 2E: put the correctly handed Type-C housing, 25 mm sphere, generated PCB,
 stock Konrad switchplate, and stock Konrad right case in one 3D frame.
 
 The script writes relieved plate/case STLs, a GLB assembly scene, and a JSON
@@ -28,7 +28,7 @@ KLOR = ERGOGEN.parent
 CONTRACT = ERGOGEN / "task2" / "task2e-mechanical.yaml"
 CONFIG = ERGOGEN / "config.yaml"
 
-HOUSING = KLOR / "Keyball 25mm Trackball Case Type C - 6719828/files/keyball_trackball_case_25mm_type_c_right.stl"
+HOUSING = KLOR / "Keyball 25mm Trackball Case Type C - 6719828/files/keyball_trackball_case_25mm_type_c_left.stl"
 SWITCHPLATE = KLOR / "klor1.4/case/3DP/konrad/switchplate/KLOR_konrad_3DP_switchplate.stl"
 RIGHT_CASE = KLOR / "klor1.4/case/3DP/konrad/regular/KLOR_konrad_case_R.stl"
 STOCK_PCB = KLOR / "klor1.4/PCB/klor1_4/klor1_4.kicad_pcb"
@@ -346,8 +346,11 @@ def main():
     args.output.mkdir(parents=True, exist_ok=True)
 
     board_file = args.generated / "pcbs/task3d_right_production.kicad_pcb"
+    stock_board_file = args.generated / "pcbs/task2b_stock_reference.kicad_pcb"
     if not board_file.exists():
-        raise AssertionError(f"missing generated Rev-3 PCB: {board_file}")
+        raise AssertionError(f"missing generated production PCB: {board_file}")
+    if not stock_board_file.exists():
+        raise AssertionError(f"missing generated stock-board reference: {stock_board_file}")
 
     stock_text = STOCK_PCB.read_text(encoding="utf-8")
     origin = stock_footprint_origin(stock_text, "SW13")
@@ -359,6 +362,18 @@ def main():
     if not all(isinstance(m, trimesh.Trimesh) for m in [plate_native, case_native, housing_local]):
         raise AssertionError("one or more source STLs did not load as a single mesh")
 
+    # Revision 5 handedness regression guard. For the right keyboard half we
+    # intentionally use the source asset named "left": this mirrored housing
+    # puts the ball-access opening toward the thumb cluster (-X) and the
+    # connector/service side toward the outside edge (+X).
+    expected_x = contract["handedness"]["expected_housing_local_x_bounds"]
+    actual_x = [float(housing_local.bounds[0, 0]), float(housing_local.bounds[1, 0])]
+    if not np.allclose(actual_x, expected_x, atol=0.03):
+        raise AssertionError(
+            f"wrong Type-C housing handedness/source: X bounds {actual_x}, "
+            f"expected {expected_x}"
+        )
+
     plate = transform_switchplate_to_canonical(plate_native, origin)
     plate_bottom = float(contract["z_stack"]["switchplate_bottom_z"])
     plate.apply_translation([0, 0, plate_bottom - plate.bounds[0, 2]])
@@ -367,6 +382,7 @@ def main():
     case = transform_case_to_canonical(case_native, origin, plate_top)
 
     board_poly = board_polygon_from_kicad(board_file.read_text(encoding="utf-8"))
+    stock_board_poly = board_polygon_from_kicad(stock_board_file.read_text(encoding="utf-8"))
     pcb_top = plate_top - float(contract["z_stack"]["plate_top_to_pcb_top"])
     pcb_thickness = float(contract["z_stack"]["pcb_thickness"])
     pcb = extrude_board(board_poly, pcb_top - pcb_thickness, pcb_thickness)
@@ -377,13 +393,13 @@ def main():
 
     ball_pt = Point(ball_x, ball_y)
     dxy = float(ball_pt.distance(board_poly))
-    target_r = radius + min_clearance
-    if dxy >= target_r:
-        dz_required = 0.0
-    else:
-        dz_required = math.sqrt(max(0.0, target_r * target_r - dxy * dxy))
 
-    ball_z = pcb_top + dz_required
+    # Revision 5 corrects handedness in XY but deliberately preserves the
+    # already-qualified Rev-4 vertical stack. Do not let a wider cavity pull
+    # the ball lower as an accidental consequence of the handedness fix.
+    if "ball_z" not in contract["trackball"]:
+        raise AssertionError("Rev5 trackball contract must freeze ball_z")
+    ball_z = float(contract["trackball"]["ball_z"])
 
     # The sphere-derived Z is the lowest mechanically useful candidate. Measure
     # the real housing there before changing Z: if it intersects PCB material,
@@ -465,8 +481,8 @@ def main():
         )
 
     candidates = []
-    for dx in np.arange(-8.0, 4.01, 0.5):
-        for dy in np.arange(-10.0, 0.01, 0.5):
+    for dx in np.arange(-8.0, 12.01, 0.5):
+        for dy in np.arange(-14.0, 4.01, 0.5):
             cx, cy = ball_x + float(dx), ball_y + float(dy)
             relief = shp_translate(relative_relief, xoff=cx, yoff=cy)
             housing_proj = shp_translate(housing_projection_rel, xoff=cx, yoff=cy)
@@ -477,6 +493,25 @@ def main():
             hole_hits = [name for name, keep in hole_keepouts if relief.intersects(keep)]
             if key_hits or hole_hits:
                 continue
+
+            # Preserve the historical Task-2 conservative envelope margin in
+            # addition to the authoritative real-mesh checks. This avoids
+            # accepting a mirrored-housing placement that is technically
+            # collision-free but too close to a retained key by the older,
+            # intentionally pessimistic rectangular model.
+            bbox = housing_local.bounds
+            housing_rect = box(
+                cx + float(bbox[0, 0]),
+                cy + float(bbox[0, 1]),
+                cx + float(bbox[1, 0]),
+                cy + float(bbox[1, 1]),
+            )
+            conservative_key_gap = min(
+                housing_rect.distance(keep) for _, keep in key_keepouts
+            )
+            if conservative_key_gap < 2.5:
+                continue
+
             nearest_key = min(
                 math.hypot(
                     float(cfg["points"]["zones"][name]["anchor"]["shift"][0]) - cx,
@@ -490,6 +525,7 @@ def main():
                     "shift_xy": [float(dx), float(dy)],
                     "shift_norm": math.hypot(dx, dy),
                     "nearest_key_center_mm": nearest_key,
+                    "conservative_rect_key_gap_mm": float(conservative_key_gap),
                     "relief_bounds": list(map(float, relief.bounds)),
                 }
             )
@@ -525,12 +561,86 @@ def main():
                 )
             )
 
+        # The mirrored Rev-5 cavity consumes the old SW22-area board header.
+        # Search conservative F.Cu 1x7 header placements on material that
+        # already exists in the current generated board, outside the new relief
+        # and retained production footprints. Search the stock board minus the
+        # new Rev-5 cavity so locations restored from the superseded Rev-4 cut
+        # are eligible.
+        breakout_xy = (
+            float(best["ball_xy"][0]) + 19.212,
+            float(best["ball_xy"][1]),
+        )
+        header_w = float(cfg["units"]["pmw_header_body_w"])
+        header_h = float(cfg["units"]["pmw_header_body_h"])
+        rev5_board_candidate = stock_board_poly.difference(best_relief)
+        board_safe = rev5_board_candidate.buffer(-0.5)
+        component_keepouts = [keep for _, keep in key_keepouts]
+        component_keepouts.extend(keep for _, keep in hole_keepouts)
+
+        conservative_parts = {
+            "encoder_ref": (7.0, 7.0),
+            "mcu_ref": (10.0, 18.0),
+            "trrs_ref": (7.0, 4.0),
+            "reset_ref": (4.0, 4.0),
+        }
+        for name, (hx, hy) in conservative_parts.items():
+            px, py = map(float, cfg["points"]["zones"][name]["anchor"]["shift"][:2])
+            component_keepouts.append(box(px - hx, py - hy, px + hx, py + hy))
+        for name in [*(f"d{i}" for i in range(1, 19)), "d20", "d21"]:
+            px, py = map(float, cfg["points"]["zones"][name]["anchor"]["shift"][:2])
+            component_keepouts.append(box(px - 3.5, py - 2.5, px + 3.5, py + 2.5))
+
+        header_candidates = []
+        for rotation_deg, (rect_w, rect_h) in {
+            0: (header_w, header_h),
+            90: (header_h, header_w),
+        }.items():
+            for hx in np.arange(-15.0, 60.01, 0.5):
+                for hy in np.arange(-35.0, 15.01, 0.5):
+                    rect = box(
+                        hx - rect_w / 2.0,
+                        hy - rect_h / 2.0,
+                        hx + rect_w / 2.0,
+                        hy + rect_h / 2.0,
+                    )
+                    if not board_safe.contains(rect):
+                        continue
+                    if rect.intersects(best_relief):
+                        continue
+                    if any(rect.intersects(keep) for keep in component_keepouts):
+                        continue
+                    header_candidates.append(
+                        {
+                            "center": [float(hx), float(hy)],
+                            "rotation_deg": rotation_deg,
+                            "distance_to_breakout_mm": math.hypot(
+                                float(hx) - breakout_xy[0],
+                                float(hy) - breakout_xy[1],
+                            ),
+                            "distance_from_old_header_mm": math.hypot(
+                                float(hx),
+                                float(hy) + 22.022143,
+                            ),
+                        }
+                    )
+        header_candidates.sort(
+            key=lambda row: (
+                row["distance_to_breakout_mm"],
+                row["distance_from_old_header_mm"],
+            )
+        )
+        print(
+            "TASK2E_HEADER_CANDIDATES "
+            + json.dumps(header_candidates[:20], sort_keys=True)
+        )
+
     print(
         "TASK2E_DIAGNOSTIC "
         + json.dumps(
             {
-                "sphere_derived_ball_z_mm": ball_z,
-                "sphere_derived_exposure_mm": ball_z + radius - plate_top,
+                "qualified_ball_z_mm": ball_z,
+                "qualified_exposure_mm": ball_z + radius - plate_top,
                 "housing_vs_pcb_mm3": housing_pcb_volume,
                 "housing_pcb_intersection_bounds_mm": (
                     housing_intersection.bounds.tolist()
@@ -555,9 +665,9 @@ def main():
 
     if housing_pcb_volume > INTERSECTION_VOLUME_TOL:
         raise AssertionError(
-            "actual Type-C housing intersects Rev-3 PCB at the sphere-derived "
-            "installation height; PCB cavity must be revised from the measured "
-            "Task-2E housing section"
+            "actual correctly handed Type-C housing intersects the Rev5 PCB at the "
+            "qualified vertical position; PCB cavity must be revised from the "
+            "measured Task-2E housing section"
         )
 
     sphere = trimesh.creation.icosphere(subdivisions=4, radius=radius)
@@ -745,7 +855,7 @@ def main():
     scene = trimesh.Scene()
     scene.add_geometry(relieved_case, geom_name="right_case_relief")
     scene.add_geometry(relieved_plate, geom_name="switchplate_relief")
-    scene.add_geometry(pcb, geom_name="rev4_pcb")
+    scene.add_geometry(pcb, geom_name="rev5_pcb")
     scene.add_geometry(housing, geom_name="type_c_housing")
     scene.add_geometry(sphere, geom_name="25mm_ball")
 

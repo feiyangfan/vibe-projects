@@ -1,90 +1,66 @@
-# Task 2C Result — Trackball Delta Revision 4
+# Task 2C Result — Trackball Delta Revision 5
 
 ## Status
 
-**PASS — Task 2C revision 4 is complete.**
+**PASS — Task 2C revision 5 is complete.**
 
-Revision 4 supersedes the revision-3 2D-only cavity after Task 2E tested the actual Type-C housing in 3D.
+Revision 5 supersedes revision 4 because revision 4 qualified the wrong physical Type-C housing handedness.
 
-## Why revision 4 was required
+## Frozen trackball delta
 
-Revision 3 gave the nominal ball a large open PCB cavity, but the actual Type-C housing still intersected the generated PCB by approximately **158.111 mm³** at a useful installation height.
+Ball center:
 
-A Z-only workaround required approximately 24 mm of ball exposure above the plate and was rejected.
+**`(22.0, -31.000147)` mm**
 
-Task 2E found the minimum nearby clean XY placement that preserves all 19 retained right keys and all nine stock PCB holes:
+Correctly handed housing:
 
-```text
-revision-3 ball = (16.5, -28.000147)
-revision-4 ball = (15.5, -31.000147)
-delta           = (-1.0, -3.0) mm
-```
+- source: `keyball_trackball_case_25mm_type_c_left.stl`;
+- opening: -X / inward toward the thumb;
+- connector: +X / outward;
+- housing center from ball: `(-9.165901, +0.000812)` mm;
+- screw midpoint from ball: `(-6.212, 0)` mm.
 
-## Revision-4 PCB delta
-
-The right PCB is now:
+Board composition remains:
 
 ```text
 stock_board
-- actual_housing_and_ball_cavity
+- correctly_handed_actual_housing_and_ball_cavity
 = trackball_board
 ```
 
-The cavity is derived from the real Type-C housing section through the PCB slab, a 25 mm sphere and manufacturing clearance.
+All 19 retained right keys and all nine stock PCB holes remain.
 
-The obsolete rigid PMW support tongue and 2 x 22 service-notch architecture are removed.
+## PMW board header
 
-The generated revision-4 production PCB has approximately **11.806 mm** minimum Edge.Cuts distance from the ball center and passes the full Task-2E mesh-level PCB/housing check.
+The Kivipallur breakout remains outward on +X, but the board header is separate and cabled.
 
-## PMW interface
+Keyboard-side 1x7:
 
-The Kivipallur breakout remains on the **right / +X side** of the ball:
+- center: **`(18.5, -14.5)`**;
+- F.Cu;
+- 2.54 mm pitch;
+- 90° canonical rotation;
+- row axis: X;
+- pin 1 / CS at +X;
+- pin 7 / GND at -X.
 
-- housing center from ball: `(+9.165901, +0.000812)`;
-- breakout center from ball: `(+19.212, 0)`.
+The electrical pin order remains CS, MISO, MOSI, SCK, NC/MOTION, 3V3, GND.
 
-The keyboard-side PMW header is moved to reclaimed SW22 PCB area at:
+## Clearance
 
-`(0, -22.022143)`
+The selected placement keeps the historical conservative housing/key rule and also passes the real-mesh gate:
 
-It connects to the Kivipallur breakout with a short seven-conductor cable.
-
-The electrical/physical pin contract remains:
-
-1. CS
-2. MISO
-3. MOSI
-4. SCK
-5. NC / MOTION
-6. 3V3
-7. GND
-
-and cable mapping remains breakout pin `N` to keyboard pin `8-N`.
-
-## Preserved geometry
-
-Revision 4 retains:
-
-- R32 / SW20;
-- R33 / SW21;
-- right encoder;
-- MCU and TRRS;
-- all 19 active right MX positions;
-- all nine stock PCB holes;
-- stock geometry outside the bounded real-housing trackball delta.
-
-R34 / SW22 / D22 remain electrically absent.
+- conservative rectangular housing/key gap: about **2.683 mm**;
+- nearest retained key center: SW15, about **33.779 mm**;
+- Task 2E housing vs PCB: **0 mm³**;
+- Task 2E sphere vs PCB: **0 mm³**.
 
 ## Qualification
 
-Qualification head:
+Implementation qualification head:
 
-`52ea88ad36f9fe31962a599036b09c8a8fdb50d0`
+`0b704c8ff85c6b641b796813f49e78124d8e21ec`
 
-Passing workflow:
+Passing Task-2C workflow: `36697008095`.
 
-- `KLOR Task 2C - trackball delta`
-- run ID: `36376432637`
-- conclusion: **success**
-
-The same head passes Task 2E's full 3D integration gate.
+The same head passes Task 2D, Task 2E and Task 3D.

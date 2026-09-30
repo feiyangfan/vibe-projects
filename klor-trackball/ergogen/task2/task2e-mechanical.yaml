@@ -1,5 +1,12 @@
 status: task2e_complete
-revision: 2
+revision: 5
+
+handedness:
+  keyboard_half: right
+  housing_source_variant: left
+  opening_side: negative_canonical_x
+  connector_side: positive_canonical_x
+  expected_housing_local_x_bounds: [-27.9633, 9.6314]
 
 frame:
   xy_origin: stock_SW13
@@ -16,8 +23,10 @@ z_stack:
   pcb_top_source_status: cherry_mx_mechanical_drawing
 
 trackball:
-  ball_xy: [15.5, -31.000147]
+  ball_xy: [22.0, -31.000147]
   ball_diameter: 25.0
+  ball_z: 1.938015634
+  ball_z_source: preserve_rev4_qualified_vertical_stack
   minimum_pcb_clearance: 0.5
   housing_z_search_step: 0.25
 
@@ -28,7 +37,7 @@ clearance:
 
 mounting:
   form: case_pod_bottom_bosses
-  screw_midpoint_from_ball: [6.212, 0.0]
+  screw_midpoint_from_ball: [-6.212, 0.0]
   screw_y_offsets: [7.98, -7.98]
   screw_hole_diameter: 2.1
   boss_outer_radius: 3.0
@@ -45,12 +54,12 @@ case_pod:
     two native M2 mounting bosses without raising the entire ball.
 
 sources:
-  housing: ../Keyball 25mm Trackball Case Type C - 6719828/files/keyball_trackball_case_25mm_type_c_right.stl
+  housing: ../Keyball 25mm Trackball Case Type C - 6719828/files/keyball_trackball_case_25mm_type_c_left.stl
   switchplate: ../klor1.4/case/3DP/konrad/switchplate/KLOR_konrad_3DP_switchplate.stl
   right_case: ../klor1.4/case/3DP/konrad/regular/KLOR_konrad_case_R.stl
   stock_pcb: ../klor1.4/PCB/klor1_4/klor1_4.kicad_pcb
 
-revision4:
+revision4_superseded:
   source_revision3_housing_pcb_intersection_mm3: 158.111457
   rejected_z_only_clearance_ball_exposure_mm: 24.0
   ball_shift_from_revision3: [-1.0, -3.0]
@@ -62,3 +71,13 @@ outputs:
   relieved_right_case: task2e_konrad_case_right_trackball.stl
   assembly_scene: task2e_trackball_assembly.glb
   result_json: task2e_mechanical_result.json
+
+revision5:
+  reason: correct_physical_housing_handedness
+  prior_revision: 4
+  placement_status: selected
+  mirrored_housing_screw_midpoint_from_ball: [-6.212, 0.0]
+  board_header_center: [18.5, -14.5]
+  board_header_rotation_deg: 90
+  ball_shift_from_revision4: [6.5, 0.0]
+  geometry_freeze_status: frozen

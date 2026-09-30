@@ -45,7 +45,7 @@ jobs:
           rtree
           scipy
 
-      - name: Generate Rev-4 geometry and PCB
+      - name: Generate current geometry and PCB
         run: npx --yes ergogen@4.2.1 . --output generated --clean --svg --debug
 
       - name: Re-run Task 2B

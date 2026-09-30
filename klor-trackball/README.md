@@ -219,13 +219,15 @@ A short authoritative requirements document exists, and any geometry-dependent p
 
 ## Task 2 — Reconstruct the complete KLOR/Konrad geometry in Ergogen
 
-**Status: COMPLETE — REVISION 4 MECHANICALLY QUALIFIED**
+**Status: COMPLETE — REVISION 5 DIGITALLY QUALIFIED**
 
 Task 2 begins with a minimal-change study before full reconstruction. The selected implementation baseline is to remove R34/SW22/D22 only, retain R32/R33 and the right encoder, preserve all structural interfaces, and keep PCB/plate/case changes local to the trackball region. See `ergogen/task2/MINIMAL_CHANGE_STUDY.md`.
 
-The current frozen geometry is **revision 4**. Full 3D integration against the actual Type-C housing, 25 mm ball, generated PCB, stock Konrad switchplate, and stock right case is qualified in `ergogen/task2/TASK2E_RESULT.md`. The ball center is `(15.5, -31.000147)` in the canonical XY frame, with approximately `12.938 mm` exposed above the plate. The PMW breakout remains on the right/+X side of the ball; the board-side 1x7 header moves into the reclaimed SW22 area and connects by a short seven-conductor cable.
+Revision 4 is **superseded as a mechanical qualification** after a housing-handedness audit. It used `type_c_right.stl`, whose physical opening/connector orientation is wrong for the intended right-half installation.
 
-The digital geometry is collision-free within the Task-2E tolerance, but subjective ergonomics, assembly path, cable behavior, ball retention/motion, and the local case-pod desk stance still require a physical right-half mock-up before the mechanical design is treated as production-final.
+Revision 5 is the current frozen digital geometry. It uses the mirrored `type_c_left.stl` so the **ball opening faces inward / -X toward the thumb cluster** and the **housing/Kivipallur connector faces outward / +X**. The qualified ball center is `(22.0, -31.000147, 1.938015634)` mm. The vertical position remains the Rev-4-qualified stack, giving approximately **12.938 mm** ball exposure above the plate. All 19 retained right keys and all nine PCB holes remain. See `ergogen/task2/TASK2_REV5_HANDEDNESS.md` and `ergogen/task2/TASK2E_RESULT.md`.
+
+The keyboard-side PMW 1x7 is a **separate cabled header**, not the housing connector. It is at `(18.5, -14.5)` mm, rotated 90° with its row on canonical X. A short seven-conductor cable connects it to the outward-facing Kivipallur breakout.
 
 Build the actual canonical geometric model.
 
@@ -284,7 +286,7 @@ Task 3 is split into explicit electrical gates:
  ↓
 3C  left unrouted PCB                COMPLETE
  ↓
-3D  right unrouted PCB + PMW Rev 4   COMPLETE
+3D  right unrouted PCB + PMW Rev 5   COMPLETE
  ↓
 3E  cross-board electrical freeze    NEXT
  ↓
@@ -365,8 +367,8 @@ Generate or parametrically construct:
 
 - MX cutouts;
 - structural mounting holes;
-- trackball housing mounting holes;
 - housing clearance;
+- case-owned trackball mounting-axis references;
 - breakout/service opening;
 - outer plate perimeter.
 
@@ -537,13 +539,8 @@ Generated output should never become the only place where design intent exists.
 
 ## Current work
 
-**Canonical design baseline: Task-2 revision 4 + Task 3D revision 4.**
+**Task 3E — cross-board electrical integration and freeze.**
 
-Tasks 3A–3D are complete. The left and right production-intent PCBs regenerate deterministically and remain intentionally unrouted. The right board consumes the full-3D-qualified revision-4 trackball geometry.
+Revision 5 is the canonical right-half baseline and Tasks 2B/2C/2D/2E plus 3A/3B/3C/3D pass together. Task 3E may now freeze the left/right pair-level electrical contract.
 
-There are now two distinct next gates:
-
-1. **Physical mechanical validation:** build the documented right-half mock-up from `ergogen/task2/TASK2E_RESULT.md` and verify real thumb reach, ball motion/retention, housing assembly, cable routing, fasteners, and the 5.462 mm local case-pod extension. Any geometry change discovered here reopens Task 2.
-2. **Task 3E — cross-board electrical integration and freeze:** validate the generated left/right boards together, freeze pair-level matrix/RGB/split/PMW ownership, and authorize Task 4 routing if no electrical mismatch is found.
-
-Do not treat the design as fabrication-ready until the physical mechanical validation has passed.
+A **physical right-half mock-up remains required before Task 4 routing is treated as production-final**. The key ergonomic risk is real thumb reach: the correctly handed housing moves the ball outward, and R33/SW21 is now approximately **40.61 mm center-to-center** from the ball. The mock-up must also validate ball motion/retention, cable behavior, fasteners, assembly path, and the **5.462 mm** local case-pod extension.
