@@ -393,13 +393,13 @@ def main():
 
     ball_pt = Point(ball_x, ball_y)
     dxy = float(ball_pt.distance(board_poly))
-    target_r = radius + min_clearance
-    if dxy >= target_r:
-        dz_required = 0.0
-    else:
-        dz_required = math.sqrt(max(0.0, target_r * target_r - dxy * dxy))
 
-    ball_z = pcb_top + dz_required
+    # Revision 5 corrects handedness in XY but deliberately preserves the
+    # already-qualified Rev-4 vertical stack. Do not let a wider cavity pull
+    # the ball lower as an accidental consequence of the handedness fix.
+    if "ball_z" not in contract["trackball"]:
+        raise AssertionError("Rev5 trackball contract must freeze ball_z")
+    ball_z = float(contract["trackball"]["ball_z"])
 
     # The sphere-derived Z is the lowest mechanically useful candidate. Measure
     # the real housing there before changing Z: if it intersects PCB material,
@@ -639,8 +639,8 @@ def main():
         "TASK2E_DIAGNOSTIC "
         + json.dumps(
             {
-                "sphere_derived_ball_z_mm": ball_z,
-                "sphere_derived_exposure_mm": ball_z + radius - plate_top,
+                "qualified_ball_z_mm": ball_z,
+                "qualified_exposure_mm": ball_z + radius - plate_top,
                 "housing_vs_pcb_mm3": housing_pcb_volume,
                 "housing_pcb_intersection_bounds_mm": (
                     housing_intersection.bounds.tolist()
@@ -665,9 +665,9 @@ def main():
 
     if housing_pcb_volume > INTERSECTION_VOLUME_TOL:
         raise AssertionError(
-            "actual Type-C housing intersects Rev-3 PCB at the sphere-derived "
-            "installation height; PCB cavity must be revised from the measured "
-            "Task-2E housing section"
+            "actual correctly handed Type-C housing intersects the Rev5 PCB at the "
+            "qualified vertical position; PCB cavity must be revised from the "
+            "measured Task-2E housing section"
         )
 
     sphere = trimesh.creation.icosphere(subdivisions=4, radius=radius)
@@ -855,7 +855,7 @@ def main():
     scene = trimesh.Scene()
     scene.add_geometry(relieved_case, geom_name="right_case_relief")
     scene.add_geometry(relieved_plate, geom_name="switchplate_relief")
-    scene.add_geometry(pcb, geom_name="rev4_pcb")
+    scene.add_geometry(pcb, geom_name="rev5_pcb")
     scene.add_geometry(housing, geom_name="type_c_housing")
     scene.add_geometry(sphere, geom_name="25mm_ball")
 
