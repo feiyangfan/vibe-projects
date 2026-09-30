@@ -163,7 +163,7 @@ def main():
         raise AssertionError("Rev5 cabled PMW interface changed")
     if header_contract["row_axis"] != "x" or int(header_contract["canonical_rotation"]) != 90:
         raise AssertionError("Rev5 rotated PMW board-header geometry changed")
-    if header_contract["pin_1_end"] != "negative_canonical_x" or header_contract["pin_7_end"] != "positive_canonical_x":
+    if header_contract["pin_1_end"] != "positive_canonical_x" or header_contract["pin_7_end"] != "negative_canonical_x":
         raise AssertionError("Rev5 PMW header endpoint orientation changed")
     print("PASS opening faces -X/thumb side; connector faces +X/outward; board header is rotated/cabled")
 
