@@ -346,8 +346,11 @@ def main():
     args.output.mkdir(parents=True, exist_ok=True)
 
     board_file = args.generated / "pcbs/task3d_right_production.kicad_pcb"
+    stock_board_file = args.generated / "pcbs/task2b_stock_reference.kicad_pcb"
     if not board_file.exists():
-        raise AssertionError(f"missing generated Rev-3 PCB: {board_file}")
+        raise AssertionError(f"missing generated production PCB: {board_file}")
+    if not stock_board_file.exists():
+        raise AssertionError(f"missing generated stock-board reference: {stock_board_file}")
 
     stock_text = STOCK_PCB.read_text(encoding="utf-8")
     origin = stock_footprint_origin(stock_text, "SW13")
@@ -379,6 +382,7 @@ def main():
     case = transform_case_to_canonical(case_native, origin, plate_top)
 
     board_poly = board_polygon_from_kicad(board_file.read_text(encoding="utf-8"))
+    stock_board_poly = board_polygon_from_kicad(stock_board_file.read_text(encoding="utf-8"))
     pcb_top = plate_top - float(contract["z_stack"]["plate_top_to_pcb_top"])
     pcb_thickness = float(contract["z_stack"]["pcb_thickness"])
     pcb = extrude_board(board_poly, pcb_top - pcb_thickness, pcb_thickness)
@@ -540,16 +544,17 @@ def main():
         # The mirrored Rev-5 cavity consumes the old SW22-area board header.
         # Search conservative F.Cu 1x7 header placements on material that
         # already exists in the current generated board, outside the new relief
-        # and retained production footprints. This is intentionally
-        # conservative: a candidate found here is guaranteed not to rely on
-        # material that only appears after replacing the old cavity.
+        # and retained production footprints. Search the stock board minus the
+        # new Rev-5 cavity so locations restored from the superseded Rev-4 cut
+        # are eligible.
         breakout_xy = (
             float(best["ball_xy"][0]) + 19.212,
             float(best["ball_xy"][1]),
         )
         header_w = float(cfg["units"]["pmw_header_body_w"])
         header_h = float(cfg["units"]["pmw_header_body_h"])
-        board_safe = board_poly.buffer(-0.5)
+        rev5_board_candidate = stock_board_poly.difference(best_relief)
+        board_safe = rev5_board_candidate.buffer(-0.5)
         component_keepouts = [keep for _, keep in key_keepouts]
         component_keepouts.extend(keep for _, keep in hole_keepouts)
 
