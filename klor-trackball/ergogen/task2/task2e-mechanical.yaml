@@ -35,7 +35,7 @@ clearance:
 
 mounting:
   form: case_pod_bottom_bosses
-  screw_midpoint_from_ball: [6.212, 0.0]
+  screw_midpoint_from_ball: [-6.212, 0.0]
   screw_y_offsets: [7.98, -7.98]
   screw_hole_diameter: 2.1
   boss_outer_radius: 3.0
@@ -74,4 +74,5 @@ revision5:
   reason: correct_physical_housing_handedness
   prior_revision: 4
   placement_status: searching
+  mirrored_housing_screw_midpoint_from_ball: [-6.212, 0.0]
   geometry_freeze_status: reopened
