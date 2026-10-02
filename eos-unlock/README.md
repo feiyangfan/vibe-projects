@@ -1,97 +1,128 @@
 # EOS Unlock
 
-A small macOS-focused research project to understand and eventually reproduce the Canon EOS R50 regional/language unlock process without relying on Windows-only service tools.
+A macOS-focused research project for understanding the Canon EOS R50 regional/language lock and, only after the protocol is verified, reproducing the minimum safe unlock operation without Windows-only service software.
 
-## Initial target
+## Target
 
 - Camera: Canon EOS R50
 - Region: Japan
-- Firmware: 1.1.0
+- Known test firmware: 1.1.0
 - Host: macOS
-- Goal: unlock the full language menu, including Simplified Chinese
+- Long-term goal: expose the full language menu, including Simplified Chinese
 
-## Approach
+## Current status: v0.1 read-only foundation
 
-### 1. Build a safe read-only foundation
+The repository now contains `r50tool`, a small C/libusb PTP client. v0.1 intentionally implements only non-persistent foundation operations:
 
-Create a minimal `r50tool` for macOS that can:
+- Discover a Canon USB still-image/PTP interface
+- Read standard PTP `DeviceInfo`
+- Refuse the device unless it identifies as `Canon EOS R50`
+- Open and close a PTP session
+- List the camera-advertised operation, event, and property codes
+- Hex-dump raw PTP command/data/response containers with `--trace`
+- Hard-reject every opcode except `GetDeviceInfo`, `OpenSession`, and `CloseSession`
 
-- Detect the EOS R50 over USB
-- Open/close a PTP session
-- Read standard device information
-- Read Canon EOS vendor-extension information
-- Dump advertised operation/property codes
-- Log raw request/response traffic
-- Refuse all write operations by default
+There is **no language unlock or arbitrary-opcode command in v0.1**.
 
-Preferred implementation: C + libusb, with a very small codebase and no dependency on gphoto2 at runtime.
+## Build on macOS
 
-### 2. Identify the Canon service protocol
+Install the build dependencies with Homebrew:
 
-Research the service path used by tools such as SPT/Tornado for:
+```bash
+brew install libusb pkg-config
+```
+
+Then:
+
+```bash
+cd eos-unlock
+make
+```
+
+The output binary is `./r50tool`.
+
+## Camera setup
+
+1. Use a USB-C cable that supports data.
+2. Put the R50 USB connection mode in the normal photo-import/remote-control mode.
+3. Close EOS Utility, Photos, Image Capture, and other software that may own the camera.
+4. Connect and power on the R50.
+
+If macOS has already claimed the PTP interface, `r50tool` will fail rather than trying to forcefully detach another process.
+
+## Usage
+
+```text
+./r50tool info
+./r50tool ptp-info
+./r50tool dump
+./r50tool --trace dump 2> r50-trace.log
+```
+
+`info` prints identity and PTP version information. `ptp-info` prints the operation/event/property codes advertised by the camera. `dump` prints both. `--trace` writes raw PTP container bytes to stderr. Trace/dump output can contain the camera serial number, so treat captured files as device-identifying data.
+
+A useful first run is:
+
+```bash
+./r50tool --trace dump > r50-dump.txt 2> r50-trace.log
+```
+
+## Architecture
+
+```text
+macOS
+  -> libusb
+    -> USB Still Image/PTP interface
+      -> standard PTP containers
+        -> Canon EOS R50
+```
+
+`src/ptp.c` owns USB/PTP transport and DeviceInfo parsing. `src/main.c` is deliberately small and exposes only the read-only CLI surface.
+
+## Next protocol-research phase
+
+The missing information is the Canon service protocol used for:
 
 - Normal / Factory / Service mode
 - Language Lock
 - Regional settings
 - User Language
 
-Sources may include public Canon PTP research, libgphoto2, CHDK/Magic Lantern history, service documentation, static analysis of legally obtained software/resources, and USB traces from a legitimate service-tool session.
+Potential evidence sources include public Canon PTP research, libgphoto2, CHDK/Magic Lantern history, service documentation, static analysis of legitimately obtained service-tool resources, and USB traces from a legitimate service-tool session.
 
-Do **not** guess undocumented write opcodes against the camera.
-
-### 3. Reproduce read-only service queries
-
-Once a service command is understood:
-
-- Add explicit command definitions
-- Validate packet format and response parsing
-- Test read-only status queries first
-- Record model/firmware compatibility
-
-### 4. Add the minimal unlock operation
-
-Only after the protocol is verified:
-
-1. Read current language-lock/region state
-2. Back up any relevant service data
-3. Disable Language Lock
-4. Set regional/user-language data only if required
-5. Return the camera to Normal mode
-6. Re-read state and verify
-
-Every write must require explicit confirmation and be restricted to known-supported model/firmware combinations.
+Do **not** infer a write command merely because an unknown Canon opcode is advertised by the camera.
 
 ## Safety rules
 
 - No blind opcode fuzzing
-- No firmware flashing as part of this project
-- No calibration, shutter-count, serial-number, lens-adjustment, or unrelated EEPROM writes
-- No automatic writes on connection
-- Keep raw before/after dumps for every persistent change
+- No arbitrary opcode CLI
+- No firmware flashing
+- No calibration, serial-number, shutter-count, lens-adjustment, or unrelated EEPROM writes
+- No automatic persistent writes on connection
+- Keep raw before/after dumps for every future persistent change
 - Fail closed on unknown model, firmware, response, or payload
+- Add write support only after the exact command and payload semantics are independently understood
 
-## Proposed CLI
+## Proposed future CLI
 
 ```text
-r50tool info
-r50tool ptp-info
 r50tool service-status
 r50tool language-status
-r50tool dump
 r50tool unlock-language
 ```
 
-The first implementation should expose only the read-only commands.
+These commands are intentionally **not implemented** yet.
 
 ## Milestones
 
-- [ ] macOS USB/PTP transport
-- [ ] R50 identification and device-info dump
-- [ ] Canon vendor-operation dump
-- [ ] Structured traffic logging
+- [x] macOS USB/PTP transport
+- [x] R50 identification and DeviceInfo dump
+- [x] Canon vendor-operation dump
+- [x] Structured raw PTP traffic logging
+- [ ] Validate v0.1 against the Japanese EOS R50 / firmware 1.1.0 hardware
 - [ ] Document service-mode findings
 - [ ] Identify language-lock read command
 - [ ] Implement and verify read-only language status
 - [ ] Identify verified unlock write sequence
 - [ ] Add guarded unlock command
-- [ ] Test on EOS R50 Japan / firmware 1.1.0
+- [ ] Verify unlock on EOS R50 Japan / firmware 1.1.0
