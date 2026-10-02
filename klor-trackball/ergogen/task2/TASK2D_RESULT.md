@@ -1,14 +1,12 @@
-# Task 2D Result — Geometry Freeze Revision 5
+# Task 2D Result — Geometry Freeze Revision 6
 
 ## Status
 
-**PASS — Task 2D revision 5 is frozen.**
+**PASS — Task 2D revision 6 is frozen.**
 
-Revision 5 is the canonical geometry after correcting the physical handedness of the Type-C housing.
+Revision 6 is the canonical geometry. It is geometrically equivalent to Revision 4, with additional mesh-derived handedness validation.
 
 ## Frozen product geometry
-
-Unchanged:
 
 - KLOR 1.4 MX / fixed Konrad;
 - 20 keys left / 19 keys right / 39 total;
@@ -16,74 +14,71 @@ Unchanged:
 - R33 / SW21 retained;
 - R34 / SW22 / D22 removed;
 - both encoders retained;
-- 20 left RGB / 19 right RGB;
-- MCU and TRRS stock datums;
-- all nine stock PCB holes.
+- all nine stock PCB holes retained;
+- MCU and TRRS stock datums retained.
 
-## Frozen trackball geometry
+## Frozen trackball placement
 
-Ball center XY:
+Canonical ball XY:
 
-**`(22.0, -31.000147)` mm**
+**`(15.5, -31.000147)` mm**
 
 Qualified common-frame XYZ:
 
-**`(22.0, -31.000147, 1.938015634)` mm**
+**`(15.5, -31.000147, 1.938015634)` mm**
 
 Ball exposure above plate:
 
 **12.938 mm**
 
-Housing:
+## Frozen physical handedness
 
-- source variant: checked-in **left STL** for the right keyboard half;
-- opening: -X / thumb side;
-- connector: +X / outward;
-- center from ball: `(-9.165901, +0.000812)`;
-- screw midpoint from ball: `(-6.212, 0)`;
-- screw offsets: `(0,+7.98)`, `(0,-7.98)`.
+Source: `keyball_trackball_case_25mm_type_c_right.stl`.
 
-## Frozen PMW mechanical interface
+The actual mesh—not the filename—proves:
 
-Kivipallur/housing connector: **+X / outward**.
+- ball toward housing **left**;
+- access opening **-X / left**;
+- housing bulk **+X / right**;
+- local X bounds about `[-9.631, +27.963]` mm;
+- upper-rim -X/+X vertex ratio about `0.238`.
+
+Frozen datums:
+
+- housing center from ball: `(+9.165901, +0.000812)`;
+- screw midpoint from ball: `(+6.212, 0)`;
+- screw offsets: `(0,+7.98)`, `(0,-7.98)`;
+- breakout center from ball: `(+19.212, 0)`.
+
+## Frozen PMW board interface
 
 Keyboard-side cabled 1x7:
 
-- center: **`(18.5, -14.5)`**;
+- center: **`(0, -22.022143)`**;
 - F.Cu;
-- 90° rotation;
-- row axis X;
-- pin 1 at +X, pin 7 at -X;
-- cable mapping: breakout pin `N` -> keyboard pin `8-N`.
+- row on canonical Y;
+- pin 1 at +Y;
+- pin 7 at -Y.
 
-## 3D integration
+## 3D qualification boundary
 
-Task 2E proves:
+Task 2E proves zero meaningful sphere/housing collision with the generated PCB, relieved plate, and relieved case.
 
-- sphere vs PCB: **0 mm³**;
-- housing vs PCB: **0 mm³**;
-- sphere vs relieved plate: **0 mm³**;
-- housing vs relieved plate: numerical residue `6.47e-8 mm³`;
-- sphere vs relieved case: **0 mm³**;
-- housing vs relieved case: numerical residue `4.40e-7 mm³`.
+The local case pod still extends about **5.462 mm** below the stock case bottom and provides two supported M2 mounting bosses.
 
-The local case pod extends approximately **5.462 mm** below the stock-case bottom. Both M2 boss support checks are 100%.
+## Change boundary
 
-## Downstream boundary
+Downstream work may not silently:
 
-Task 3/4 may not silently:
-
-- change housing handedness;
-- move the ball/housing/breakout;
-- change the actual-housing-derived cavity;
+- change housing mesh/handedness;
+- move ball, housing, breakout, or housing screw datums;
+- change the real-housing-derived cavity;
 - move or rotate the board-side PMW header;
 - restore R34/SW22/D22;
 - move retained keys or stock PCB holes.
 
 ## Qualification
 
-Implementation qualification head:
+Implementation head: `c5023e227d6a766726e247d3e605949fe7b1d545`
 
-`0b704c8ff85c6b641b796813f49e78124d8e21ec`
-
-Passing Task-2D workflow: `36697008291`.
+Passing Task-2D workflow: `36950226491`.

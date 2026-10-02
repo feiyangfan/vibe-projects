@@ -1,6 +1,6 @@
 meta:
   author: feiyangfan
-  version: 4
+  version: 5
   engine: 4.2.1
 
 units:
@@ -169,15 +169,15 @@ points:
     # historical KiCad/Gerber transform are treated as transform noise.
     ball_center:
       anchor:
-        shift: [22.0, -31.000147]
+        shift: [15.5, -31.000147]
     housing_center:
       anchor:
         ref: ball_center
-        shift: [-9.165901, 0.000812]
+        shift: [9.165901, 0.000812]
     housing_screw_midpoint:
       anchor:
         ref: ball_center
-        shift: [-6.212, 0]
+        shift: [6.212, 0]
     housing_screw_1:
       anchor:
         ref: housing_screw_midpoint
@@ -190,17 +190,17 @@ points:
       anchor:
         ref: ball_center
         shift: [19.212, 0]
-    # Revision 5: use the mirrored Type-C housing so its opening faces the
-    # thumb cluster (-X) and its connector faces outward (+X). The mirrored
-    # housing consumes the old SW22-area vertical header site, so the same 1x7
-    # header moves to (18.5, -14.5) and rotates 90 degrees in-plane.
+    # Revision 6 revalidates the Revision-4 geometry against the actual STL:
+    # type_c_right has its access opening on -X/left and its housing bulk on
+    # +X/right, so the ball sits on the left side of the housing as required.
+    # Keep the board-side 1x7 in the reclaimed SW22 area via a short cable.
     pmw_header_center:
       anchor:
-        shift: [18.5, -14.5]
+        shift: [0, -22.022143]
     pmw_header_prod:
       anchor:
         ref: pmw_header_center
-        rotate: 90
+        rotate: 0
 
     # Task 3C left production electrical placement. Diodes and reset retain
     # their stock source positions in the frozen Task-2 canonical frame.
@@ -874,33 +874,34 @@ outlines:
       where: pmw_header_center
       size: [pmw_header_body_w, pmw_header_body_h]
 
-  # Task 2 revision 5: PCB relief derived from the correctly handed
-  # Type-C housing section through the PCB slab, plus 25 mm sphere clearance.
-  # The ball-relative polygon includes the Task-2E XY/radial margins.
+  # Task 2 revision 4: PCB relief derived from the actual Type-C housing
+  # section through the PCB slab, plus the 25 mm sphere clearance. The
+  # ball-relative polygon is a 0.35 mm simplified version of the measured
+  # keepout and already includes the Task-2E XY/radial manufacturing margins.
   trackball_cavity:
     - what: polygon
       points:
-        - {ref: ball_center, shift: [-0.840834, -14.623011]}
-        - {ref: ball_center, shift: [-20.930460, -13.444568]}
-        - {ref: ball_center, shift: [-23.638597, -12.664143]}
-        - {ref: ball_center, shift: [-25.988800, -10.994649]}
-        - {ref: ball_center, shift: [-27.613115, -8.704704]}
-        - {ref: ball_center, shift: [-28.335949, -6.465247]}
-        - {ref: ball_center, shift: [-28.463306, 5.000000]}
-        - {ref: ball_center, shift: [-27.873642, 8.105098]}
-        - {ref: ball_center, shift: [-25.957956, 11.025493]}
-        - {ref: ball_center, shift: [-23.668010, 12.649809]}
-        - {ref: ball_center, shift: [-20.930460, 13.444568]}
-        - {ref: ball_center, shift: [0.327880, 14.459083]}
-        - {ref: ball_center, shift: [5.591239, 13.342473]}
-        - {ref: ball_center, shift: [9.168056, 11.192182]}
-        - {ref: ball_center, shift: [10.095306, 9.092415]}
-        - {ref: ball_center, shift: [9.629447, 6.444535]}
-        - {ref: ball_center, shift: [11.531610, 1.135764]}
-        - {ref: ball_center, shift: [10.705368, -4.434308]}
-        - {ref: ball_center, shift: [8.193534, -8.193534]}
-        - {ref: ball_center, shift: [4.379507, -10.724976]}
-        - {ref: ball_center, shift: [2.786676, -13.752923]}
+        - {ref: ball_center, shift: [-3.397674, -12.995708]}
+        - {ref: ball_center, shift: [-4.012645, -11.409311]}
+        - {ref: ball_center, shift: [-6.727274, -10.068077]}
+        - {ref: ball_center, shift: [-9.360209, -7.681725]}
+        - {ref: ball_center, shift: [-11.876107, -2.362305]}
+        - {ref: ball_center, shift: [-11.876107, 2.362305]}
+        - {ref: ball_center, shift: [-9.706553, 7.214733]}
+        - {ref: ball_center, shift: [-10.125556, 9.731904]}
+        - {ref: ball_center, shift: [-9.097836, 11.812018]}
+        - {ref: ball_center, shift: [-5.204447, 13.975684]}
+        - {ref: ball_center, shift: [-0.005989, 14.910524]}
+        - {ref: ball_center, shift: [21.423979, 13.373324]}
+        - {ref: ball_center, shift: [24.221360, 12.356466]}
+        - {ref: ball_center, shift: [26.604957, 10.304514]}
+        - {ref: ball_center, shift: [28.409315, 5.956341]}
+        - {ref: ball_center, shift: [28.412217, -5.923751]}
+        - {ref: ball_center, shift: [27.333568, -9.233634]}
+        - {ref: ball_center, shift: [25.267819, -11.641650]}
+        - {ref: ball_center, shift: [20.930460, -13.444568]}
+        - {ref: ball_center, shift: [0.918644, -14.869125]}
+        - {ref: ball_center, shift: [-1.754294, -14.689407]}
 
   trackball_board:
     - name: stock_board
@@ -912,9 +913,9 @@ outlines:
       where: /^(sw(?:[1-9]|1[0-7]|20|21))$/
       size: [mx_cutout, mx_cutout]
 
-  # R34/SW22 stays electrically absent. Preserve its existing 14x14 plate
-  # aperture as stock geometry; the PMW board header has moved elsewhere.
-  # The actual Type-C housing/ball relief is the same Rev-5 cavity used by PCB.
+  # R34/SW22 stays electrically absent. Its existing 14x14 plate aperture
+  # becomes cable/header access; the actual Type-C housing/ball relief is the
+  # same measured Task-2E cavity used by the PCB.
   trackball_plate_service_opening:
     - what: rectangle
       where: sw22

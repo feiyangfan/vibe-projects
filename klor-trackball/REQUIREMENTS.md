@@ -2,7 +2,7 @@
 
 ## Status
 
-**REV 1 PRODUCT + TASK 2 REVISION 5 GEOMETRY + TASK 3A ELECTRICAL ARCHITECTURE FROZEN**
+**REV 1 PRODUCT + TASK 2 REVISION 6 GEOMETRY + TASK 3A ELECTRICAL ARCHITECTURE FROZEN**
 
 This document is the authoritative product-requirements freeze for Tasks 2–4.
 
@@ -52,9 +52,9 @@ Task 2 compared the historical R34-only layout with more aggressive thumb/encode
 
 Changing that retained-control set after Task 2D is a geometry/requirements change and requires reopening Task 2 rather than being treated as a Task-3 PCB implementation choice.
 
-Task 2 revision 5 is the frozen mechanical geometry. A physical handedness audit found that the checked-in `type_c_right.stl` puts the ball-holder opening outward and the connector inward when used on this right keyboard half. Rev 5 therefore uses `keyball_trackball_case_25mm_type_c_left.stl`, the X-mirrored counterpart: the opening faces **-X / inward toward the thumb**, while the housing/Kivipallur connector faces **+X / outward**.
+Task 2 revision 6 is the frozen mechanical geometry. Revision 5 is invalid because it inferred handedness from the STL filename. Direct mesh inspection proves that `keyball_trackball_case_25mm_type_c_right.stl` is the required right-half housing: the ball sits toward the **left side of the housing**, the access opening is **-X / inward toward the thumb**, and the housing bulk/connector structure extends **+X / outward**.
 
-The qualified canonical ball center is **(22.0, -31.000147) mm**. The qualified common-frame Z is **1.938015634 mm**, preserving approximately **12.938 mm** ball exposure above the 1.5 mm plate. All 19 retained right keys and all nine stock PCB holes are preserved. Changing this placement or housing handedness requires reopening Task 2.
+The qualified canonical ball center is **(15.5, -31.000147) mm**. The qualified common-frame Z is **1.938015634 mm**, preserving approximately **12.938 mm** ball exposure above the 1.5 mm plate. All 19 retained right keys and all nine stock PCB holes are preserved. Changing this placement or housing handedness requires reopening Task 2.
 
 ### PCB architecture
 
@@ -172,9 +172,9 @@ The checked-in Kivipallur breakout uses the same seven signals in the opposite n
 The two connector concepts are intentionally distinct:
 
 - the **housing/Kivipallur breakout connector** is on the **right / +X / outward** side of the ball;
-- the **keyboard-side 1x7 cable header** is a separate F.Cu connector at canonical **(18.5, -14.5) mm**, rotated 90° with its row on canonical X.
+- the **keyboard-side 1x7 cable header** is a separate F.Cu connector at canonical **(0, -22.022143) mm**, with its row on canonical Y.
 
-On the keyboard header, pin 1 / CS is at the **positive canonical X** end and pin 7 / GND is at the **negative canonical X** end. The cable mating rule remains breakout pin `N` to keyboard pin `8-N`.
+On the keyboard header, pin 1 / CS is at the **positive canonical Y** end and pin 7 / GND is at the **negative canonical Y** end. The cable mating rule remains breakout pin `N` to keyboard pin `8-N`.
 
 Task 3 must preserve the outward housing/breakout orientation, board-header location/rotation, physical pin numbering, F.Cu placement, and cable mating rule.
 
@@ -182,20 +182,22 @@ Task 3 must preserve the outward housing/breakout orientation, board-header loca
 
 Required:
 
-- right-half housing source: **`keyball_trackball_case_25mm_type_c_left.stl`**;
-- ball opening faces **-X / inward toward the thumb cluster**;
-- housing/Kivipallur connector faces **+X / outward**;
-- canonical ball center: **`(22.0, -31.000147)` mm**;
+- right-half housing source: **`keyball_trackball_case_25mm_type_c_right.stl`**;
+- ball sits toward the **left side of the housing**;
+- ball-access opening faces **-X / inward toward the right thumb**;
+- housing bulk and Kivipallur/connector structure extend **+X / outward**;
+- canonical ball center: **`(15.5, -31.000147)` mm**;
 - qualified common-frame ball Z: **`1.938015634 mm`**;
-- housing center from ball: **`(-9.165901, +0.000812)` mm**;
-- native housing screw midpoint from ball: **`(-6.212, 0)` mm**, with ±7.98 mm Y offsets;
+- housing center from ball: **`(+9.165901, +0.000812)` mm**;
+- native housing screw midpoint from ball: **`(+6.212, 0)` mm**, with ±7.98 mm Y offsets;
+- handedness must be validated from actual mesh geometry, not the left/right filename;
 - the actual-housing-derived PCB cavity is the mechanical authority;
 - R32 / R33 and the right encoder remain preserved; R34 / SW22 / D22 remain removed;
 - all nine stock PCB holes remain at stock positions;
-- housing M2 retention is owned by the **right-case local pod / bottom bosses**, because the required housing relief removes the old switchplate support at those axes;
-- the board-side PMW header is cabled and may be physically separate from the housing connector.
+- housing M2 retention is owned by the **right-case local pod / bottom bosses**;
+- the board-side PMW header is cabled and physically separate from the housing connector.
 
-Revision 4 is retained as historical evidence only; its 3D qualification used the wrong handed housing.
+Revision 5 is invalid historical evidence. Revision 6 restores the Revision-4 geometry with stronger handedness validation.
 
 ### Structural interfaces and case
 

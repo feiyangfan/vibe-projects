@@ -1,35 +1,38 @@
-# Task 2E — 3D Trackball Mechanical Integration Revision 5
+# Task 2E — 3D Trackball Mechanical Integration Revision 6
 
 ## Status
 
 **PASS — COMPLETE.**
 
-Task 2E places the generated revision-5 right PCB, correctly handed Type-C housing, 25 mm sphere, Konrad switchplate and stock right case in one source-aligned 3D frame.
+Task 2E places the generated Revision-6 right PCB, physical Type-C housing, 25 mm ball, stock Konrad switchplate and stock right case into one source-aligned 3D frame.
 
-## Handedness correction
+## Handedness authority
 
-Revision 4 used `type_c_right.stl` and therefore validated the wrong physical opening/connector direction.
+Handedness is determined from the **actual STL geometry**, not its filename.
 
-Revision 5 uses `type_c_left.stl` on the right keyboard half:
+The required right-thumb arrangement is:
 
 ```text
-thumb side / -X  <- opening | ball | housing / connector ->  +X / outside
+thumb -> opening -> ball | housing / sensor / connector -> outside-right
+          -X                                              +X
 ```
 
-The validator checks the source mesh X bounds so this error cannot silently recur.
+The qualified `type_c_right.stl` mesh has:
 
-## Frozen common frame
+- ball toward the housing's left side;
+- opening on -X/left;
+- housing bulk on +X/right.
 
-- ball center: `(22.0, -31.000147, 1.938015634)` mm;
-- plate: `z=0..1.5 mm`;
+The validator checks both the asymmetric X bounds and an upper-rim opening probe.
+
+## Common frame
+
+- ball center: `(15.5, -31.000147, 1.938015634)` mm;
+- switchplate: `z=0..1.5 mm`;
 - PCB: `z=-5.1..-3.5 mm`;
-- 25 mm ball exposure: approximately `12.938 mm`.
-
-The Rev-4-qualified Z is intentionally preserved. Revision 5 corrects handedness and XY clearance without using a wider PCB cavity as an excuse to lower the ball.
+- exposed 25 mm ball cap: approximately `12.938 mm`.
 
 ## PCB/cavity
-
-The PCB remains:
 
 ```text
 stock_board - actual_housing_and_ball_cavity
@@ -37,44 +40,36 @@ stock_board - actual_housing_and_ball_cavity
 
 At the frozen position:
 
-- PCB XY material distance from ball center: about **14.212 mm**;
-- sphere/PCB intersection: **0**;
-- housing/PCB intersection: **0**;
+- housing vs PCB = 0 mm³;
+- sphere vs PCB = 0 mm³;
 - all 19 retained right keys remain;
-- all nine PCB holes remain;
-- conservative rectangular housing/key margin: about **2.683 mm**.
+- all nine PCB holes remain.
 
-## PMW header
+## PMW interface
 
-The outward housing/Kivipallur connector and keyboard PCB header are separate interfaces.
+Housing/Kivipallur structure extends toward +X/right.
 
-Board header:
+The keyboard-side 1x7 remains separate:
 
-- `(18.5, -14.5)` mm;
-- 1x7, 2.54 mm pitch;
+- center `(0, -22.022143)` mm;
 - F.Cu;
-- 90° rotation;
-- row along canonical X;
-- cabled to the breakout.
+- row on canonical Y;
+- short seven-conductor cable to the breakout.
 
 ## Switchplate/case
 
-Actual housing and sphere keepouts are subtracted from the stock switchplate and case.
+The actual housing and sphere keepouts generate the local plate and case relief.
 
-The right case gains the same local mounting concept qualified in Rev 4:
+The right case uses:
 
 - 1.5 mm pod wall/floor;
 - two bottom M2 bosses;
 - 3.0 mm boss outer radius;
-- 100% support at both qualified axes;
-- approximately 5.462 mm local downward extension.
+- 100% support at both axes;
+- approximately 5.462 mm downward extension below stock case.
 
-## Ergonomic limitation
+## Physical validation
 
-Digital fit is not subjective comfort.
+Digital fit is qualified. A physical mock-up remains required for thumb posture, opening access, ball feel, cable behavior, fasteners and desk stance.
 
-The correctly handed housing moves the ball outward. R33/SW21 is now approximately **40.608 mm center-to-center** from the ball. That distance, the 12.938 mm exposed cap, and the local pod must be tested with a physical right-half mock-up before production routing/fabrication is treated as mechanically final.
-
-## Qualification
-
-Implementation head `0b704c8ff85c6b641b796813f49e78124d8e21ec` passes Task 2E run `36697008540` and the dependent Task 2B/2C/2D/3D gates.
+Implementation head `c5023e227d6a766726e247d3e605949fe7b1d545` passes Task 2E run `36950226502`.

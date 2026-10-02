@@ -88,9 +88,9 @@ Gate:
 
 ### Task 3D — Generate the right production-intent PCB
 
-**REVISION 5 — COMPLETE**
+**REVISION 6 — COMPLETE**
 
-Generate the right PCB on the frozen Task-2 revision-5 correctly handed trackball geometry.
+Generate the right PCB on the frozen Task-2 revision-6 mesh-verified trackball geometry.
 
 Expected electrical content:
 
@@ -110,7 +110,7 @@ Gate:
 - R34/SW22/D22 and its RGB device are absent;
 - the RGB chain bypasses R34 logically;
 - the Kivipallur breakout remains on the right/+X side of the ball;
-- the board-side PMW header remains at the frozen Rev-5 cable-header datum `(18.5, -14.5)`, rotated 90°;
+- the board-side PMW header remains at the frozen Rev-6 cable-header datum `(0, -22.022143)`, with its row on canonical Y;
 - the generated PCB uses the frozen actual-housing-derived cavity;
 - Task 2E proves zero meaningful housing/sphere intersection with the generated PCB;
 - the right PCB is electrically coherent and intentionally unrouted.
@@ -137,4 +137,4 @@ Gate:
 
 Task 3 completes when a clean checkout deterministically generates two electrically coherent **unrouted production-intent KiCad PCBs** from source and the pair-level electrical contract passes regression.
 
-A routed board is explicitly **not** required until Task 4. The revision-5 physical right-half mock-up should pass before Task 4 routing is treated as production-final.
+A routed board is explicitly **not** required until Task 4. The revision-6 physical right-half mock-up should pass before Task 4 routing is treated as production-final.

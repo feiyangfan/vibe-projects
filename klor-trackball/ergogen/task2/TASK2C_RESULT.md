@@ -1,66 +1,77 @@
-# Task 2C Result — Trackball Delta Revision 5
+# Task 2C Result — Trackball Delta Revision 6
 
 ## Status
 
-**PASS — Task 2C revision 5 is complete.**
+**PASS — Task 2C revision 6 is complete.**
 
-Revision 5 supersedes revision 4 because revision 4 qualified the wrong physical Type-C housing handedness.
+Revision 6 restores the Revision-4 geometry after proving the physical housing handedness from the actual STL mesh.
 
-## Frozen trackball delta
+## Trackball delta
 
 Ball center:
 
-**`(22.0, -31.000147)` mm**
+**`(15.5, -31.000147)` mm**
 
-Correctly handed housing:
+Housing source:
 
-- source: `keyball_trackball_case_25mm_type_c_left.stl`;
-- opening: -X / inward toward the thumb;
-- connector: +X / outward;
-- housing center from ball: `(-9.165901, +0.000812)` mm;
-- screw midpoint from ball: `(-6.212, 0)` mm.
+**`keyball_trackball_case_25mm_type_c_right.stl`**
 
-Board composition remains:
+Frozen relations:
+
+- ball is on the **left side of the housing**;
+- access opening is **-X / left / thumb side**;
+- housing bulk is **+X / right / outward**;
+- housing center from ball: `(+9.165901, +0.000812)` mm;
+- screw midpoint from ball: `(+6.212, 0)` mm;
+- breakout center from ball: `(+19.212, 0)` mm.
+
+## PCB delta
 
 ```text
 stock_board
-- correctly_handed_actual_housing_and_ball_cavity
+- actual_housing_and_ball_cavity
 = trackball_board
 ```
 
-All 19 retained right keys and all nine stock PCB holes remain.
+The cavity is the previously qualified real-housing/ball cavity from Revision 4.
 
-## PMW board header
+Preserved:
 
-The Kivipallur breakout remains outward on +X, but the board header is separate and cabled.
+- all 19 retained right MX keys;
+- R32 / SW20;
+- R33 / SW21;
+- right encoder;
+- MCU and TRRS datums;
+- all nine stock PCB holes.
+
+R34 / SW22 / D22 remain absent.
+
+## PMW board interface
 
 Keyboard-side 1x7:
 
-- center: **`(18.5, -14.5)`**;
+- center: **`(0, -22.022143)` mm**;
 - F.Cu;
 - 2.54 mm pitch;
-- 90° canonical rotation;
-- row axis: X;
-- pin 1 / CS at +X;
-- pin 7 / GND at -X.
+- row on canonical Y;
+- pin 1 / CS at +Y;
+- pin 7 / GND at -Y;
+- short seven-conductor cable to the outward/right Kivipallur breakout.
 
-The electrical pin order remains CS, MISO, MOSI, SCK, NC/MOTION, 3V3, GND.
+The breakout pin-`N` to keyboard pin-`8-N` mating rule is unchanged.
 
-## Clearance
+## Ergonomic geometry
 
-The selected placement keeps the historical conservative housing/key rule and also passes the real-mesh gate:
+Nearest retained key center:
 
-- conservative rectangular housing/key gap: about **2.683 mm**;
-- nearest retained key center: SW15, about **33.779 mm**;
-- Task 2E housing vs PCB: **0 mm³**;
-- Task 2E sphere vs PCB: **0 mm³**.
+- R33 / SW21: **34.196 mm** from the ball.
+
+This is substantially closer than the invalid Revision-5 placement and returns to the previously qualified minimum-change geometry.
 
 ## Qualification
 
-Implementation qualification head:
+Implementation head: `c5023e227d6a766726e247d3e605949fe7b1d545`
 
-`0b704c8ff85c6b641b796813f49e78124d8e21ec`
-
-Passing Task-2C workflow: `36697008095`.
+Passing Task-2C workflow: `36950226630`.
 
 The same head passes Task 2D, Task 2E and Task 3D.
