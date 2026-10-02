@@ -171,9 +171,9 @@ static int recv_container(struct ptp_transport *t,
  * Foundation safety gate.
  *
  * There is intentionally no arbitrary-opcode path. Until the Canon service
- * protocol is understood, the only commands this transport may transmit are
- * standard PTP identity/session operations. OpenSession/CloseSession change
- * only transient connection state.
+ * protocol is understood, the transport may transmit only standard PTP
+ * identity/session operations plus explicitly reviewed read-only Canon
+ * queries. OpenSession/CloseSession change only transient connection state.
  */
 static bool allowed_foundation_opcode(uint16_t opcode) {
     return opcode == PTP_OC_GET_DEVICE_INFO ||
@@ -189,8 +189,8 @@ static int send_command(struct ptp_transport *t,
                         size_t param_count) {
     if (!allowed_foundation_opcode(opcode)) {
         fprintf(stderr,
-                "Refusing opcode 0x%04x: v0.1 permits only "
-                "GetDeviceInfo/OpenSession/CloseSession\n",
+                "Refusing opcode 0x%04x: not on the reviewed "
+                "read-only foundation allowlist\n",
                 opcode);
         return -1;
     }
