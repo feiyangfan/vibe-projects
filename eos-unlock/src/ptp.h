@@ -12,6 +12,9 @@
 #define PTP_OC_OPEN_SESSION    0x1002
 #define PTP_OC_CLOSE_SESSION   0x1003
 #define PTP_OC_CANON_EOS_GET_DEVICE_INFO_EX 0x9108
+#define PTP_OC_CANON_EOS_GET_EVENT          0x9116
+#define PTP_OC_CANON_EOS_REQUEST_PROP       0x9127
+#define PTP_DPC_CANON_EOS_NETWORK_REGION    0xD14A
 #define PTP_RC_OK              0x2001
 
 #define PTP_CONTAINER_COMMAND  1
@@ -75,6 +78,7 @@ void ptp_eos_device_info_free(struct ptp_eos_device_info *info);
 void ptp_print_info(const struct ptp_device_info *info);
 void ptp_print_capabilities(const struct ptp_device_info *info);
 void ptp_print_eos_device_info(const struct ptp_eos_device_info *info);
+int ptp_probe_region(struct ptp_transport *t);
 
 const char *ptp_operation_name(uint16_t code);
 const char *ptp_property_name(uint16_t code);
