@@ -10,6 +10,7 @@ static void usage(const char *argv0) {
             "Read-only foundation commands:\n"
             "  info      Show R50 identity and PTP versions\n"
             "  ptp-info  List advertised operations, events, and properties\n"
+            "  eos-info  Query Canon EOS extended device information (read-only)\n"
             "  dump      Show identity plus advertised PTP capabilities\n"
             "\n"
             "Options:\n"
@@ -35,6 +36,7 @@ int main(int argc, char **argv) {
     if (!command ||
         (strcmp(command, "info") != 0 &&
          strcmp(command, "ptp-info") != 0 &&
+         strcmp(command, "eos-info") != 0 &&
          strcmp(command, "dump") != 0)) {
         usage(argv[0]);
         return 2;
@@ -48,6 +50,15 @@ int main(int argc, char **argv) {
         ptp_print_info(&info);
     } else if (strcmp(command, "ptp-info") == 0) {
         ptp_print_capabilities(&info);
+    } else if (strcmp(command, "eos-info") == 0) {
+        struct ptp_eos_device_info eos_info;
+        if (ptp_get_eos_device_info(&transport, &eos_info) != 0) {
+            ptp_device_info_free(&info);
+            ptp_transport_close(&transport);
+            return 1;
+        }
+        ptp_print_eos_device_info(&eos_info);
+        ptp_eos_device_info_free(&eos_info);
     } else {
         ptp_print_info(&info);
         ptp_print_capabilities(&info);
