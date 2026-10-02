@@ -57,12 +57,13 @@ If macOS has already claimed the PTP interface, `r50tool` will fail rather than 
 ./r50tool info
 ./r50tool ptp-info
 ./r50tool eos-info
+./r50tool probe-region
 ./r50tool dump
 ./r50tool --trace dump 2> r50-trace.log
 ./r50tool --trace eos-info > r50-eos-info.txt 2> r50-eos-trace.log
 ```
 
-`info` prints identity and PTP version information. `ptp-info` prints the operation/event/property codes advertised by standard DeviceInfo. `eos-info` performs the reviewed read-only Canon `0x9108` query and prints its extended 32-bit event/property/capability arrays. `dump` prints standard identity and capabilities. `--trace` writes raw PTP container bytes to stderr. Trace/dump output can contain the camera serial number, so treat captured files as device-identifying data.
+`info` prints identity and PTP version information. `ptp-info` prints the operation/event/property codes advertised by standard DeviceInfo. `eos-info` performs the reviewed read-only Canon `0x9108` query and prints its extended 32-bit event/property/capability arrays. `probe-region` sends Canon's read request `EOS_RequestDevicePropValue (0x9127)` for the known `NetworkServerRegion (0xD14A)` property and then reads the EOS event queue with `EOS_GetEvent (0x9116)`; it does not set a property. `dump` prints standard identity and capabilities. `--trace` writes raw PTP container bytes to stderr. Trace/dump output can contain the camera serial number, so treat captured files as device-identifying data.
 
 A useful first run is:
 
@@ -124,7 +125,8 @@ These commands are intentionally **not implemented** yet.
 - [x] Structured raw PTP traffic logging
 - [ ] Validate v0.1 against the Japanese EOS R50 / firmware 1.1.0 hardware
 - [x] Query Canon EOS extended DeviceInfo (0x9108) in read-only mode
-- [ ] Inspect R50 1.1.0 extended property/capability IDs for language/region clues
+- [x] Inspect R50 1.1.0 extended property/capability IDs for language/region clues
+- [ ] Test read-only request for non-advertised NetworkServerRegion (0xD14A)
 - [ ] Document service-mode findings
 - [ ] Identify language-lock read command
 - [ ] Implement and verify read-only language status
