@@ -574,6 +574,19 @@ int ptp_transport_open_r50(struct ptp_transport *t,
         return -1;
     }
 
+    /*
+     * Newer Canon bodies commonly report the Microsoft/MTP vendor extension
+     * ID (0x00000006) in raw DeviceInfo. libgphoto2 applies the same fix-up:
+     * when the USB VID/manufacturer identifies Canon, treat the effective
+     * vendor extension as Canon (0x0000000b).
+     */
+    info->effective_vendor_extension_id = info->vendor_extension_id;
+    if (info->vendor_extension_id == 0x00000006 &&
+        info->manufacturer &&
+        strstr(info->manufacturer, "Canon") != NULL) {
+        info->effective_vendor_extension_id = 0x0000000b;
+    }
+
     if (!info->manufacturer ||
         !info->model ||
         strstr(info->manufacturer, "Canon") == NULL ||
@@ -697,8 +710,13 @@ void ptp_print_info(const struct ptp_device_info *info) {
     printf("PTP standard: %u.%02u\n",
            info->standard_version / 100,
            info->standard_version % 100);
-    printf("Vendor extension ID: 0x%08x\n",
+    printf("Raw vendor extension ID: 0x%08x\n",
            info->vendor_extension_id);
+    printf("Effective vendor extension ID: 0x%08x%s\n",
+           info->effective_vendor_extension_id,
+           (info->effective_vendor_extension_id != info->vendor_extension_id)
+               ? " (Canon normalization)"
+               : "");
     printf("Vendor extension version: %u\n",
            info->vendor_extension_version);
     printf("Vendor extension description: %s\n",
