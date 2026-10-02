@@ -25,6 +25,7 @@ struct ptp_u16_list {
 struct ptp_device_info {
     uint16_t standard_version;
     uint32_t vendor_extension_id;
+    uint32_t effective_vendor_extension_id;
     uint16_t vendor_extension_version;
     char *vendor_extension_desc;
     uint16_t functional_mode;
