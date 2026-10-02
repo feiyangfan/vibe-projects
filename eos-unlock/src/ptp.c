@@ -179,7 +179,9 @@ static bool allowed_foundation_opcode(uint16_t opcode) {
     return opcode == PTP_OC_GET_DEVICE_INFO ||
            opcode == PTP_OC_OPEN_SESSION ||
            opcode == PTP_OC_CLOSE_SESSION ||
-           opcode == PTP_OC_CANON_EOS_GET_DEVICE_INFO_EX;
+           opcode == PTP_OC_CANON_EOS_GET_DEVICE_INFO_EX ||
+           opcode == PTP_OC_CANON_EOS_GET_EVENT ||
+           opcode == PTP_OC_CANON_EOS_REQUEST_PROP;
 }
 
 static int send_command(struct ptp_transport *t,
@@ -424,6 +426,115 @@ static int get_device_info(struct ptp_transport *t,
 
     if (expect_response(t, PTP_RC_OK, tx) != 0) {
         ptp_device_info_free(info);
+        return -1;
+    }
+
+    return 0;
+}
+
+static void print_raw_eos_events(const uint8_t *data, size_t len) {
+    printf("EOS event payload (%zu bytes):\n", len);
+    for (size_t i = 0; i < len; i += 16) {
+        printf("  %04zx: ", i);
+        size_t end = i + 16;
+        if (end > len) end = len;
+        for (size_t j = i; j < end; ++j) {
+            printf("%02x ", data[j]);
+        }
+        putchar('\n');
+    }
+
+    /*
+     * Canon EOS event records are length-prefixed:
+     *   u32 size, u32 event_code, ...
+     * For PropValueChanged (0xC189), the next u32 is the property code.
+     * We intentionally print the remaining bytes raw because the datatype
+     * depends on the property and D14A is not advertised by this R50.
+     */
+    size_t off = 0;
+    while (off + 8 <= len) {
+        uint32_t size = get_le32(data + off);
+        uint32_t code = get_le32(data + off + 4);
+
+        if (size == 8 && code == 0) {
+            printf("  event terminator\n");
+            break;
+        }
+        if (size < 8 || off + size > len) {
+            printf("  malformed/unknown event framing at offset 0x%zx\n", off);
+            break;
+        }
+
+        printf("  event: code=0x%08x size=%u", code, size);
+        if (code == 0x0000c189 && size >= 12) {
+            uint32_t prop = get_le32(data + off + 8);
+            printf(" property=0x%08x value-bytes=", prop);
+            for (size_t j = off + 12; j < off + size; ++j) {
+                printf("%02x", data[j]);
+            }
+        }
+        putchar('\n');
+        off += size;
+    }
+}
+
+int ptp_probe_region(struct ptp_transport *t) {
+    if (!t->session_open) {
+        fprintf(stderr, "probe-region requires an open PTP session\n");
+        return -1;
+    }
+
+    const uint32_t prop = PTP_DPC_CANON_EOS_NETWORK_REGION;
+    uint32_t tx = t->next_transaction++;
+
+    printf("Requesting Canon EOS property 0x%04x (NetworkServerRegion)\n",
+           prop);
+
+    if (send_command(t, PTP_OC_CANON_EOS_REQUEST_PROP,
+                     tx, &prop, 1) != 0) {
+        return -1;
+    }
+    if (expect_response(t, PTP_RC_OK, tx) != 0) {
+        return -1;
+    }
+
+    tx = t->next_transaction++;
+    if (send_command(t, PTP_OC_CANON_EOS_GET_EVENT,
+                     tx, NULL, 0) != 0) {
+        return -1;
+    }
+
+    uint8_t *data = NULL;
+    size_t data_len = 0;
+    if (recv_container(t, &data, &data_len) != 0) return -1;
+
+    if (get_le16(data + 4) == PTP_CONTAINER_RESPONSE) {
+        uint16_t rc = get_le16(data + 6);
+        fprintf(stderr,
+                "EOS_GetEvent returned PTP response 0x%04x without data\n",
+                rc);
+        free(data);
+        return -1;
+    }
+
+    if (get_le16(data + 4) != PTP_CONTAINER_DATA ||
+        get_le16(data + 6) != PTP_OC_CANON_EOS_GET_EVENT ||
+        get_le32(data + 8) != tx) {
+        fprintf(stderr, "Unexpected PTP container for EOS_GetEvent\n");
+        free(data);
+        return -1;
+    }
+
+    if (data_len < 12) {
+        fprintf(stderr, "EOS_GetEvent data container is too short\n");
+        free(data);
+        return -1;
+    }
+
+    print_raw_eos_events(data + 12, data_len - 12);
+    free(data);
+
+    if (expect_response(t, PTP_RC_OK, tx) != 0) {
         return -1;
     }
 
