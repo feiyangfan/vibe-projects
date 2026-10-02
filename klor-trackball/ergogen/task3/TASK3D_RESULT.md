@@ -1,10 +1,10 @@
-# Task 3D Result — Right Production-Intent PCB Revision 5
+# Task 3D Result — Right Production-Intent PCB Revision 6
 
 ## Status
 
-**PASS — Task 3D revision 5 is complete.**
+**PASS — Task 3D revision 6 is complete.**
 
-The generated right production PCB consumes the frozen Task-2 revision-5 correctly handed trackball geometry. It is electrically complete and intentionally unrouted.
+The right production PCB consumes the frozen Revision-6 mesh-verified trackball geometry. It remains electrically complete and intentionally unrouted.
 
 ## Production content
 
@@ -15,38 +15,43 @@ The generated right production PCB consumes the frozen Task-2 revision-5 correct
 - 0xCB Helios rev1.0;
 - TRRS;
 - reset;
-- F.Cu PMW 1x7 cabled header;
-- eight M3 + one M2 stock PCB holes;
+- one F.Cu PMW 1x7 cabled header;
+- eight M3 + one M2 stock PCB mounting holes;
 - no tracks, vias or copper zones.
 
 SW22 / D22 / R34 remain absent.
 
-## Revision-5 mechanical geometry
+## Revision-6 mechanical geometry
 
 Ball center:
 
-**`(22.0, -31.000147)`**
+**`(15.5, -31.000147)` mm**
 
-Correct housing orientation:
+Physical housing:
 
-- source left STL on right keyboard half;
-- opening -X / thumb side;
-- housing/Kivipallur connector +X / outward.
+- source `type_c_right.stl`;
+- ball on left side of housing;
+- access opening -X / left;
+- housing bulk +X / right;
+- handedness independently proven in Task 2E from mesh geometry.
 
-The generated real-housing cavity has approximately **14.212 mm** XY material distance from the ball center, and Task 2E proves zero sphere/PCB and housing/PCB intersection.
+Task 2E proves:
+
+- sphere vs PCB = **0 mm³**;
+- actual housing vs PCB = **0 mm³**.
 
 ## PMW board header
 
 Canonical center:
 
-**`(18.5, -14.5)`**
+**`(0, -22.022143)`**
 
 - F.Cu;
-- 90° rotation;
-- row axis X;
-- pin 1 / CS at +X;
-- pin 7 / GND at -X;
-- short seven-conductor cable to the outward Kivipallur breakout.
+- 2.54 mm pitch;
+- row on canonical Y;
+- pin 1 / CS at +Y;
+- pin 7 / GND at -Y;
+- short seven-conductor cable to Kivipallur breakout.
 
 Electrical ownership remains:
 
@@ -59,16 +64,14 @@ Electrical ownership remains:
 
 ## Qualification
 
-Implementation qualification head:
+Implementation head: `c5023e227d6a766726e247d3e605949fe7b1d545`
 
-`0b704c8ff85c6b641b796813f49e78124d8e21ec`
+Passing Task-3D workflow: `36950226512`.
 
-Passing Task-3D workflow: `36697008138`.
-
-The same head passes the Task-2E full 3D mechanical integration gate.
+The same head passes the full Task-2E mesh-handedness and 3D mechanical integration gate.
 
 ## Next
 
 Proceed to **Task 3E — cross-board electrical integration and freeze**.
 
-Task 4 routing should remain behind the physical right-half mechanical mock-up gate.
+Keep Task 4 production-final routing behind the physical right-half mock-up gate.
