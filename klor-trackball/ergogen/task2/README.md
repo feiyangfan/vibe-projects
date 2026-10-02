@@ -43,7 +43,7 @@ Passing evidence is recorded in `TASK2B_RESULT.md`.
 
 ### 2C — Trackball delta overlay
 
-**REVISION 5 — COMPLETE**
+**REVISION 6 — COMPLETE**
 
 Add parametrically:
 
@@ -66,9 +66,9 @@ Revision-3 passing evidence is recorded in `TASK2C_RESULT.md`; `TASK2_REV3_CAVIT
 
 ### 2D — Geometry freeze
 
-**REVISION 5 — COMPLETE**
+**REVISION 6 — COMPLETE**
 
-Revision 5 freezes the correctly handed right-PCB mechanical interface from the actual mirrored Type-C housing and the Task-2E common-frame 3D qualification.
+Revision 6 restores the Revision-4 geometry after direct mesh inspection proved that `type_c_right.stl` already has the required left-side access opening and right-side housing bulk. The freeze now includes an explicit mesh-derived handedness gate.
 
 The freeze combines:
 
@@ -95,18 +95,26 @@ If neither is true, it should not enter the canonical model.
 
 ### 2E — 3D mechanical integration
 
-**REVISION 5 — COMPLETE**
+**REVISION 6 — COMPLETE**
 
-Revision 4 used the wrong handed Type-C housing for the right keyboard half. Revision 5 switches the mechanical authority to `keyball_trackball_case_25mm_type_c_left.stl`, so the ball opening faces inward/left toward the thumb cluster and the connector faces outward/right (+X). See `TASK2_REV5_HANDEDNESS.md`.
+Revision 5 is invalid because its handedness decision was based on the STL filename. Revision 6 re-evaluates the physical mesh and restores `keyball_trackball_case_25mm_type_c_right.stl`.
 
-Qualified revision-5 geometry:
+The actual mesh now proves:
 
-- ball center: `(22.0, -31.000147, 1.938015634)` mm;
+- ball is on the **left side of the housing**;
+- access opening is **-X / left / thumb side**;
+- housing bulk is **+X / right / outward**;
+- measured local X bounds are about `[-9.631, +27.963]` mm;
+- measured upper-rim -X/+X vertex ratio is about `0.238`, below the frozen `0.5` opening-side threshold.
+
+Qualified Revision-6 geometry:
+
+- ball center: `(15.5, -31.000147, 1.938015634)` mm;
 - ball exposure above plate: approximately **12.938 mm**;
-- correctly handed housing vs PCB: **0 mm³** intersection;
-- sphere vs PCB: **0 mm³** intersection;
-- board-side PMW header: `(18.5, -14.5)`, rotated 90°;
+- housing vs PCB: **0 mm³**;
+- sphere vs PCB: **0 mm³**;
+- board-side PMW header: `(0, -22.022143)`, vertical row on canonical Y;
 - all 19 retained right keys and all nine PCB holes preserved;
 - local case pod remains approximately **5.462 mm** below the stock case bottom.
 
-A physical right-half mock-up remains required before routing is treated as production-final, especially because R33/SW21 is approximately **40.61 mm** center-to-center from the ball after the outward handedness correction.
+A physical right-half mock-up remains required before routing is treated as production-final, especially because R33/SW21 is approximately **34.20 mm** center-to-center from the ball.
