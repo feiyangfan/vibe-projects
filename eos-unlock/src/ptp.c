@@ -1,5 +1,6 @@
 #include "ptp.h"
 
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -75,65 +76,94 @@ static int bulk_write_all(struct ptp_transport *t,
     return 0;
 }
 
-static int bulk_read_exact(struct ptp_transport *t,
-                           uint8_t *buf, size_t len) {
-    size_t offset = 0;
+static int bulk_read_some(struct ptp_transport *t,
+                          uint8_t *buf, size_t capacity,
+                          size_t *out_len) {
+    if (capacity == 0 || capacity > INT_MAX) return -1;
 
-    while (offset < len) {
-        int transferred = 0;
-        int rc = libusb_bulk_transfer(
-            t->handle,
-            t->ep_in,
-            buf + offset,
-            (int)(len - offset),
-            &transferred,
-            PTP_USB_TIMEOUT_MS
-        );
+    int transferred = 0;
+    int rc = libusb_bulk_transfer(
+        t->handle,
+        t->ep_in,
+        buf,
+        (int)capacity,
+        &transferred,
+        PTP_USB_TIMEOUT_MS
+    );
 
-        if (rc != 0) {
-            fprintf(stderr, "USB read failed: %s\n", libusb_error_name(rc));
-            return -1;
-        }
-        if (transferred <= 0) {
-            fprintf(stderr, "USB read made no progress\n");
-            return -1;
-        }
-        offset += (size_t)transferred;
+    if (rc != 0) {
+        fprintf(stderr, "USB read failed: %s\n", libusb_error_name(rc));
+        return -1;
+    }
+    if (transferred <= 0) {
+        fprintf(stderr, "USB read made no progress\n");
+        return -1;
     }
 
+    *out_len = (size_t)transferred;
     return 0;
 }
 
 static int recv_container(struct ptp_transport *t,
                           uint8_t **out, size_t *out_len) {
-    uint8_t header[12];
-
-    if (bulk_read_exact(t, header, sizeof(header)) != 0) return -1;
-
-    uint32_t length = get_le32(header);
-    if (length < sizeof(header) || length > PTP_MAX_CONTAINER) {
-        fprintf(stderr, "Invalid PTP container length: %u\n", length);
-        return -1;
-    }
-
-    uint8_t *buf = calloc(1, length);
+    /*
+     * Do not read the 12-byte PTP header into a 12-byte libusb buffer.
+     * Canon bodies may deliver the header plus payload in the same USB bulk
+     * packet. On macOS/libusb a too-small transfer buffer then reports
+     * LIBUSB_ERROR_OVERFLOW and discards the packet.
+     *
+     * Instead, receive a generously sized first chunk, inspect the PTP
+     * container length, then read any remaining bytes.
+     */
+    const size_t first_capacity = 64U * 1024U;
+    uint8_t *buf = calloc(1, PTP_MAX_CONTAINER);
     if (!buf) {
         fprintf(stderr, "Out of memory\n");
         return -1;
     }
 
-    memcpy(buf, header, sizeof(header));
+    size_t received = 0;
+    size_t chunk = 0;
 
-    if (length > sizeof(header) &&
-        bulk_read_exact(t, buf + sizeof(header),
-                        length - sizeof(header)) != 0) {
+    if (bulk_read_some(t, buf, first_capacity, &chunk) != 0) {
+        free(buf);
+        return -1;
+    }
+    received += chunk;
+
+    if (received < 12) {
+        fprintf(stderr, "Short PTP container header: %zu bytes\n", received);
         free(buf);
         return -1;
     }
 
-    trace_bytes(t->trace, "RX", buf, length);
+    uint32_t length = get_le32(buf);
+    if (length < 12 || length > PTP_MAX_CONTAINER) {
+        fprintf(stderr, "Invalid PTP container length: %u\n", length);
+        free(buf);
+        return -1;
+    }
+
+    if (received > length) {
+        fprintf(stderr,
+                "USB read returned %zu bytes for a %u-byte PTP container\n",
+                received, length);
+        free(buf);
+        return -1;
+    }
+
+    while (received < length) {
+        size_t remaining = (size_t)length - received;
+        if (bulk_read_some(t, buf + received, remaining, &chunk) != 0) {
+            free(buf);
+            return -1;
+        }
+        received += chunk;
+    }
+
+    trace_bytes(t->trace, "RX", buf, received);
     *out = buf;
-    *out_len = length;
+    *out_len = received;
     return 0;
 }
 
