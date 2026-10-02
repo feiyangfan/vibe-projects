@@ -178,7 +178,8 @@ static int recv_container(struct ptp_transport *t,
 static bool allowed_foundation_opcode(uint16_t opcode) {
     return opcode == PTP_OC_GET_DEVICE_INFO ||
            opcode == PTP_OC_OPEN_SESSION ||
-           opcode == PTP_OC_CLOSE_SESSION;
+           opcode == PTP_OC_CLOSE_SESSION ||
+           opcode == PTP_OC_CANON_EOS_GET_DEVICE_INFO_EX;
 }
 
 static int send_command(struct ptp_transport *t,
@@ -336,6 +337,34 @@ static int cur_u16_array(struct cursor *c, struct ptp_u16_list *out) {
     return 0;
 }
 
+static int cur_u32_array(struct cursor *c, struct ptp_u32_list *out) {
+    uint32_t count = 0;
+
+    if (cur_u32(c, &count) != 0) return -1;
+    if (count > 65536 ||
+        (size_t)(c->end - c->p) < (size_t)count * 4) {
+        return -1;
+    }
+
+    uint32_t *items = NULL;
+    if (count) {
+        items = calloc(count, sizeof(*items));
+        if (!items) return -1;
+    }
+
+    for (uint32_t i = 0; i < count; ++i) {
+        if (cur_u32(c, &items[i]) != 0) {
+            free(items);
+            return -1;
+        }
+    }
+
+    out->items = items;
+    out->count = count;
+    return 0;
+}
+
+
 static int parse_device_info(const uint8_t *data,
                              size_t len,
                              struct ptp_device_info *info) {
@@ -395,6 +424,77 @@ static int get_device_info(struct ptp_transport *t,
 
     if (expect_response(t, PTP_RC_OK, tx) != 0) {
         ptp_device_info_free(info);
+        return -1;
+    }
+
+    return 0;
+}
+
+int ptp_get_eos_device_info(struct ptp_transport *t,
+                            struct ptp_eos_device_info *info) {
+    memset(info, 0, sizeof(*info));
+
+    if (!t->session_open) {
+        fprintf(stderr, "EOS_GetDeviceInfoEx requires an open PTP session\n");
+        return -1;
+    }
+
+    uint32_t tx = t->next_transaction++;
+
+    if (send_command(t, PTP_OC_CANON_EOS_GET_DEVICE_INFO_EX,
+                     tx, NULL, 0) != 0) {
+        return -1;
+    }
+
+    uint8_t *data = NULL;
+    size_t data_len = 0;
+    if (recv_container(t, &data, &data_len) != 0) return -1;
+
+    if (get_le16(data + 4) == PTP_CONTAINER_RESPONSE) {
+        uint16_t rc = get_le16(data + 6);
+        fprintf(stderr,
+                "EOS_GetDeviceInfoEx returned PTP response 0x%04x "
+                "without a data phase\n",
+                rc);
+        free(data);
+        return -1;
+    }
+
+    if (get_le16(data + 4) != PTP_CONTAINER_DATA ||
+        get_le16(data + 6) != PTP_OC_CANON_EOS_GET_DEVICE_INFO_EX ||
+        get_le32(data + 8) != tx) {
+        fprintf(stderr,
+                "Unexpected PTP container for EOS_GetDeviceInfoEx\n");
+        free(data);
+        return -1;
+    }
+
+    /*
+     * libgphoto2's ptp_unpack_EOS_DI starts at offset 4 of the data
+     * payload, then unpacks three uint32 arrays: Events, DeviceProps,
+     * and an unknown/capability array.
+     */
+    if (data_len < 16) {
+        fprintf(stderr, "EOS_GetDeviceInfoEx payload is too short\n");
+        free(data);
+        return -1;
+    }
+
+    struct cursor cur = {data + 16, data + data_len};
+
+    if (cur_u32_array(&cur, &info->events) != 0 ||
+        cur_u32_array(&cur, &info->properties) != 0 ||
+        cur_u32_array(&cur, &info->unknown) != 0) {
+        fprintf(stderr, "Unable to parse EOS_GetDeviceInfoEx payload\n");
+        free(data);
+        ptp_eos_device_info_free(info);
+        return -1;
+    }
+
+    free(data);
+
+    if (expect_response(t, PTP_RC_OK, tx) != 0) {
+        ptp_eos_device_info_free(info);
         return -1;
     }
 
@@ -627,6 +727,14 @@ void ptp_transport_close(struct ptp_transport *t) {
     t->interface_number = -1;
 }
 
+void ptp_eos_device_info_free(struct ptp_eos_device_info *info) {
+    if (!info) return;
+    free(info->events.items);
+    free(info->properties.items);
+    free(info->unknown.items);
+    memset(info, 0, sizeof(*info));
+}
+
 void ptp_device_info_free(struct ptp_device_info *info) {
     if (!info) return;
 
@@ -752,4 +860,18 @@ void ptp_print_capabilities(const struct ptp_device_info *info) {
     print_code_list("Device properties",
                     &info->properties,
                     ptp_property_name);
+}
+
+static void print_u32_code_list(const char *heading,
+                                const struct ptp_u32_list *list) {
+    printf("\n%s (%u):\n", heading, list->count);
+    for (uint32_t i = 0; i < list->count; ++i) {
+        printf("  0x%08x\n", list->items[i]);
+    }
+}
+
+void ptp_print_eos_device_info(const struct ptp_eos_device_info *info) {
+    print_u32_code_list("EOS events", &info->events);
+    print_u32_code_list("EOS device properties", &info->properties);
+    print_u32_code_list("EOS unknown/capability values", &info->unknown);
 }
