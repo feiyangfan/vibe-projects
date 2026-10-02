@@ -20,7 +20,8 @@ The repository now contains `r50tool`, a small C/libusb PTP client. v0.1 intenti
 - Open and close a PTP session
 - List the camera-advertised operation, event, and property codes
 - Hex-dump raw PTP command/data/response containers with `--trace`
-- Hard-reject every opcode except `GetDeviceInfo`, `OpenSession`, and `CloseSession`
+- Hard-reject every opcode except the reviewed read-only/session allowlist
+- Query Canon `EOS_GetDeviceInfoEx (0x9108)` to enumerate extended EOS event/property/capability IDs
 
 There is **no language unlock or arbitrary-opcode command in v0.1**.
 
@@ -55,11 +56,13 @@ If macOS has already claimed the PTP interface, `r50tool` will fail rather than 
 ```text
 ./r50tool info
 ./r50tool ptp-info
+./r50tool eos-info
 ./r50tool dump
 ./r50tool --trace dump 2> r50-trace.log
+./r50tool --trace eos-info > r50-eos-info.txt 2> r50-eos-trace.log
 ```
 
-`info` prints identity and PTP version information. `ptp-info` prints the operation/event/property codes advertised by the camera. `dump` prints both. `--trace` writes raw PTP container bytes to stderr. Trace/dump output can contain the camera serial number, so treat captured files as device-identifying data.
+`info` prints identity and PTP version information. `ptp-info` prints the operation/event/property codes advertised by standard DeviceInfo. `eos-info` performs the reviewed read-only Canon `0x9108` query and prints its extended 32-bit event/property/capability arrays. `dump` prints standard identity and capabilities. `--trace` writes raw PTP container bytes to stderr. Trace/dump output can contain the camera serial number, so treat captured files as device-identifying data.
 
 A useful first run is:
 
@@ -120,6 +123,8 @@ These commands are intentionally **not implemented** yet.
 - [x] Canon vendor-operation dump
 - [x] Structured raw PTP traffic logging
 - [ ] Validate v0.1 against the Japanese EOS R50 / firmware 1.1.0 hardware
+- [x] Query Canon EOS extended DeviceInfo (0x9108) in read-only mode
+- [ ] Inspect R50 1.1.0 extended property/capability IDs for language/region clues
 - [ ] Document service-mode findings
 - [ ] Identify language-lock read command
 - [ ] Implement and verify read-only language status
