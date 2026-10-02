@@ -219,15 +219,19 @@ A short authoritative requirements document exists, and any geometry-dependent p
 
 ## Task 2 — Reconstruct the complete KLOR/Konrad geometry in Ergogen
 
-**Status: COMPLETE — REVISION 5 DIGITALLY QUALIFIED**
+**Status: COMPLETE — REVISION 6 MESH-VERIFIED**
 
 Task 2 begins with a minimal-change study before full reconstruction. The selected implementation baseline is to remove R34/SW22/D22 only, retain R32/R33 and the right encoder, preserve all structural interfaces, and keep PCB/plate/case changes local to the trackball region. See `ergogen/task2/MINIMAL_CHANGE_STUDY.md`.
 
-Revision 4 is **superseded as a mechanical qualification** after a housing-handedness audit. It used `type_c_right.stl`, whose physical opening/connector orientation is wrong for the intended right-half installation.
+Revision 5 is **invalidated**. It inferred housing handedness from the STL filename and selected `type_c_left.stl`, which direct mesh inspection shows puts the ball on the right side of the housing and the access opening on +X/right.
 
-Revision 5 is the current frozen digital geometry. It uses the mirrored `type_c_left.stl` so the **ball opening faces inward / -X toward the thumb cluster** and the **housing/Kivipallur connector faces outward / +X**. The qualified ball center is `(22.0, -31.000147, 1.938015634)` mm. The vertical position remains the Rev-4-qualified stack, giving approximately **12.938 mm** ball exposure above the plate. All 19 retained right keys and all nine PCB holes remain. See `ergogen/task2/TASK2_REV5_HANDEDNESS.md` and `ergogen/task2/TASK2E_RESULT.md`.
+Revision 6 re-evaluates from the previously qualified Revision-4 geometry and restores `keyball_trackball_case_25mm_type_c_right.stl`. The validator now determines handedness from the **actual mesh**, not the filename:
 
-The keyboard-side PMW 1x7 is a **separate cabled header**, not the housing connector. It is at `(18.5, -14.5)` mm, rotated 90° with its row on canonical X. A short seven-conductor cable connects it to the outward-facing Kivipallur breakout.
+- housing X bounds: approximately `[-9.631, +27.963]` mm relative to the ball, so the ball sits toward the **left side of the housing**;
+- ball-rim mesh is sparse on -X and dense on +X (measured -X/+X vertex ratio approximately `0.238`), identifying the **access opening on -X/left**;
+- housing bulk and Kivipallur/connector structure extend toward **+X/right/outward**.
+
+The digitally qualified ball center is restored to `(15.5, -31.000147, 1.938015634)` mm with approximately **12.938 mm** exposed above the plate. All 19 retained right keys and all nine PCB holes remain. The board-side PMW 1x7 is again at `(0, -22.022143)` in the reclaimed SW22 area, connected to the breakout by a short seven-conductor cable.
 
 Build the actual canonical geometric model.
 
@@ -286,7 +290,7 @@ Task 3 is split into explicit electrical gates:
  ↓
 3C  left unrouted PCB                COMPLETE
  ↓
-3D  right unrouted PCB + PMW Rev 5   COMPLETE
+3D  right unrouted PCB + PMW Rev 6   COMPLETE
  ↓
 3E  cross-board electrical freeze    NEXT
  ↓
@@ -541,6 +545,6 @@ Generated output should never become the only place where design intent exists.
 
 **Task 3E — cross-board electrical integration and freeze.**
 
-Revision 5 is the canonical right-half baseline and Tasks 2B/2C/2D/2E plus 3A/3B/3C/3D pass together. Task 3E may now freeze the left/right pair-level electrical contract.
+Revision 6 is the canonical right-half baseline. It is geometrically equivalent to the previously qualified Revision 4, but now has explicit mesh-derived handedness regression checks. Tasks 2B/2C/2D/2E plus 3A/3B/3C/3D pass together. Task 3E may now freeze the left/right pair-level electrical contract.
 
-A **physical right-half mock-up remains required before Task 4 routing is treated as production-final**. The key ergonomic risk is real thumb reach: the correctly handed housing moves the ball outward, and R33/SW21 is now approximately **40.61 mm center-to-center** from the ball. The mock-up must also validate ball motion/retention, cable behavior, fasteners, assembly path, and the **5.462 mm** local case-pod extension.
+A **physical right-half mock-up remains required before Task 4 routing is treated as production-final**. R33/SW21 is approximately **34.20 mm center-to-center** from the ball. The mock-up must validate natural thumb access through the left-side housing opening, ball motion/retention, cable behavior, fasteners, assembly path, and the **5.462 mm** local case-pod extension.
