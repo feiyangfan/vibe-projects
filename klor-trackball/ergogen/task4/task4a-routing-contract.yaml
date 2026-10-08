@@ -1,0 +1,224 @@
+status: task4a_frozen
+revision: 1
+units: mm
+
+authority:
+  requirements: ../../REQUIREMENTS.md
+  task3_pair_freeze: ../task3/task3e-cross-board-freeze.yaml
+  stock_project: ../../klor1.4/PCB/klor1_4/klor1_4.kicad_pro
+  stock_custom_rules: ../../klor1.4/PCB/klor1_4/klor1_4.kicad_dru
+  stock_routed_board: ../../klor1.4/PCB/klor1_4/klor1_4.kicad_pcb
+
+fabrication_envelope:
+  board:
+    layers: 2
+    material: FR4
+    finished_thickness: 1.6
+    outer_copper_oz: 1
+    copper_thickness: 0.035
+  manufacturer_reference:
+    vendor: JLCPCB
+    checked: 2026-10-08
+    source: https://jlcpcb.com/capabilities/pcb-capabilities/
+    capability_snapshot:
+      min_track_width: 0.10
+      min_track_spacing: 0.10
+      routed_edge_copper_clearance: 0.20
+      min_via_hole: 0.15
+      min_via_diameter: 0.25
+      preferred_via_diameter_minus_hole: 0.15
+      recommended_pth_to_track: 0.35
+  rule: >-
+    Task 4 uses margins materially above the selected fabricator minimums.
+    Fabricator capability values are a checked reference snapshot, not permission
+    to shrink routing below this Task-4 contract.
+
+stock_evidence:
+  project_netclasses:
+    default:
+      clearance: 0.2
+      track_width: 0.254
+      via_diameter: 0.4
+      via_drill: 0.3
+    power:
+      clearance: 0.2
+      track_width: 0.381
+      via_diameter: 0.4
+      via_drill: 0.3
+  custom_rules:
+    routed_edge_clearance: 0.3
+    track_to_pad_clearance: 0.2
+    track_to_npth_hole_clearance: 0.254
+    track_to_pth_hole_clearance: 0.33
+    plated_annular_width_min: 0.075
+  routed_board:
+    observed_trace_widths: [0.254, 0.381]
+    observed_via: {diameter: 0.4, drill: 0.3}
+    note: >-
+      Stock routing evidence is used to retain proven KLOR-scale geometry.
+      The Task-4 standard via is intentionally enlarged to meet the stock
+      custom-rule annular-width minimum.
+
+global_rules:
+  different_net_clearance: 0.2
+  routed_edge_clearance: 0.3
+  track_to_npth_hole_clearance: 0.254
+  track_to_pth_hole_clearance: 0.35
+  via_hole_to_hole_clearance: 0.5
+  plated_annular_width_min: 0.075
+  corners: 45_degree_preferred
+  blind_buried_vias: forbidden
+  microvias: forbidden
+  via_in_pad: forbidden
+  copper_layers: [F.Cu, B.Cu]
+
+vias:
+  standard:
+    diameter: 0.45
+    drill: 0.30
+    annular_width: 0.075
+  power:
+    diameter: 0.60
+    drill: 0.30
+    annular_width: 0.15
+
+ground:
+  route_width_when_trace_required: 0.381
+  via: power
+  zones:
+    required_layers: [F.Cu, B.Cu]
+    clearance: 0.2
+    minimum_copper_width: 0.254
+    thermal_gap: 0.2
+    thermal_spoke_width: 0.381
+  stitching:
+    required: true
+    rule: >-
+      Stitch useful ground regions and provide a nearby return transition when
+      a signal changes layer. Do not impose a global via-grid pitch before the
+      actual 4C/4D routed geometry exists.
+
+layer_policy:
+  left:
+    local_component_side: B.Cu
+    alternate_layer: F.Cu
+  right:
+    local_component_side: F.Cu
+    alternate_layer: B.Cu
+  general:
+    both_layers_available: true
+    minimize_unnecessary_layer_changes: true
+    preserve_ground_return_continuity: true
+
+net_classes:
+  matrix:
+    track_width: 0.254
+    clearance: 0.2
+    via: standard
+    exact:
+      - ROW0
+      - ROW1
+      - ROW2
+      - ROW3
+      - COL0
+      - COL1
+      - COL2
+      - COL3
+      - COL4
+      - COL5
+      - ENCODER_TO_D18
+    regex:
+      - '^SW[0-9]+_TO_D[0-9]+$'
+
+  rgb_data:
+    track_width: 0.254
+    clearance: 0.2
+    via: standard
+    exact:
+      - RGB_DATA_5V
+    regex:
+      - '^RGB_SW[0-9]+_TO_SW[0-9]+$'
+    policy:
+      - follow_frozen_chain_order
+      - avoid_long_parallel_runs_with_pmw_spi_where_practical
+
+  control:
+    track_width: 0.254
+    clearance: 0.2
+    via: standard
+    exact:
+      - ENCODER_A
+      - ENCODER_B
+      - RESET
+    regex: []
+
+  split:
+    track_width: 0.254
+    clearance: 0.2
+    via: standard
+    exact:
+      - SPLIT_DATA
+    regex: []
+    policy:
+      - direct_controller_to_trrs
+      - no_controlled_impedance_requirement
+
+  pmw_spi:
+    track_width: 0.254
+    clearance: 0.2
+    via: standard
+    exact:
+      - PMW_SCK
+      - PMW_MOSI
+      - PMW_MISO
+      - PMW_CS
+    regex: []
+    right_only: true
+    preferred_layer: F.Cu
+    length_matching_required: false
+    controlled_impedance_required: false
+    policy:
+      - keep_routes_short_and_direct
+      - minimize_vias
+      - preserve_nearby_ground_return
+      - avoid_long_parallel_runs_with_rgb_data_or_raw_5v_where_practical
+
+  power:
+    track_width: 0.381
+    clearance: 0.2
+    via: power
+    exact:
+      - RAW_5V
+      - V3V3
+    regex: []
+    policy:
+      - prefer_short_low_resistance_trunks
+      - do_not_neck_below_signal_width_except_at_pad_escape_when_unavoidable
+
+  ground:
+    track_width: 0.381
+    clearance: 0.2
+    via: power
+    exact:
+      - GND
+    regex: []
+    policy:
+      - use_dual_layer_zones
+      - preserve_contiguous_return_paths
+
+routing_boundary:
+  task4a_adds_tracks: false
+  task4a_adds_vias: false
+  task4a_adds_zones: false
+  routing_mechanism_owner: task4b
+  left_bulk_routing_owner: task4c
+  right_non_pmw_owner: task4d
+  right_pmw_owner: task4e
+  final_pair_freeze_owner: task4f
+
+gate:
+  every_generated_net_exactly_one_class: required
+  left_has_no_pmw_class_nets: required
+  right_has_exact_pmw_class_nets: required
+  current_generated_pair_remains_unrouted: required
+  task3e_must_regress: required
