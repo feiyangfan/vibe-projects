@@ -1,0 +1,108 @@
+name: KLOR Task 4B - routing mechanism proof
+
+on:
+  pull_request:
+    paths:
+      - "klor-trackball/README.md"
+      - "klor-trackball/ergogen/config.yaml"
+      - "klor-trackball/ergogen/task3/**"
+      - "klor-trackball/ergogen/task4/**"
+      - "klor-trackball/ergogen/scripts/route_task4b.py"
+      - "klor-trackball/ergogen/scripts/make_task4b_fixture.py"
+      - "klor-trackball/ergogen/scripts/validate_task4b.py"
+      - ".github/workflows/klor-ergogen-task4b.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  routing-proof:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: klor-trackball/ergogen
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install validator dependency
+        run: python -m pip install "PyYAML==6.0.2"
+
+      - name: Generate production pass A
+        run: npx --yes ergogen@4.2.1 . --output generated-a --clean --svg --debug
+
+      - name: Generate production pass B
+        run: npx --yes ergogen@4.2.1 . --output generated-b --clean --svg --debug
+
+      - name: Prove production generation remains deterministic
+        run: diff -rq generated-a generated-b
+
+      - name: Re-run Task 4A
+        run: python scripts/validate_task4a.py generated-a
+
+      - name: Route proof pass A
+        run: >-
+          python scripts/route_task4b.py
+          generated-a/pcbs/task3c_left_production.kicad_pcb
+          task4b-output/proof-a.kicad_pcb
+
+      - name: Route proof pass B
+        run: >-
+          python scripts/route_task4b.py
+          generated-b/pcbs/task3c_left_production.kicad_pcb
+          task4b-output/proof-b.kicad_pcb
+
+      - name: Prove routed proof is deterministic
+        run: cmp task4b-output/proof-a.kicad_pcb task4b-output/proof-b.kicad_pcb
+
+      - name: Save production config
+        run: cp config.yaml /tmp/task4b-production-config.yaml
+
+      - name: Create controlled upstream perturbation
+        run: >-
+          python scripts/make_task4b_fixture.py
+          /tmp/task4b-production-config.yaml
+          config.yaml
+
+      - name: Generate perturbed fixture
+        run: npx --yes ergogen@4.2.1 . --output generated-perturbed --clean --svg --debug
+
+      - name: Route perturbed fixture
+        run: >-
+          python scripts/route_task4b.py
+          generated-perturbed/pcbs/task3c_left_production.kicad_pcb
+          task4b-output/proof-perturbed.kicad_pcb
+
+      - name: Restore production config
+        run: cp /tmp/task4b-production-config.yaml config.yaml
+
+      - name: Validate regeneration-safe routing proof
+        run: >-
+          python scripts/validate_task4b.py
+          generated-a/pcbs/task3c_left_production.kicad_pcb
+          task4b-output/proof-a.kicad_pcb
+          generated-perturbed/pcbs/task3c_left_production.kicad_pcb
+          task4b-output/proof-perturbed.kicad_pcb
+
+      - name: Prove production config restored byte-for-byte
+        run: cmp config.yaml /tmp/task4b-production-config.yaml
+
+      - name: Upload Task 4B proof boards
+        uses: actions/upload-artifact@v4
+        with:
+          name: klor-task4b-routing-proof
+          path: |
+            klor-trackball/ergogen/task4b-output/proof-a.kicad_pcb
+            klor-trackball/ergogen/task4b-output/proof-perturbed.kicad_pcb
+          if-no-files-found: error
