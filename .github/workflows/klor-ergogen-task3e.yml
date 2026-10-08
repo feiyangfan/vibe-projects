@@ -1,0 +1,77 @@
+name: KLOR Task 3E - cross-board electrical freeze
+
+on:
+  pull_request:
+    paths:
+      - "klor-trackball/ergogen/**"
+      - "klor-trackball/README.md"
+      - ".github/workflows/klor-ergogen-task3e.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate-pair:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: klor-trackball/ergogen
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install validator dependency
+        run: python -m pip install "PyYAML==6.0.2"
+
+      - name: Generate pair pass A
+        run: npx --yes ergogen@4.2.1 . --output generated-a --clean --svg --debug
+
+      - name: Generate pair pass B
+        run: npx --yes ergogen@4.2.1 . --output generated-b --clean --svg --debug
+
+      - name: Prove deterministic pair regeneration
+        run: diff -rq generated-a generated-b
+
+      - name: Re-run Task 2B
+        run: python scripts/validate_task2b.py --generated generated-a
+
+      - name: Re-run Task 2C
+        run: python scripts/validate_task2c.py --generated generated-a
+
+      - name: Re-run Task 2D
+        run: python scripts/validate_task2d.py --generated generated-a
+
+      - name: Re-run Task 3A
+        run: python scripts/validate_task3a.py
+
+      - name: Re-run Task 3B
+        run: python scripts/validate_task3b.py generated-a
+
+      - name: Re-run Task 3C
+        run: python scripts/validate_task3c.py generated-a
+
+      - name: Re-run Task 3D
+        run: python scripts/validate_task3d.py generated-a
+
+      - name: Validate Task 3E pair freeze
+        run: python scripts/validate_task3e.py generated-a
+
+      - name: Upload frozen unrouted PCB pair
+        uses: actions/upload-artifact@v4
+        with:
+          name: klor-task3e-unrouted-pcb-pair
+          path: |
+            klor-trackball/ergogen/generated-a/pcbs/task3c_left_production.kicad_pcb
+            klor-trackball/ergogen/generated-a/pcbs/task3d_right_production.kicad_pcb
+          if-no-files-found: error
