@@ -1,0 +1,57 @@
+status: task4b_candidate
+revision: 1
+
+authority:
+  routing_contract: task4a-routing-contract.yaml
+  electrical_freeze: ../task3/task3e-cross-board-freeze.yaml
+  ergogen: ../config.yaml
+
+proof:
+  board: task3c_left_production
+  half: left
+  route_layer: B.Cu
+  algorithm: direct_45_degree_two_endpoint
+  routing_identity:
+    allowed:
+      - net_name
+      - net_id_resolved_from_name
+      - footprint_and_pad_geometry
+      - deterministic_generated_segment_uuid
+    forbidden:
+      - lookup_by_existing_kicad_uuid
+      - lookup_by_generated_object_identity
+      - copied_absolute_route_coordinates
+  nets:
+    SW1_TO_D1:
+      class: matrix
+      expected_endpoints: 2
+    RGB_SW1_TO_SW2:
+      class: rgb_data
+      expected_endpoints: 2
+
+perturbation_fixture:
+  purpose: prove_route_replays_after_upstream_geometry_change
+  changes:
+    d1:
+      axis: x
+      delta: 1.25
+    sw2:
+      axis: x
+      delta: 1.25
+  expected_changed_proof_nets:
+    - SW1_TO_D1
+    - RGB_SW1_TO_SW2
+  production_config_restored_after_fixture: required
+
+gate:
+  production_generation_deterministic: required
+  task4a_must_regress: required
+  proof_route_deterministic: required
+  only_selected_proof_nets_routed: required
+  no_vias_required_for_proof: true
+  no_zones_added_in_proof: true
+  route_widths_from_task4a: required
+  route_layer_from_task4a: required
+  endpoints_discovered_from_generated_geometry: required
+  perturbation_changes_route_without_manual_edit: required
+  production_source_geometry_unchanged: required
