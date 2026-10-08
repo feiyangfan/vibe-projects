@@ -31,12 +31,13 @@ def load(path: Path):
 
 def blocks(text: str, token: str) -> list[str]:
     out = []
-    needle = "(" + token
+    pattern = re.compile(r"\\(" + re.escape(token) + r"(?=\\s|\\))")
     pos = 0
     while True:
-        start = text.find(needle, pos)
-        if start < 0:
+        match = pattern.search(text, pos)
+        if not match:
             return out
+        start = match.start()
         depth = 0
         quoted = False
         escaped = False
