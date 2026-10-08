@@ -49,7 +49,7 @@ Qualification:
 
 ### Task 4B — Prove the regeneration-safe routing mechanism
 
-**NEXT**
+**COMPLETE**
 
 Build the smallest useful routed slice before bulk routing.
 
@@ -67,7 +67,20 @@ Gate:
 - the proof does not depend on exact generated object IDs;
 - the method is suitable for scaling to the whole keyboard.
 
+Qualification:
+
+- proof nets: `SW1_TO_D1` (matrix) and `RGB_SW1_TO_SW2` (RGB);
+- endpoint discovery: generated net names + pad geometry;
+- output segment UUIDs: deterministic metadata only, never used for lookup;
+- controlled upstream fixture: move `d1` and `sw2` by +1.25 mm X;
+- first passing run: `37724448292`;
+- qualification head: `9b331eb74dd8748ca310a5bb03c0bfe5f3d57258`;
+- artifact: `klor-task4b-routing-proof` / ID `11527455924`;
+- artifact SHA-256: `2d446d9a978db2b887fd2454f60f455e4c5eb0eb2f1652024789161b6b17d40b`.
+
 ### Task 4C — Route the left PCB
+
+**NEXT**
 
 Route the complete left half using the proven 4B mechanism:
 

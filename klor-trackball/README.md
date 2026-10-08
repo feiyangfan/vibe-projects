@@ -332,16 +332,16 @@ Ergogen generates a complete, electrically coherent **unrouted production-intent
 
 ## Task 4 — Build a regeneration-safe routing pipeline
 
-**Status: IN PROGRESS — Task 4B**
+**Status: IN PROGRESS — Task 4C**
 
 Task 4 is split into explicit routing gates:
 
 ```text
 4A  routing rules + net classes             COMPLETE
  ↓
-4B  regeneration-safe routing proof         NEXT
+4B  regeneration-safe routing proof         COMPLETE
  ↓
-4C  route left PCB
+4C  route left PCB                           NEXT
  ↓
 4D  route right PCB excluding PMW
  ↓
@@ -552,7 +552,7 @@ Generated output should never become the only place where design intent exists.
 
 ## Current work
 
-**Task 4B — regeneration-safe routing mechanism proof.**
+**Task 4C — route the complete left PCB.**
 
 Task 3 is complete. The left/right pair now has a frozen pair-level electrical contract in `ergogen/task3/task3e-cross-board-freeze.yaml`, enforced by `scripts/validate_task3e.py`. The first Task-3E qualification run regenerated both production-intent PCBs deterministically and passed Tasks 2B/2C/2D plus 3A/3B/3C/3D before passing the cross-board integration gate.
 
