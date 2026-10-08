@@ -16,7 +16,7 @@ Routing may not silently move footprints, alter the matrix/RGB/split/PMW contrac
 
 ### Task 4A — Freeze routing rules and net classes
 
-**IN PROGRESS**
+**COMPLETE**
 
 Define the manufacturing/routing contract before adding copper.
 
@@ -40,7 +40,16 @@ Gate:
 - rules are compatible with the stock KLOR fabrication reference and selected Rev-1 fabrication envelope;
 - no routed copper is added yet.
 
+Qualification:
+
+- workflow: `KLOR Task 4A - routing rules`;
+- first passing run: `37723390423`;
+- contract: `task4a-routing-contract.yaml`;
+- validator: `../scripts/validate_task4a.py`.
+
 ### Task 4B — Prove the regeneration-safe routing mechanism
+
+**NEXT**
 
 Build the smallest useful routed slice before bulk routing.
 
