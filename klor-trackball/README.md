@@ -279,7 +279,7 @@ The generated canonical geometry numerically reproduces all intentionally preser
 
 ## Task 3 — Establish production footprints and generate the electrical PCB
 
-**Status: IN PROGRESS**
+**Status: COMPLETE**
 
 Task 3 is split into explicit electrical gates:
 
@@ -292,9 +292,9 @@ Task 3 is split into explicit electrical gates:
  ↓
 3D  right unrouted PCB + PMW Rev 6   COMPLETE
  ↓
-3E  cross-board electrical freeze    NEXT
+3E  cross-board electrical freeze    COMPLETE
  ↓
-Task 4 routing
+Task 4 routing                        NEXT
 ```
 
 The detailed subtask contract is in `ergogen/task3/README.md`.
@@ -543,8 +543,10 @@ Generated output should never become the only place where design intent exists.
 
 ## Current work
 
-**Task 3E — cross-board electrical integration and freeze.**
+**Task 4 — regeneration-safe routing pipeline.**
 
-Revision 6 is the canonical right-half baseline. It is geometrically equivalent to the previously qualified Revision 4, but now has explicit mesh-derived handedness regression checks. Tasks 2B/2C/2D/2E plus 3A/3B/3C/3D pass together. Task 3E may now freeze the left/right pair-level electrical contract.
+Task 3 is complete. The left/right pair now has a frozen pair-level electrical contract in `ergogen/task3/task3e-cross-board-freeze.yaml`, enforced by `scripts/validate_task3e.py`. The first Task-3E qualification run regenerated both production-intent PCBs deterministically and passed Tasks 2B/2C/2D plus 3A/3B/3C/3D before passing the cross-board integration gate.
+
+Revision 6 remains the canonical right-half mechanical baseline. The electrical freeze does not move the ball, housing, PMW cable header, retained switches, encoder, controller, TRRS, or mounting axes.
 
 A **physical right-half mock-up remains required before Task 4 routing is treated as production-final**. R33/SW21 is approximately **34.20 mm center-to-center** from the ball. The mock-up must validate natural thumb access through the left-side housing opening, ball motion/retention, cable behavior, fasteners, assembly path, and the **5.462 mm** local case-pod extension.
