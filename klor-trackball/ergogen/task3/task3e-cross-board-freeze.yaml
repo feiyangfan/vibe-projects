@@ -1,0 +1,126 @@
+status: task3e_frozen
+revision: 1
+
+authority:
+  geometry_freeze: ../task2/task2d-freeze.yaml
+  electrical_contract: task3a-electrical-contract.yaml
+  footprint_contract: task3b-footprints.yaml
+  left_board_contract: task3c-left-board.yaml
+  right_board_contract: task3d-right-board.yaml
+  ergogen: ../config.yaml
+
+geometry:
+  task2_revision: 6
+  right_geometry_revision: task2d_revision_6_mesh_verified_right_housing
+  ball_center_local: [15.5, -31.000147]
+  rule: task3e_may_not_change_task2_geometry
+
+pair:
+  left_mx_keys: 20
+  right_mx_keys: 19
+  total_mx_keys: 39
+  left_rgb_devices: 20
+  right_rgb_devices: 19
+  total_rgb_devices: 39
+  encoder_clicks: 2
+  total_active_matrix_positions: 41
+  controllers: 2
+  trrs_connectors: 2
+  reset_switches: 2
+
+matrix:
+  diode_direction: COL2ROW
+  rows: [ROW0, ROW1, ROW2, ROW3]
+  columns: [COL0, COL1, COL2, COL3, COL4, COL5]
+  common_switches:
+    [SW1, SW2, SW3, SW4, SW5, SW6, SW7, SW8, SW9, SW10, SW11, SW12, SW13, SW14, SW15, SW16, SW17, SW20, SW21]
+  left_only_switches: [SW22]
+  right_intentionally_absent: [SW19, SW22]
+  encoder_click:
+    row: ROW3
+    col: COL5
+    diode: D18
+
+split:
+  transport: half_duplex_serial
+  controller_gpio: GP1
+  controller_pad: 3
+  trrs:
+    pin_1: RAW_5V
+    pin_2: GND
+    pin_3: NC
+    pin_4: SPLIT_DATA
+  powered_hotplug_supported: false
+
+power:
+  split_rail: RAW_5V
+  logic_ground: GND
+  rgb_supply: RAW_5V
+  pmw_supply: V3V3
+  usb_sources_while_split_connected: 1
+
+rgb:
+  controller_gpio: GP25
+  controller_pad: 32
+  signal: RGB_DATA_5V
+  supply: RAW_5V
+  ground: GND
+  right_chain_is_left_chain_without: SW22
+
+encoders:
+  left:
+    GP28: ENCODER_A
+    GP29: ENCODER_B
+  right:
+    GP28: ENCODER_B
+    GP29: ENCODER_A
+  reason_for_right_swap: preserve_stock_qmk_right_side_direction_semantics
+
+pmw3360:
+  ownership: right_only
+  spi:
+    PMW_SCK: {gpio: GP2, controller_pad: 6}
+    PMW_MOSI: {gpio: GP3, controller_pad: 7}
+    PMW_MISO: {gpio: GP4, controller_pad: 8}
+    PMW_CS: {gpio: GP9, controller_pad: 13}
+  header_pin_order:
+    1: PMW_CS
+    2: PMW_MISO
+    3: PMW_MOSI
+    4: PMW_SCK
+    5: NC
+    6: V3V3
+    7: GND
+  motion: NC
+  mating_rule: cable_maps_breakout_pin_N_to_keyboard_pin_8_minus_N
+
+removed_rev1_hardware:
+  no_footprints_no_nets_no_gpio_ownership:
+    - OLED
+    - DRV2605L_haptic
+    - buzzer_audio
+    - PAW3204
+    - general_I2C_accessories
+    - battery_connector
+    - battery_operation
+    - hardware_power_switch
+    - tenting_puck_electrical_support
+    - full_duplex_RX
+    - alternate_layout_SW19
+
+routing:
+  left: intentionally_unrouted
+  right: intentionally_unrouted
+  owner: task4
+
+gate:
+  rerun_task2b: required
+  rerun_task2c: required
+  rerun_task2d: required
+  rerun_task3a: required
+  rerun_task3b: required
+  rerun_task3c: required
+  rerun_task3d: required
+  deterministic_pair_generation: required
+  pair_level_contract_regression: required
+  task3_complete_when_green: true
