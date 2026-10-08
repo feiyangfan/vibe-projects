@@ -332,34 +332,43 @@ Ergogen generates a complete, electrically coherent **unrouted production-intent
 
 ## Task 4 — Build a regeneration-safe routing pipeline
 
-This task determines whether the migration actually solves the maintenance problem.
+**Status: IN PROGRESS — Task 4A**
 
-Answer:
+Task 4 is split into explicit routing gates:
+
+```text
+4A  routing rules + net classes             IN PROGRESS
+ ↓
+4B  regeneration-safe routing proof         NEXT
+ ↓
+4C  route left PCB
+ ↓
+4D  route right PCB excluding PMW
+ ↓
+4E  route PMW3360 interface
+ ↓
+4F  pair-level DRC + regeneration freeze
+ ↓
+Task 5
+```
+
+The detailed subtask contract is in `ergogen/task4/README.md`.
+
+This task determines whether the migration actually solves the maintenance problem:
 
 > What happens to routing after the Ergogen configuration changes?
 
-Prefer, in order:
+The implementation preference remains:
 
 1. deterministic/generated routing where practical;
 2. replayable routing logic based on nets and geometry;
 3. constrained downstream KiCad routing only where it can survive or be reproduced after regeneration.
 
-Do not recreate the previous architecture of large scripts that search for exact KiCad UUIDs or object identities.
-
-Treat different routing classes independently where appropriate:
-
-- matrix;
-- RGB;
-- power;
-- ground planes;
-- split transport;
-- encoder;
-- PMW3360 SPI;
-- trackball connector.
+Do not recreate the retired architecture of large scripts that search for exact KiCad UUIDs or object identities.
 
 **Completion gate**
 
-Make at least one meaningful upstream geometric change, regenerate, and restore a valid routed PCB without manually rebuilding the affected routing.
+Make at least one meaningful upstream geometric change, regenerate, restore both valid routed PCBs without manually rebuilding the affected routing, pass pair-level DRC/unrouted-net checks, and preserve the frozen Task-2/Task-3 contracts.
 
 ---
 
@@ -543,7 +552,7 @@ Generated output should never become the only place where design intent exists.
 
 ## Current work
 
-**Task 4 — regeneration-safe routing pipeline.**
+**Task 4A — routing rules and net classes.**
 
 Task 3 is complete. The left/right pair now has a frozen pair-level electrical contract in `ergogen/task3/task3e-cross-board-freeze.yaml`, enforced by `scripts/validate_task3e.py`. The first Task-3E qualification run regenerated both production-intent PCBs deterministically and passed Tasks 2B/2C/2D plus 3A/3B/3C/3D before passing the cross-board integration gate.
 
