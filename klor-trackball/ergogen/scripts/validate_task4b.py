@@ -25,7 +25,7 @@ def load(path: Path):
 
 def blocks(text: str, token: str) -> list[str]:
     out = []
-    pattern = re.compile(r"\\(" + re.escape(token) + r"(?=\\s|\\))")
+    pattern = re.compile(r"\(" + re.escape(token) + r"(?=\s|\))")
     pos = 0
     while True:
         match = pattern.search(text, pos)
